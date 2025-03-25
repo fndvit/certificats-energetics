@@ -83,7 +83,7 @@ iframe {
 
 <div class="grid grid-cols-3">
   <div class="card">
-    <h2>Dashboard</h2>
+    <h2><a href="/observatori.html" >Dashboard</a></h2>
     <p>Remake del dashboard de l'ICAEN.</p>
   </div>
   <div class="card">
