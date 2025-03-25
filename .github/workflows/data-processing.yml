@@ -17,7 +17,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y curl
-          pip install pandas pyarrow
+          pip install pandas pyarrow fastparquet
 
       - name: Fetch raw data
         run: |
@@ -25,7 +25,7 @@ jobs:
           curl -o data/raw_data.csv "https://analisi.transparenciacatalunya.cat/resource/j6ii-t3w2.json?$limit=15"
 
       - name: Run data cleaning script
-        run: python scripts/clean_data.py
+        run: python scripts/data_processing.py
 
       - name: Commit and push processed data
         run: |
