@@ -1,0 +1,37 @@
+name: Data Update
+
+on:
+  workflow_dispatch:  
+  schedule:
+    - cron: '13 22 * * *'  # Runs daily at midnight
+
+jobs:
+  fetch-and-process:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl
+          pip install pandas pyarrow
+
+      - name: Fetch raw data
+        run: |
+          mkdir -p data
+          curl -o data/raw_data.csv "https://analisi.transparenciacatalunya.cat/resource/j6ii-t3w2.json?$limit=15"
+
+      - name: Run data cleaning script
+        run: python scripts/clean_data.py
+
+      - name: Commit and push processed data
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git add data/processed_data.parquet
+          git commit -m "Update processed data"
+          git push
+        continue-on-error: true  # Prevents failure if no changes have been made
