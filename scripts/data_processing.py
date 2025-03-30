@@ -148,7 +148,7 @@ def regenerateCodes(df, municipi_dict, provincies_dict):
       if dict_entry:
           return dict_entry['municipi'], dict_entry['codi_comarca'], dict_entry['comarca']
       else:
-          return None, None, None
+          return "", 0, ""
 
   df[['poblacio', 'codi_comarca', 'comarca']] = df['codi_poblacio'].map(get_values).apply(pd.Series)
 
