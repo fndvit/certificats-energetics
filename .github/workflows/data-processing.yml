@@ -22,7 +22,7 @@ jobs:
       - name: Fetch raw data
         run: |
           mkdir -p data
-          curl -o data/raw_data.csv "https://analisi.transparenciacatalunya.cat/resource/j6ii-t3w2.json?$limit=100"
+          curl -o data/raw_data.json "https://analisi.transparenciacatalunya.cat/resource/j6ii-t3w2.json?$limit=100"
 
       - name: Run data cleaning script
         run: python scripts/data_processing.py

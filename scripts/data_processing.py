@@ -200,5 +200,6 @@ def process_dataset(df, municipi_dict, provincies_dict):
     print("✅ Data cleaned and saved to", parquet_path)
     print("✅ Label mapping saved to", json_path)
 
-df = pd.read_csv("data/raw_data.csv")
+df = pd.read_json("data/raw_data.json")
+print(df.columns)
 process_dataset(df, municipi_dict, provincies_dict)
