@@ -44,7 +44,7 @@ RENAMINGS = {
       'motiu_de_la_certificacio': 'motiu',
       'eina_de_certificacio':'eina'
       };
-COLUMNS_IN_USE = ['codi_poblacio', 'codi_comarca', 'codi_provincia', 'MUNDISSEC', 'metres_cadastre', 'emissions_de_co2', 'qual_energia', 'qual_emissions', 'qual_energia', 'qual_emissions', 'data_entrada', 'motiu', 'us_edifici']
+COLUMNS_IN_USE = ['codi_poblacio', 'codi_comarca', 'codi_provincia', 'MUNDISSEC', 'metres_cadastre', 'emissions_de_co2', 'qual_energia', 'qual_emissions', 'data_entrada', 'motiu', 'us_edifici']
 SAME_MEANING_VALUES = [
       ['us_edifici', "Terciari", ['Terciario']],
       ['us_edifici', "Bloc d'habitatges", ['Bloque de viviendas']],
@@ -85,11 +85,9 @@ def generateMundissec(df):
   shapefile_path = [os.path.join(extract_path, f) for f in os.listdir(extract_path) if f.endswith(".shp")][0]
   ceccsen = gpd.read_file(shapefile_path)
 
-  geometry = [Point(xy) for xy in zip(df["longitud"], df["latitud"])]
-  mundissec_gdf = gpd.GeoDataFrame(df, geometry=geometry, crs="EPSG:4326") # Convert to GeoDataFrame
-
-  # Reproject df to match the shapefile (EPSG:25831)
-  mundissec_gdf = mundissec_gdf.to_crs(epsg=25831)
+  # Convert to GeoDataFrame
+  geometry = [Point(xy) for xy in zip(df["utm_x"], df["utm_y"])]
+  mundissec_gdf = gpd.GeoDataFrame(df, geometry=geometry, crs="EPSG:25831")
 
   # Perform spatial join
   full_df_mundissec = gpd.sjoin(mundissec_gdf, ceccsen, how="left", predicate="within")
@@ -201,5 +199,5 @@ def process_dataset(df, municipi_dict, provincies_dict):
     print("✅ Label mapping saved to", json_path)
 
 df = pd.read_json("data/raw_data.json")
-print(df.columns)
+print(df.head())
 process_dataset(df, municipi_dict, provincies_dict)

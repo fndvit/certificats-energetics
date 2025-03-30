@@ -17,12 +17,10 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y curl
-          pip install pandas pyarrow fastparquet geopandas shapely scikit-learn
+          pip install pandas pyarrow fastparquet geopandas shapely scikit-learn requests
 
       - name: Fetch raw data
-        run: |
-          mkdir -p data
-          curl -o data/raw_data.json "https://analisi.transparenciacatalunya.cat/resource/j6ii-t3w2.json?$limit=100"
+        run: python scripts/data_fetching.py
 
       - name: Run data cleaning script
         run: python scripts/data_processing.py
@@ -31,7 +29,7 @@ jobs:
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
-          git add data/processed_data.parquet
+          git add data/certificats.parquet
           git commit -m "Update processed data"
           git push
         continue-on-error: true  # Prevents failure if no changes have been made
