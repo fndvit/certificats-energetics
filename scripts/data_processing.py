@@ -67,6 +67,8 @@ SAME_MEANING_VALUES = [
   ]
 CATEGORICAL_COLUMNS_TO_ENCODE = ['eina', 'motiu', 'us_edifici']
 #endregion
+def deleteNAs(df):
+    return df.dropna(subset=['utm_x', 'utm_y'])
 
 def generateMundissec(df):
   print("Generating MUNDISSEC...")
@@ -148,7 +150,7 @@ def regenerateCodes(df, municipi_dict, provincies_dict):
       if dict_entry:
           return dict_entry['municipi'], dict_entry['codi_comarca'], dict_entry['comarca']
       else:
-          return "", 0, ""
+          return None, None, None
 
   df[['poblacio', 'codi_comarca', 'comarca']] = df['codi_poblacio'].map(get_values).apply(pd.Series)
 
@@ -175,13 +177,14 @@ def encode_categorical_columns(df, categorical_columns):
 
 def process_dataset(df, municipi_dict, provincies_dict):
     clean_df = (
-        df.pipe(generateMundissec)
+        df.pipe(deleteNAs)
+          .pipe(generateMundissec)
           .pipe(renameColumns, RENAMINGS)
           .pipe(reduceColumns, COLUMNS_IN_USE)
           .pipe(castColumns)
+          .pipe(regenerateCodes, municipi_dict, provincies_dict)
           .pipe(groupSameMeaningValues, SAME_MEANING_VALUES)
           .pipe(removeOutliers)
-          .pipe(regenerateCodes, municipi_dict, provincies_dict)
     )
 
     reduced_dataset, label_mapping = encode_categorical_columns(clean_df, CATEGORICAL_COLUMNS_TO_ENCODE)
