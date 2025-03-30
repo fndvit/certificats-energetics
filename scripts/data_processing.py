@@ -8,15 +8,6 @@ from shapely.geometry import Point
 from sklearn.preprocessing import LabelEncoder
 
 #region **** Dictionaries ****
-
-# Províncies dictionary
-provincies_dict = {
-    8: 'Barcelona',
-    17: 'Girona',
-    25: 'Lleida',
-    43: 'Tarragona',
-}
-
 # Municipis dictionary
 comarques_file = pd.read_csv("data/comarques.csv")
 
@@ -141,21 +132,21 @@ def removeOutliers(df):
 
   return df
 
-def regenerateCodes(df, municipi_dict, provincies_dict):
+def regenerateCodes(df, municipi_dict):
   print("Regenerating codes...")
+  df['MUNDISSEC'] = pd.to_numeric(df['MUNDISSEC'], errors='coerce').fillna(0).astype('Int64')
   df['codi_poblacio'] = df['MUNDISSEC'] // 100000
 
-  def get_values(codi):
-      dict_entry = municipi_dict.get(codi)
+  def get_comarca(codi_poblacio):
+      dict_entry = municipi_dict.get(codi_poblacio)
       if dict_entry:
-          return dict_entry['municipi'], dict_entry['codi_comarca'], dict_entry['comarca']
+          return dict_entry['codi_comarca']
       else:
-          return None, None, None
+          return 0
 
-  df[['poblacio', 'codi_comarca', 'comarca']] = df['codi_poblacio'].map(get_values).apply(pd.Series)
+  df['codi_comarca'] = df['codi_poblacio'].map(get_comarca).apply(pd.Series)
 
   df['codi_provincia'] = df['codi_poblacio'] // 10000
-  df['nom_provincia'] = df['codi_provincia'].map(provincies_dict)
 
   return df
 
@@ -175,14 +166,14 @@ def encode_categorical_columns(df, categorical_columns):
   return df, label_mapping
 #endregion ****
 
-def process_dataset(df, municipi_dict, provincies_dict):
+def process_dataset(df, municipi_dict):
     clean_df = (
         df.pipe(deleteNAs)
           .pipe(generateMundissec)
           .pipe(renameColumns, RENAMINGS)
           .pipe(reduceColumns, COLUMNS_IN_USE)
           .pipe(castColumns)
-          .pipe(regenerateCodes, municipi_dict, provincies_dict)
+          .pipe(regenerateCodes, municipi_dict)
           .pipe(groupSameMeaningValues, SAME_MEANING_VALUES)
           .pipe(removeOutliers)
     )
@@ -204,4 +195,4 @@ def process_dataset(df, municipi_dict, provincies_dict):
     print("✅ Label mapping saved to", json_path)
 
 df = pd.read_json("data/raw_data.json")
-process_dataset(df, municipi_dict, provincies_dict)
+process_dataset(df, municipi_dict)
