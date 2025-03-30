@@ -3,7 +3,7 @@ name: Data Update
 on:
   workflow_dispatch:  
   schedule:
-    - cron: '13 22 * * *'  # Runs daily at midnight
+    - cron: '0 0 * * 0'  # Runs sundays at midnight
 
 jobs:
   fetch-and-process:
@@ -17,12 +17,12 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y curl
-          pip install pandas pyarrow fastparquet
+          pip install pandas pyarrow fastparquet geopandas shapely scikit-learn
 
       - name: Fetch raw data
         run: |
           mkdir -p data
-          curl -o data/raw_data.csv "https://analisi.transparenciacatalunya.cat/resource/j6ii-t3w2.json?$limit=15"
+          curl -o data/raw_data.csv "https://analisi.transparenciacatalunya.cat/resource/j6ii-t3w2.json?$limit=100"
 
       - name: Run data cleaning script
         run: python scripts/data_processing.py
