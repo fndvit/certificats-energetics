@@ -111,10 +111,12 @@ def reduceColumns(df, columns):
 def castColumns(df):
     print("Casting the columns to their correct type...")
     df = df.copy()
-    df.loc[:, 'codi_provincia'] = pd.to_numeric(df['codi_provincia'], errors='coerce').astype('Int64')
-    df.loc[:, 'codi_poblacio'] = pd.to_numeric(df['codi_poblacio'], errors='coerce').astype('Int64')
-    df.loc[:, 'codi_comarca'] = pd.to_numeric(df['codi_comarca'], errors='coerce').astype('Int64')
-    df.loc[:, 'MUNDISSEC'] = pd.to_numeric(df['MUNDISSEC'], errors='coerce').astype('Int64')
+    
+    columns = ['codi_provincia', 'codi_poblacio', 'codi_comarca', 'MUNDISSEC']
+    
+    for col in columns:
+        df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0).astype('Int64')
+    
     return df
 
 def groupSameMeaningValues(df, same_meaning_values):
@@ -199,5 +201,4 @@ def process_dataset(df, municipi_dict, provincies_dict):
     print("✅ Label mapping saved to", json_path)
 
 df = pd.read_json("data/raw_data.json")
-print(df.head())
 process_dataset(df, municipi_dict, provincies_dict)
