@@ -2,7 +2,7 @@ import requests
 import json
 
 url = "https://analisi.transparenciacatalunya.cat/resource/j6ii-t3w2.json"
-params = {"$limit": 100}
+params = {"$limit": 1400000}
 
 response = requests.get(url, params=params)
 
