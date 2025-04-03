@@ -105,12 +105,17 @@ def castColumns(df):
     print("Casting the columns to their correct type...")
     df = df.copy()
     
-    columns = ['codi_provincia', 'codi_poblacio', 'codi_comarca', 'MUNDISSEC']
+    intColumns = ['codi_provincia', 'codi_poblacio', 'codi_comarca', 'MUNDISSEC']
     
-    for col in columns:
+    for col in intColumns:
         df[col] = pd.to_numeric(df[col], errors="coerce")
         df = df.dropna(subset=[col])
         df[col] = df[col].astype("Int64")
+
+    df['data_entrada'] = pd.to_datetime(df['data_entrada'], errors='coerce')
+    df = df.dropna(subset=['data_entrada'])
+
+    print(df.dtypes)
     
     return df
 
