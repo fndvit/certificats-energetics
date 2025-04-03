@@ -108,7 +108,9 @@ def castColumns(df):
     columns = ['codi_provincia', 'codi_poblacio', 'codi_comarca', 'MUNDISSEC']
     
     for col in columns:
-        df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0).astype('Int64')
+        df[col] = pd.to_numeric(df[col], errors="coerce")
+        df = df.dropna(subset=[col])
+        df[col] = df[col].astype("Int64")
     
     return df
 
@@ -180,7 +182,7 @@ def process_dataset(df, municipi_dict):
 
     reduced_dataset, label_mapping = encode_categorical_columns(clean_df, CATEGORICAL_COLUMNS_TO_ENCODE)
 
-    data_dir = "data"
+    data_dir = "src/data"
     parquet_path = os.path.join(data_dir, "certificats.parquet")
     json_path = os.path.join(data_dir, "labels.json")
     
