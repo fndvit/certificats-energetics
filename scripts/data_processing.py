@@ -59,7 +59,7 @@ SAME_MEANING_VALUES = [
 CATEGORICAL_COLUMNS_TO_ENCODE = ['eina', 'motiu', 'us_edifici']
 #endregion
 def deleteNAs(df):
-    return df.dropna(subset=['utm_x', 'utm_y'])
+    return df.dropna(subset=['utm_x', 'utm_y', 'data_entrada'])
 
 def generateMundissec(df):
   print("Generating MUNDISSEC...")
@@ -113,8 +113,6 @@ def castColumns(df):
         df[col] = df[col].astype("Int64")
 
     df['data_entrada'] = pd.to_datetime(df['data_entrada'], errors='coerce')
-    df = df.dropna(subset=['data_entrada'])
-
     print(df.dtypes)
     
     return df
