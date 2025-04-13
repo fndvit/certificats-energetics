@@ -1,62 +1,47 @@
----
+<!-- ---
 sql:
   certificats: ./data/certificats.parquet
----
+--- -->
 
-```sql id=qualEmissions
-SELECT qual_emissions 
-FROM certificats                                
+<!-- Client -->
+```js
+import { DBClient } from "./db/client.js";
+const client = await DBClient.create();
+```
+
+<!-- Data -->
+```js
+const certificatesByYear = await client.getCertificatesByYear();
 ```
 
 ```js
-const selectedField = 'qual_emissions';
-const hist_query = `SELECT data_entrada, ${selectedField} FROM certificats WHERE ${selectedField} IS NOT NULL`;
-const [result_hist] = await sql(hist_query);
-console.log(result_hist);
+const qualifications = await client.getQualifications(qualType);
+const qualificationsArray = await qualifications.toArray();
 ```
 
-```sql id=hist
-SELECT data_entrada, ${selectedField}
-FROM certificats
-WHERE ${selectedField} IS NOT null             
+<!-- Plots -->
+```js
+import { qualifColorLookup } from "./components/colors.js";
 ```
 
-```sql id=certificatesByYear
-SELECT
-    EXTRACT(YEAR FROM data_entrada) AS year,
-    qual_emissions,
-    COUNT(*) AS n_cert
-FROM certificats
-WHERE data_entrada < DATE '2025-01-01' AND qual_emissions IS NOT null
-GROUP BY EXTRACT(YEAR FROM data_entrada), qual_emissions
-ORDER BY n_cert DESC;
+<!-- ```js
+const hist_energia = await sql`SELECT data_entrada, qual_energia FROM certificats WHERE qual_energia is NOT NULL`;
+const hist_emissions = await sql`SELECT data_entrada, qual_emissions FROM certificats WHERE qual_emissions is NOT NULL`;
+``` -->
+
+# Observatori
+
+```js
+const qualColumn = qualType ? "qual_emissions" : "qual_energia";
+console.log(qualColumn)
 ```
 
 ```js
-const qualifColorLookup = ({
-  A: "#3b7634",
-  B: "#5ea336",
-  C: "#a2cf2a",
-  D: "#f7df1b",
-  E: "#f18f20",
-  F: "#eb422bff",
-  G: "#ea2038"
-});
-
-const qualifColorScheme = [
-  "#3b7634",
-  "#5ea336",
-  "#a2cf2a",
-  "#f7df1b",
-  "#f18f20",
-  "#eb422bff",
-  "#ea2038"
-];
+const qualType = view(Inputs.radio(
+  new Map([["Emissions", true], ["Energia", false]]),
+  { value: true, label: "Tipus de qualificació", format: ([name]) => name }
+));
 ```
-
-<div>
-  <h1>Observatori</h1>
-</div>
 
 ${Plot.plot({
   marginBottom: 100,
@@ -67,10 +52,10 @@ ${Plot.plot({
   x: { grid: true },
   marks: [
     Plot.barX(
-      qualEmissions,
+      qualificationsArray,
       Plot.groupY(
         { x: "count" },
-        { y: "qual_emissions", fill: "qual_emissions" }
+        { y: qualColumn, fill:  qualColumn }
       )
     )
   ]
@@ -100,5 +85,3 @@ ${
   ]
 })
 }
-
-
