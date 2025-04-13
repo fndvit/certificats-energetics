@@ -1,45 +1,27 @@
-<!-- ---
-sql:
-  certificats: ./data/certificats.parquet
---- -->
-
 <!-- Client -->
 ```js
 import { DBClient } from "./db/client.js";
 const client = await DBClient.create();
 ```
 
-<!-- Data -->
-```js
-const certificatesByYear = await client.getCertificatesByYear();
-```
-
-```js
-const qualifications = await client.getQualifications(qualType);
-const qualificationsArray = await qualifications.toArray();
-```
-
-<!-- Plots -->
+<!-- Components -->
 ```js
 import { qualifColorLookup } from "./components/colors.js";
 ```
 
-<!-- ```js
-const hist_energia = await sql`SELECT data_entrada, qual_energia FROM certificats WHERE qual_energia is NOT NULL`;
-const hist_emissions = await sql`SELECT data_entrada, qual_emissions FROM certificats WHERE qual_emissions is NOT NULL`;
-``` -->
+
+<!-- Aggregated Data -->
+```js
+const certificatesByYear = await client.getCertificatesByYear();
+const qualificationCounts = await(await client.getQualificationCounts()).toArray();
+```
 
 # Observatori
 
 ```js
-const qualColumn = qualType ? "qual_emissions" : "qual_energia";
-console.log(qualColumn)
-```
-
-```js
-const qualType = view(Inputs.radio(
-  new Map([["Emissions", true], ["Energia", false]]),
-  { value: true, label: "Tipus de qualificació", format: ([name]) => name }
+const qualTypeName = view(Inputs.radio(
+  new Map([["Emissions", "emissions"], ["Energia", "energia"]]),
+  { value: "emissions", label: "Tipus de qualificació", format: ([name]) => name }
 ));
 ```
 
@@ -52,14 +34,17 @@ ${Plot.plot({
   x: { grid: true },
   marks: [
     Plot.barX(
-      qualificationsArray,
-      Plot.groupY(
-        { x: "count" },
-        { y: qualColumn, fill:  qualColumn }
-      )
+      qualificationCounts.filter(d => d.type === qualTypeName),
+      {
+        x: "count",
+        y: "qual",
+        fill: "qual"
+      }
     )
   ]
 })}
+
+
 
 ${
   Plot.plot({

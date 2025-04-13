@@ -1,22 +1,36 @@
 import { DuckDBClient } from "npm:@observablehq/duckdb";
 import { FileAttachment } from "observablehq:stdlib";
+import * as vgplot from "npm:@uwdata/vgplot";
 
 export class DBClient {
-  constructor(db) {
+  constructor(db, vg) {
     this.db = db;
+    this.vg = vg;
   }
 
   static async create() {
     const db = await DuckDBClient.of({
       certificats: FileAttachment("../data/certificats.parquet")
     });
-  
-    return new DBClient(db);
+
+    const coordinator = new vgplot.Coordinator().databaseConnector(vgplot.wasmConnector({duckdb: db._db}));
+    const vg = vgplot.createAPIContext({coordinator});
+
+    return new DBClient(db, vg);
   }
 
-  async getQualifications(isEmissions) {
-    const column = isEmissions ? 'qual_emissions' : 'qual_energia';
-    const query = `SELECT ${column} FROM certificats WHERE ${column} IS NOT NULL`;
+  async getQualificationCounts() {
+    const query = `
+      SELECT qual_emissions AS qual, 'emissions' AS type, COUNT(*) AS count
+      FROM certificats
+      WHERE qual_emissions IS NOT NULL
+      GROUP BY qual_emissions
+      UNION ALL
+      SELECT qual_energia AS qual, 'energia' AS type, COUNT(*) AS count
+      FROM certificats
+      WHERE qual_energia IS NOT NULL
+      GROUP BY qual_energia
+    `;
     return await this.db.query(query);
   }
 
