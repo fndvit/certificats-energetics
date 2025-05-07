@@ -48,14 +48,5 @@ export class DBClient {
     `;
     return await this.db.query(query);
   }
-
-  // setupVGPlot() { ... }
 }
-
-// import * as vgplot from "npm:@uwdata/vgplot";
-// const vgCoordinator = new vgplot.Coordinator();
-// vgCoordinator.databaseConnector(vgplot.wasmConnector({duckdb: db._db}));
-
-// const sql = db.sql.bind(db);
-// const vg = vgplot.createAPIContext({coordinator: vgCoordinator});
 
