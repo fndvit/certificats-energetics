@@ -1,5 +1,6 @@
-<!-- Client -->
+<!-- Second Client -->
 ```js
+import * as vgplot from "npm:@uwdata/vgplot";
 import { DBClient } from "./db/client.js";
 const client = await DBClient.create();
 ```
