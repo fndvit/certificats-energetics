@@ -113,7 +113,7 @@ def castColumns(df):
         df[col] = df[col].astype("Int64")
 
     df['data_entrada'] = pd.to_datetime(df['data_entrada'], errors='coerce')
-    print(df.dtypes)
+    df['data_entrada'] = df['data_entrada'].apply(pd.offsets.MonthBegin().rollback)
     
     return df
 
