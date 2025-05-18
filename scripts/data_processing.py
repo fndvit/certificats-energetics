@@ -35,7 +35,7 @@ RENAMINGS = {
       'motiu_de_la_certificacio': 'motiu',
       'eina_de_certificacio':'eina'
       };
-COLUMNS_IN_USE = ['codi_poblacio', 'codi_comarca', 'codi_provincia', 'MUNDISSEC', 'metres_cadastre', 'emissions_de_co2', 'qual_energia', 'qual_emissions', 'data_entrada', 'motiu', 'us_edifici']
+COLUMNS_IN_USE = ['codi_poblacio', 'codi_comarca', 'codi_provincia', 'MUNDISSEC', 'metres_cadastre', 'emissions_de_co2', 'qual_energia', 'qual_emissions', 'data_entrada', 'motiu', 'us_edifici', 'zona_climatica']
 SAME_MEANING_VALUES = [
       ['us_edifici', "Terciari", ['Terciario']],
       ['us_edifici', "Bloc d'habitatges", ['Bloque de viviendas']],
