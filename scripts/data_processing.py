@@ -54,9 +54,6 @@ SAME_MEANING_VALUES = [
   ['motiu', 'Certificació voluntària', ['Certificación voluntaria',
     'Certificació voluntaria'
   ]],
-  ['motiu', "Informe d'avaluació de l'Edifici (IEE)", [
-    'Informe de evaluación del Edificio (IEE)'
-  ]],
   ['motiu',
     "Altres (cap de les anteriores opcions)",
     ['Otros (ninguna de las anteriores opciones)',
@@ -80,7 +77,9 @@ SAME_MEANING_VALUES = [
       "Edificis o parts d’edificis (+500 m2) amb ús administratiu, sanitari, comercial, docent, restauració",
       'Edificis o parts d¿edificis (+500 m2) amb ús administratiu, sanitari, comercial, docent, restauració',
       'Edificios o partes de edificios (+500 m2) de uso administrativo, sanitario, comercial, docente, restauración...',
-      "Edificis o parts d'edificis (+500 m2) amb ús administratiu, sanitari, comercial, docent, restauració"
+      "Edificis o parts d'edificis (+500 m2) amb ús administratiu, sanitari, comercial, docent, restauració",
+      "Informe d'avaluació de l'Edifici (IEE)",
+      'Informe de evaluación del Edificio (IEE)'
     ]
   ],
 ]
