@@ -3,6 +3,10 @@ title: Mosaic test
 ---
 
 ```js
+const labels = FileAttachment("./data/labels.json").json();
+```
+
+```js
 import { qualifColorLookup } from './components/colors.js';
 ```
 
@@ -32,6 +36,7 @@ const $all = vg.Selection.intersect({include: [$us, $motiu, $qual, $range], cros
 
 ```js
 vg.vconcat(
+  // --------------- Timechart --------------- 
   vg.plot(
     vg.width(1200),
     vg.height(150),
@@ -72,8 +77,8 @@ vg.vconcat(
     vg.xLabel(null),
     vg.yTickSize(0),
   ),
+  // --------------- Energy Qualifications --------------- 
   vg.plot(
-    vg.width(1200),
     vg.barX(
       vg.from("certificats"), {
         y: "qual_emissions",
@@ -94,6 +99,7 @@ vg.vconcat(
         inset: 0.5
       }
     ),
+    vg.colorDomain(Object.keys(qualifColorLookup)),
     vg.colorRange(Object.values(qualifColorLookup)),
     vg.yLabel("Qualificació emissions →"),
     vg.highlight({
@@ -103,7 +109,7 @@ vg.vconcat(
       as: $qual
     }),
   ),
-  vg.hconcat(
+    // --------------- Us edificis --------------- 
     vg.plot(
       vg.barX(
         vg.from("certificats"), {
@@ -124,6 +130,7 @@ vg.vconcat(
           x: vg.count(),
           y: "us_edifici",
           inset: 0.5,
+          fill: "us_edifici",
           sort: {
             y: "-x"
           }
@@ -135,8 +142,12 @@ vg.vconcat(
       vg.highlight({
         by: $us
       }),
-      vg.yLabel("Ús edificio →"),
+      vg.marginLeft(200),
+      vg.yLabel("Ús edifici →"),
+      vg.yTickFormat((d) => labels.us_edifici[d]),
+      vg.colorScheme("observable10")
     ),
+    // --------------- Motiu certificació --------------- 
     vg.plot(
       vg.barX(
         vg.from("certificats"), {
@@ -157,6 +168,7 @@ vg.vconcat(
           x: vg.count(),
           y: "motiu",
           inset: 0.5,
+          fill: "motiu",
           sort: {
             y: "-x"
           }
@@ -168,12 +180,10 @@ vg.vconcat(
       vg.highlight({
         by: $motiu
       }),
+      vg.marginLeft(180),
       vg.yLabel("Motiu →"),
+      vg.colorScheme("observable10"),
+      vg.yTickFormat((d) => labels.motiu[d])
     ),
-  )
 )
-```
-
-```js
-
 ```
