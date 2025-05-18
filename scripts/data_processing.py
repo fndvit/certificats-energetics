@@ -37,25 +37,53 @@ RENAMINGS = {
       };
 COLUMNS_IN_USE = ['codi_poblacio', 'codi_comarca', 'codi_provincia', 'MUNDISSEC', 'metres_cadastre', 'emissions_de_co2', 'qual_energia', 'qual_emissions', 'data_entrada', 'motiu', 'us_edifici', 'zona_climatica']
 SAME_MEANING_VALUES = [
-      ['us_edifici', "Terciari", ['Terciario']],
-      ['us_edifici', "Bloc d'habitatges", ['Bloque de viviendas']],
-      ['us_edifici', "Bloc d'habitatges plurifamiliar", ['Bloque de viviendas plurifamiliar']],
-      ['us_edifici', 'Habitatge unifamiliar', ['Vivienda unifamiliar', 'Habitatge Unifamiliar']],
-      ['us_edifici', "Habitatge individual en bloc d'habitatges", ['Vivienda individual en bloque de viviendas']],
-      ['motiu', 'Lloguer', ['Alquiler']],
-      ['motiu', "Sol·licitud d'ajuts", ['Solicitud de ayudas']],
-      ['motiu', 'Compravenda', ['Compra o Venda', 'Compra o Venta']],
-      ['motiu', 'Certificació voluntària', ['Certificación voluntaria', 'Certificació voluntaria']],
-      ['motiu', "Informe d'avaluació de l'Edifici (IEE)", ['Informe de evaluación del Edificio (IEE)']],
-      ['motiu', "Altres (cap de les anteriores opcions)", ['Otros (ninguna de las anteriores opciones)']],
-      ['motiu', "Nova construcció o gran rehabilitació", ['Nova construcció', 'Nueva construcción', 'Nueva construcción  o gran rehabilitación']],
-      ['motiu', "Nova construcció - ampliació amb entitat jurídica independent", ['Nueva construcción - ampliación con entidad jurídica independiente']],
-      ['motiu', "Renovació (en cas de caducitat de l'antic certificat energètic)", ['Renovación (en caso de caducidad del antiguo certificado energético)']],
-      ['motiu', "Edifici existent de l’administració pública", ['Edifici existent de l¿administració pública', 'Edificio existente de la administración pública']],
-      ['motiu', "Edificis o parts d’edificis on es realitzin reformes o ampliacions", ['Edificis o parts d¿edificis on es realitzin reformes o ampliacions', 'Edificios o partes de edificis en los que se realicen reformas o ampliaciones']],
-      ['motiu', "Complement a informe d’avaluació de l’edifici (IEE) o a inspecció tècnica de l’edifici (ITE)", ['Complement a informe d¿avaluació de l¿edifici (IEE) o a inspecció tècnica de l¿edifici (ITE)', 'Complemento al informe de evaluación del edificio (IEE) o a inspección técnica del edificio (ITE)', 'Complement a informe davaluació de l’edifici (IEE) o a inspecció tècnica de l’edifici (ITE)']],
-      ['motiu', "Edificis o parts d’edificis (+500 m2) amb ús administratiu, sanitari, comercial, docent, restauració", ['Edificis o parts d¿edificis (+500 m2) amb ús administratiu, sanitari, comercial, docent, restauració', 'Edificios o partes de edificios (+500 m2) de uso administrativo, sanitario, comercial, docente, restauración...', "Edificis o parts d'edificis (+500 m2) amb ús administratiu, sanitari, comercial, docent, restauració"]],
-  ]
+  ['us_edifici', "Terciari", ['Terciario']],
+  ['us_edifici', "Bloc d'habitatges", ['Bloque de viviendas']],
+  ['us_edifici', "Bloc d'habitatges plurifamiliar", [
+    'Bloque de viviendas plurifamiliar'
+  ]],
+  ['us_edifici', 'Habitatge unifamiliar', ['Vivienda unifamiliar',
+    'Habitatge Unifamiliar'
+  ]],
+  ['us_edifici', "Habitatge individual en bloc d'habitatges", [
+    'Vivienda individual en bloque de viviendas'
+  ]],
+  ['motiu', 'Lloguer', ['Alquiler']],
+  ['motiu', "Sol·licitud d'ajuts", ['Solicitud de ayudas']],
+  ['motiu', 'Compravenda', ['Compra o Venda', 'Compra o Venta']],
+  ['motiu', 'Certificació voluntària', ['Certificación voluntaria',
+    'Certificació voluntaria'
+  ]],
+  ['motiu', "Informe d'avaluació de l'Edifici (IEE)", [
+    'Informe de evaluación del Edificio (IEE)'
+  ]],
+  ['motiu',
+    "Altres (cap de les anteriores opcions)",
+    ['Otros (ninguna de las anteriores opciones)',
+      'Nova construcció o gran rehabilitació', 'Nova construcció',
+      'Nueva construcción',
+      'Nueva construcción  o gran rehabilitación',
+      'Nova construcció - ampliació amb entitat jurídica independent',
+      'Nueva construcción - ampliación con entidad jurídica independiente',
+      "Renovació (en cas de caducitat de l'antic certificat energètic)",
+      'Renovación (en caso de caducidad del antiguo certificado energético)',
+      "Edifici existent de l’administració pública",
+      'Edifici existent de l¿administració pública',
+      'Edificio existente de la administración pública',
+      "Edificis o parts d’edificis on es realitzin reformes o ampliacions",
+      'Edificis o parts d¿edificis on es realitzin reformes o ampliacions',
+      'Edificios o partes de edificis en los que se realicen reformas o ampliaciones',
+      "Complement a informe d’avaluació de l’edifici (IEE) o a inspecció tècnica de l’edifici (ITE)",
+      'Complement a informe d¿avaluació de l¿edifici (IEE) o a inspecció tècnica de l¿edifici (ITE)',
+      'Complemento al informe de evaluación del edificio (IEE) o a inspección técnica del edificio (ITE)',
+      'Complement a informe davaluació de l’edifici (IEE) o a inspecció tècnica de l’edifici (ITE)',
+      "Edificis o parts d’edificis (+500 m2) amb ús administratiu, sanitari, comercial, docent, restauració",
+      'Edificis o parts d¿edificis (+500 m2) amb ús administratiu, sanitari, comercial, docent, restauració',
+      'Edificios o partes de edificios (+500 m2) de uso administrativo, sanitario, comercial, docente, restauración...',
+      "Edificis o parts d'edificis (+500 m2) amb ús administratiu, sanitari, comercial, docent, restauració"
+    ]
+  ],
+]
 CATEGORICAL_COLUMNS_TO_ENCODE = ['eina', 'motiu', 'us_edifici']
 #endregion
 def deleteNAs(df):
