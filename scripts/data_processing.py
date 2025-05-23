@@ -84,6 +84,15 @@ SAME_MEANING_VALUES = [
   ],
 ]
 CATEGORICAL_COLUMNS_TO_ENCODE = ['eina', 'motiu', 'us_edifici']
+QUALIFICATIONS_NUMERICAL_EQUIVALENCE = {
+   'A': 1,
+   'B': 2,
+   'C': 3,
+   'D': 4,
+   'E': 5,
+   'F': 6,
+   'G': 7,
+}
 #endregion
 def deleteNAs(df):
     return df.dropna(subset=['utm_x', 'utm_y', 'data_entrada'])
@@ -141,6 +150,9 @@ def castColumns(df):
 
     df['data_entrada'] = pd.to_datetime(df['data_entrada'], errors='coerce')
     df['data_entrada'] = df['data_entrada'].apply(pd.offsets.MonthBegin().rollback)
+
+    df['qual_emissions'] = df['qual_emissions'].map(QUALIFICATIONS_NUMERICAL_EQUIVALENCE)
+    df['qual_energia'] = df['qual_energia'].map(QUALIFICATIONS_NUMERICAL_EQUIVALENCE)
     
     return df
 
