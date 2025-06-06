@@ -1,3 +1,4 @@
+import pandas as pd
 import requests
 import json
 import time
@@ -41,7 +42,8 @@ def fetch_all_municipis():
     return poblacions
 
 data = fetch_all_municipis()
-with open("src/data/municipis.json", "w", encoding="utf-8") as f:
-    json.dump(data, f, ensure_ascii=False, indent=2)
+
+df = pd.DataFrame(data)
+df.to_parquet("src/data/municipis.parquet", engine="fastparquet", compression="GZIP")
 
 print(f"Saved municipis file")

@@ -1,4737 +1,4737 @@
 [
   {
     "nom": "Abrera",
-    "codi": "080018",
-    "poblacio": "13014"
+    "codi": 80018,
+    "poblacio": 13014
   },
   {
     "nom": "Aguilar de Segarra",
-    "codi": "080023",
-    "poblacio": "291"
+    "codi": 80023,
+    "poblacio": 291
   },
   {
     "nom": "Alella",
-    "codi": "080039",
-    "poblacio": "10217"
+    "codi": 80039,
+    "poblacio": 10217
   },
   {
     "nom": "Alpens",
-    "codi": "080044",
-    "poblacio": "270"
+    "codi": 80044,
+    "poblacio": 270
   },
   {
     "nom": "Ametlla del Vallès, l'",
-    "codi": "080057",
-    "poblacio": "9462"
+    "codi": 80057,
+    "poblacio": 9462
   },
   {
     "nom": "Arenys de Mar",
-    "codi": "080060",
-    "poblacio": "16642"
+    "codi": 80060,
+    "poblacio": 16642
   },
   {
     "nom": "Arenys de Munt",
-    "codi": "080076",
-    "poblacio": "9458"
+    "codi": 80076,
+    "poblacio": 9458
   },
   {
     "nom": "Argençola",
-    "codi": "080082",
-    "poblacio": "237"
+    "codi": 80082,
+    "poblacio": 237
   },
   {
     "nom": "Argentona",
-    "codi": "080095",
-    "poblacio": "12844"
+    "codi": 80095,
+    "poblacio": 12844
   },
   {
     "nom": "Artés",
-    "codi": "080109",
-    "poblacio": "6084"
+    "codi": 80109,
+    "poblacio": 6084
   },
   {
     "nom": "Avià",
-    "codi": "080116",
-    "poblacio": "2243"
+    "codi": 80116,
+    "poblacio": 2243
   },
   {
     "nom": "Avinyó",
-    "codi": "080121",
-    "poblacio": "2313"
+    "codi": 80121,
+    "poblacio": 2313
   },
   {
     "nom": "Avinyonet del Penedès",
-    "codi": "080137",
-    "poblacio": "1744"
+    "codi": 80137,
+    "poblacio": 1744
   },
   {
     "nom": "Aiguafreda",
-    "codi": "080142",
-    "poblacio": "2576"
+    "codi": 80142,
+    "poblacio": 2576
   },
   {
     "nom": "Badalona",
-    "codi": "080155",
-    "poblacio": "227083"
+    "codi": 80155,
+    "poblacio": 227083
   },
   {
     "nom": "Bagà",
-    "codi": "080168",
-    "poblacio": "2182"
+    "codi": 80168,
+    "poblacio": 2182
   },
   {
     "nom": "Balenyà",
-    "codi": "080174",
-    "poblacio": "4036"
+    "codi": 80174,
+    "poblacio": 4036
   },
   {
     "nom": "Balsareny",
-    "codi": "080180",
-    "poblacio": "3328"
+    "codi": 80180,
+    "poblacio": 3328
   },
   {
     "nom": "Barcelona",
-    "codi": "080193",
-    "poblacio": "1702547"
+    "codi": 80193,
+    "poblacio": 1702547
   },
   {
     "nom": "Begues",
-    "codi": "080207",
-    "poblacio": "7462"
+    "codi": 80207,
+    "poblacio": 7462
   },
   {
     "nom": "Bellprat",
-    "codi": "080214",
-    "poblacio": "69"
+    "codi": 80214,
+    "poblacio": 69
   },
   {
     "nom": "Berga",
-    "codi": "080229",
-    "poblacio": "17160"
+    "codi": 80229,
+    "poblacio": 17160
   },
   {
     "nom": "Bigues i Riells del Fai",
-    "codi": "080235",
-    "poblacio": "10036"
+    "codi": 80235,
+    "poblacio": 10036
   },
   {
     "nom": "Borredà",
-    "codi": "080240",
-    "poblacio": "419"
+    "codi": 80240,
+    "poblacio": 419
   },
   {
     "nom": "Bruc, el",
-    "codi": "080253",
-    "poblacio": "2288"
+    "codi": 80253,
+    "poblacio": 2288
   },
   {
     "nom": "Brull, el",
-    "codi": "080266",
-    "poblacio": "293"
+    "codi": 80266,
+    "poblacio": 293
   },
   {
     "nom": "Cabanyes, les",
-    "codi": "080272",
-    "poblacio": "1012"
+    "codi": 80272,
+    "poblacio": 1012
   },
   {
     "nom": "Cabrera d'Anoia",
-    "codi": "080288",
-    "poblacio": "1709"
+    "codi": 80288,
+    "poblacio": 1709
   },
   {
     "nom": "Cabrera de Mar",
-    "codi": "080291",
-    "poblacio": "5018"
+    "codi": 80291,
+    "poblacio": 5018
   },
   {
     "nom": "Cabrils",
-    "codi": "080305",
-    "poblacio": "7767"
+    "codi": 80305,
+    "poblacio": 7767
   },
   {
     "nom": "Calaf",
-    "codi": "080312",
-    "poblacio": "3618"
+    "codi": 80312,
+    "poblacio": 3618
   },
   {
     "nom": "Caldes d'Estrac",
-    "codi": "080327",
-    "poblacio": "3259"
+    "codi": 80327,
+    "poblacio": 3259
   },
   {
     "nom": "Caldes de Montbui",
-    "codi": "080333",
-    "poblacio": "18336"
+    "codi": 80333,
+    "poblacio": 18336
   },
   {
     "nom": "Calders",
-    "codi": "080348",
-    "poblacio": "1114"
+    "codi": 80348,
+    "poblacio": 1114
   },
   {
     "nom": "Calella",
-    "codi": "080351",
-    "poblacio": "20369"
+    "codi": 80351,
+    "poblacio": 20369
   },
   {
     "nom": "Calonge de Segarra",
-    "codi": "080364",
-    "poblacio": "174"
+    "codi": 80364,
+    "poblacio": 174
   },
   {
     "nom": "Calldetenes",
-    "codi": "080370",
-    "poblacio": "2690"
+    "codi": 80370,
+    "poblacio": 2690
   },
   {
     "nom": "Callús",
-    "codi": "080386",
-    "poblacio": "2145"
+    "codi": 80386,
+    "poblacio": 2145
   },
   {
     "nom": "Campins",
-    "codi": "080399",
-    "poblacio": "606"
+    "codi": 80399,
+    "poblacio": 606
   },
   {
     "nom": "Canet de Mar",
-    "codi": "080403",
-    "poblacio": "15140"
+    "codi": 80403,
+    "poblacio": 15140
   },
   {
     "nom": "Canovelles",
-    "codi": "080410",
-    "poblacio": "17312"
+    "codi": 80410,
+    "poblacio": 17312
   },
   {
     "nom": "Cànoves i Samalús",
-    "codi": "080425",
-    "poblacio": "3315"
+    "codi": 80425,
+    "poblacio": 3315
   },
   {
     "nom": "Canyelles",
-    "codi": "080431",
-    "poblacio": "5367"
+    "codi": 80431,
+    "poblacio": 5367
   },
   {
     "nom": "Capellades",
-    "codi": "080446",
-    "poblacio": "5567"
+    "codi": 80446,
+    "poblacio": 5567
   },
   {
     "nom": "Capolat",
-    "codi": "080459",
-    "poblacio": "92"
+    "codi": 80459,
+    "poblacio": 92
   },
   {
     "nom": "Cardedeu",
-    "codi": "080462",
-    "poblacio": "19064"
+    "codi": 80462,
+    "poblacio": 19064
   },
   {
     "nom": "Cardona",
-    "codi": "080478",
-    "poblacio": "4574"
+    "codi": 80478,
+    "poblacio": 4574
   },
   {
     "nom": "Carme",
-    "codi": "080484",
-    "poblacio": "814"
+    "codi": 80484,
+    "poblacio": 814
   },
   {
     "nom": "Casserres",
-    "codi": "080497",
-    "poblacio": "1676"
+    "codi": 80497,
+    "poblacio": 1676
   },
   {
     "nom": "Castellar del Riu",
-    "codi": "080500",
-    "poblacio": "163"
+    "codi": 80500,
+    "poblacio": 163
   },
   {
     "nom": "Castellar del Vallès",
-    "codi": "080517",
-    "poblacio": "25322"
+    "codi": 80517,
+    "poblacio": 25322
   },
   {
     "nom": "Castellar de n'Hug",
-    "codi": "080522",
-    "poblacio": "164"
+    "codi": 80522,
+    "poblacio": 164
   },
   {
     "nom": "Castellbell i el Vilar",
-    "codi": "080538",
-    "poblacio": "4138"
+    "codi": 80538,
+    "poblacio": 4138
   },
   {
     "nom": "Castellbisbal",
-    "codi": "080543",
-    "poblacio": "12972"
+    "codi": 80543,
+    "poblacio": 12972
   },
   {
     "nom": "Castellcir",
-    "codi": "080556",
-    "poblacio": "784"
+    "codi": 80556,
+    "poblacio": 784
   },
   {
     "nom": "Castelldefels",
-    "codi": "080569",
-    "poblacio": "69450"
+    "codi": 80569,
+    "poblacio": 69450
   },
   {
     "nom": "Castell de l'Areny",
-    "codi": "080575",
-    "poblacio": "69"
+    "codi": 80575,
+    "poblacio": 69
   },
   {
     "nom": "Castellet i la Gornal",
-    "codi": "080581",
-    "poblacio": "2674"
+    "codi": 80581,
+    "poblacio": 2674
   },
   {
     "nom": "Castellfollit del Boix",
-    "codi": "080594",
-    "poblacio": "459"
+    "codi": 80594,
+    "poblacio": 459
   },
   {
     "nom": "Castellfollit de Riubregós",
-    "codi": "080608",
-    "poblacio": "151"
+    "codi": 80608,
+    "poblacio": 151
   },
   {
     "nom": "Castellgalí",
-    "codi": "080615",
-    "poblacio": "2347"
+    "codi": 80615,
+    "poblacio": 2347
   },
   {
     "nom": "Castellnou de Bages",
-    "codi": "080620",
-    "poblacio": "1430"
+    "codi": 80620,
+    "poblacio": 1430
   },
   {
     "nom": "Castellolí",
-    "codi": "080636",
-    "poblacio": "658"
+    "codi": 80636,
+    "poblacio": 658
   },
   {
     "nom": "Castellterçol",
-    "codi": "080641",
-    "poblacio": "2773"
+    "codi": 80641,
+    "poblacio": 2773
   },
   {
     "nom": "Castellví de la Marca",
-    "codi": "080654",
-    "poblacio": "1716"
+    "codi": 80654,
+    "poblacio": 1716
   },
   {
     "nom": "Castellví de Rosanes",
-    "codi": "080667",
-    "poblacio": "2106"
+    "codi": 80667,
+    "poblacio": 2106
   },
   {
     "nom": "Centelles",
-    "codi": "080673",
-    "poblacio": "7775"
+    "codi": 80673,
+    "poblacio": 7775
   },
   {
     "nom": "Cervelló",
-    "codi": "080689",
-    "poblacio": "9647"
+    "codi": 80689,
+    "poblacio": 9647
   },
   {
     "nom": "Collbató",
-    "codi": "080692",
-    "poblacio": "4849"
+    "codi": 80692,
+    "poblacio": 4849
   },
   {
     "nom": "Collsuspina",
-    "codi": "080706",
-    "poblacio": "389"
+    "codi": 80706,
+    "poblacio": 389
   },
   {
     "nom": "Copons",
-    "codi": "080713",
-    "poblacio": "351"
+    "codi": 80713,
+    "poblacio": 351
   },
   {
     "nom": "Corbera de Llobregat",
-    "codi": "080728",
-    "poblacio": "15726"
+    "codi": 80728,
+    "poblacio": 15726
   },
   {
     "nom": "Cornellà de Llobregat",
-    "codi": "080734",
-    "poblacio": "91589"
+    "codi": 80734,
+    "poblacio": 91589
   },
   {
     "nom": "Cubelles",
-    "codi": "080749",
-    "poblacio": "17243"
+    "codi": 80749,
+    "poblacio": 17243
   },
   {
     "nom": "Dosrius",
-    "codi": "080752",
-    "poblacio": "6142"
+    "codi": 80752,
+    "poblacio": 6142
   },
   {
     "nom": "Esparreguera",
-    "codi": "080765",
-    "poblacio": "22550"
+    "codi": 80765,
+    "poblacio": 22550
   },
   {
     "nom": "Esplugues de Llobregat",
-    "codi": "080771",
-    "poblacio": "47613"
+    "codi": 80771,
+    "poblacio": 47613
   },
   {
     "nom": "Espunyola, l'",
-    "codi": "080787",
-    "poblacio": "262"
+    "codi": 80787,
+    "poblacio": 262
   },
   {
     "nom": "Estany, l'",
-    "codi": "080790",
-    "poblacio": "401"
+    "codi": 80790,
+    "poblacio": 401
   },
   {
     "nom": "Fígols",
-    "codi": "080804",
-    "poblacio": "41"
+    "codi": 80804,
+    "poblacio": 41
   },
   {
     "nom": "Fogars de Montclús",
-    "codi": "080811",
-    "poblacio": "502"
+    "codi": 80811,
+    "poblacio": 502
   },
   {
     "nom": "Fogars de la Selva",
-    "codi": "080826",
-    "poblacio": "1680"
+    "codi": 80826,
+    "poblacio": 1680
   },
   {
     "nom": "Folgueroles",
-    "codi": "080832",
-    "poblacio": "2263"
+    "codi": 80832,
+    "poblacio": 2263
   },
   {
     "nom": "Fonollosa",
-    "codi": "080847",
-    "poblacio": "1585"
+    "codi": 80847,
+    "poblacio": 1585
   },
   {
     "nom": "Font-rubí",
-    "codi": "080850",
-    "poblacio": "1446"
+    "codi": 80850,
+    "poblacio": 1446
   },
   {
     "nom": "Franqueses del Vallès, les",
-    "codi": "080863",
-    "poblacio": "20715"
+    "codi": 80863,
+    "poblacio": 20715
   },
   {
     "nom": "Gallifa",
-    "codi": "080879",
-    "poblacio": "172"
+    "codi": 80879,
+    "poblacio": 172
   },
   {
     "nom": "Garriga, la",
-    "codi": "080885",
-    "poblacio": "17305"
+    "codi": 80885,
+    "poblacio": 17305
   },
   {
     "nom": "Gavà",
-    "codi": "080898",
-    "poblacio": "48007"
+    "codi": 80898,
+    "poblacio": 48007
   },
   {
     "nom": "Gaià",
-    "codi": "080902",
-    "poblacio": "178"
+    "codi": 80902,
+    "poblacio": 178
   },
   {
     "nom": "Gelida",
-    "codi": "080919",
-    "poblacio": "8098"
+    "codi": 80919,
+    "poblacio": 8098
   },
   {
     "nom": "Gironella",
-    "codi": "080924",
-    "poblacio": "5055"
+    "codi": 80924,
+    "poblacio": 5055
   },
   {
     "nom": "Gisclareny",
-    "codi": "080930",
-    "poblacio": "30"
+    "codi": 80930,
+    "poblacio": 30
   },
   {
     "nom": "Granada, la",
-    "codi": "080945",
-    "poblacio": "2263"
+    "codi": 80945,
+    "poblacio": 2263
   },
   {
     "nom": "Granera",
-    "codi": "080958",
-    "poblacio": "84"
+    "codi": 80958,
+    "poblacio": 84
   },
   {
     "nom": "Granollers",
-    "codi": "080961",
-    "poblacio": "64181"
+    "codi": 80961,
+    "poblacio": 64181
   },
   {
     "nom": "Gualba",
-    "codi": "080977",
-    "poblacio": "1738"
+    "codi": 80977,
+    "poblacio": 1738
   },
   {
     "nom": "Sant Salvador de Guardiola",
-    "codi": "080983",
-    "poblacio": "3476"
+    "codi": 80983,
+    "poblacio": 3476
   },
   {
     "nom": "Guardiola de Berguedà",
-    "codi": "080996",
-    "poblacio": "953"
+    "codi": 80996,
+    "poblacio": 953
   },
   {
     "nom": "Gurb",
-    "codi": "081000",
-    "poblacio": "2712"
+    "codi": 81000,
+    "poblacio": 2712
   },
   {
     "nom": "Hospitalet de Llobregat, l'",
-    "codi": "081017",
-    "poblacio": "279993"
+    "codi": 81017,
+    "poblacio": 279993
   },
   {
     "nom": "Igualada",
-    "codi": "081022",
-    "poblacio": "41466"
+    "codi": 81022,
+    "poblacio": 41466
   },
   {
     "nom": "Jorba",
-    "codi": "081038",
-    "poblacio": "827"
+    "codi": 81038,
+    "poblacio": 827
   },
   {
     "nom": "Llacuna, la",
-    "codi": "081043",
-    "poblacio": "982"
+    "codi": 81043,
+    "poblacio": 982
   },
   {
     "nom": "Llagosta, la",
-    "codi": "081056",
-    "poblacio": "13085"
+    "codi": 81056,
+    "poblacio": 13085
   },
   {
     "nom": "Llinars del Vallès",
-    "codi": "081069",
-    "poblacio": "10740"
+    "codi": 81069,
+    "poblacio": 10740
   },
   {
     "nom": "Lliçà d'Amunt",
-    "codi": "081075",
-    "poblacio": "16253"
+    "codi": 81075,
+    "poblacio": 16253
   },
   {
     "nom": "Lliçà de Vall",
-    "codi": "081081",
-    "poblacio": "6861"
+    "codi": 81081,
+    "poblacio": 6861
   },
   {
     "nom": "Lluçà",
-    "codi": "081094",
-    "poblacio": "288"
+    "codi": 81094,
+    "poblacio": 288
   },
   {
     "nom": "Malgrat de Mar",
-    "codi": "081108",
-    "poblacio": "19377"
+    "codi": 81108,
+    "poblacio": 19377
   },
   {
     "nom": "Malla",
-    "codi": "081115",
-    "poblacio": "272"
+    "codi": 81115,
+    "poblacio": 272
   },
   {
     "nom": "Manlleu",
-    "codi": "081120",
-    "poblacio": "21348"
+    "codi": 81120,
+    "poblacio": 21348
   },
   {
     "nom": "Manresa",
-    "codi": "081136",
-    "poblacio": "80201"
+    "codi": 81136,
+    "poblacio": 80201
   },
   {
     "nom": "Martorell",
-    "codi": "081141",
-    "poblacio": "28507"
+    "codi": 81141,
+    "poblacio": 28507
   },
   {
     "nom": "Martorelles",
-    "codi": "081154",
-    "poblacio": "4987"
+    "codi": 81154,
+    "poblacio": 4987
   },
   {
     "nom": "Masies de Roda, les",
-    "codi": "081167",
-    "poblacio": "750"
+    "codi": 81167,
+    "poblacio": 750
   },
   {
     "nom": "Masies de Voltregà, les",
-    "codi": "081173",
-    "poblacio": "3292"
+    "codi": 81173,
+    "poblacio": 3292
   },
   {
     "nom": "Masnou, el",
-    "codi": "081189",
-    "poblacio": "24479"
+    "codi": 81189,
+    "poblacio": 24479
   },
   {
     "nom": "Masquefa",
-    "codi": "081192",
-    "poblacio": "10038"
+    "codi": 81192,
+    "poblacio": 10038
   },
   {
     "nom": "Matadepera",
-    "codi": "081206",
-    "poblacio": "9815"
+    "codi": 81206,
+    "poblacio": 9815
   },
   {
     "nom": "Mataró",
-    "codi": "081213",
-    "poblacio": "131798"
+    "codi": 81213,
+    "poblacio": 131798
   },
   {
     "nom": "Mediona",
-    "codi": "081228",
-    "poblacio": "2637"
+    "codi": 81228,
+    "poblacio": 2637
   },
   {
     "nom": "Molins de Rei",
-    "codi": "081234",
-    "poblacio": "26948"
+    "codi": 81234,
+    "poblacio": 26948
   },
   {
     "nom": "Mollet del Vallès",
-    "codi": "081249",
-    "poblacio": "52283"
+    "codi": 81249,
+    "poblacio": 52283
   },
   {
     "nom": "Montcada i Reixac",
-    "codi": "081252",
-    "poblacio": "37153"
+    "codi": 81252,
+    "poblacio": 37153
   },
   {
     "nom": "Montgat",
-    "codi": "081265",
-    "poblacio": "12625"
+    "codi": 81265,
+    "poblacio": 12625
   },
   {
     "nom": "Monistrol de Montserrat",
-    "codi": "081271",
-    "poblacio": "3198"
+    "codi": 81271,
+    "poblacio": 3198
   },
   {
     "nom": "Monistrol de Calders",
-    "codi": "081287",
-    "poblacio": "761"
+    "codi": 81287,
+    "poblacio": 761
   },
   {
     "nom": "Muntanyola",
-    "codi": "081290",
-    "poblacio": "712"
+    "codi": 81290,
+    "poblacio": 712
   },
   {
     "nom": "Montclar",
-    "codi": "081304",
-    "poblacio": "132"
+    "codi": 81304,
+    "poblacio": 132
   },
   {
     "nom": "Montesquiu",
-    "codi": "081311",
-    "poblacio": "1099"
+    "codi": 81311,
+    "poblacio": 1099
   },
   {
     "nom": "Montmajor",
-    "codi": "081326",
-    "poblacio": "472"
+    "codi": 81326,
+    "poblacio": 472
   },
   {
     "nom": "Montmaneu",
-    "codi": "081332",
-    "poblacio": "200"
+    "codi": 81332,
+    "poblacio": 200
   },
   {
     "nom": "Figaró-Montmany",
-    "codi": "081347",
-    "poblacio": "1188"
+    "codi": 81347,
+    "poblacio": 1188
   },
   {
     "nom": "Montmeló",
-    "codi": "081350",
-    "poblacio": "8906"
+    "codi": 81350,
+    "poblacio": 8906
   },
   {
     "nom": "Montornès del Vallès",
-    "codi": "081363",
-    "poblacio": "17089"
+    "codi": 81363,
+    "poblacio": 17089
   },
   {
     "nom": "Montseny",
-    "codi": "081379",
-    "poblacio": "380"
+    "codi": 81379,
+    "poblacio": 380
   },
   {
     "nom": "Moià",
-    "codi": "081385",
-    "poblacio": "6738"
+    "codi": 81385,
+    "poblacio": 6738
   },
   {
     "nom": "Mura",
-    "codi": "081398",
-    "poblacio": "232"
+    "codi": 81398,
+    "poblacio": 232
   },
   {
     "nom": "Navarcles",
-    "codi": "081402",
-    "poblacio": "6160"
+    "codi": 81402,
+    "poblacio": 6160
   },
   {
     "nom": "Navàs",
-    "codi": "081419",
-    "poblacio": "6185"
+    "codi": 81419,
+    "poblacio": 6185
   },
   {
     "nom": "Nou de Berguedà, la",
-    "codi": "081424",
-    "poblacio": "163"
+    "codi": 81424,
+    "poblacio": 163
   },
   {
     "nom": "Òdena",
-    "codi": "081430",
-    "poblacio": "3710"
+    "codi": 81430,
+    "poblacio": 3710
   },
   {
     "nom": "Olvan",
-    "codi": "081445",
-    "poblacio": "913"
+    "codi": 81445,
+    "poblacio": 913
   },
   {
     "nom": "Olèrdola",
-    "codi": "081458",
-    "poblacio": "3946"
+    "codi": 81458,
+    "poblacio": 3946
   },
   {
     "nom": "Olesa de Bonesvalls",
-    "codi": "081461",
-    "poblacio": "2093"
+    "codi": 81461,
+    "poblacio": 2093
   },
   {
     "nom": "Olesa de Montserrat",
-    "codi": "081477",
-    "poblacio": "24677"
+    "codi": 81477,
+    "poblacio": 24677
   },
   {
     "nom": "Olivella",
-    "codi": "081483",
-    "poblacio": "4419"
+    "codi": 81483,
+    "poblacio": 4419
   },
   {
     "nom": "Olost",
-    "codi": "081496",
-    "poblacio": "1216"
+    "codi": 81496,
+    "poblacio": 1216
   },
   {
     "nom": "Orís",
-    "codi": "081509",
-    "poblacio": "350"
+    "codi": 81509,
+    "poblacio": 350
   },
   {
     "nom": "Oristà",
-    "codi": "081516",
-    "poblacio": "569"
+    "codi": 81516,
+    "poblacio": 569
   },
   {
     "nom": "Orpí",
-    "codi": "081521",
-    "poblacio": "178"
+    "codi": 81521,
+    "poblacio": 178
   },
   {
     "nom": "Òrrius",
-    "codi": "081537",
-    "poblacio": "805"
+    "codi": 81537,
+    "poblacio": 805
   },
   {
     "nom": "Pacs del Penedès",
-    "codi": "081542",
-    "poblacio": "935"
+    "codi": 81542,
+    "poblacio": 935
   },
   {
     "nom": "Palafolls",
-    "codi": "081555",
-    "poblacio": "9938"
+    "codi": 81555,
+    "poblacio": 9938
   },
   {
     "nom": "Palau-solità i Plegamans",
-    "codi": "081568",
-    "poblacio": "15456"
+    "codi": 81568,
+    "poblacio": 15456
   },
   {
     "nom": "Pallejà",
-    "codi": "081574",
-    "poblacio": "11825"
+    "codi": 81574,
+    "poblacio": 11825
   },
   {
     "nom": "Papiol, el",
-    "codi": "081580",
-    "poblacio": "4363"
+    "codi": 81580,
+    "poblacio": 4363
   },
   {
     "nom": "Parets del Vallès",
-    "codi": "081593",
-    "poblacio": "18881"
+    "codi": 81593,
+    "poblacio": 18881
   },
   {
     "nom": "Perafita",
-    "codi": "081607",
-    "poblacio": "438"
+    "codi": 81607,
+    "poblacio": 438
   },
   {
     "nom": "Piera",
-    "codi": "081614",
-    "poblacio": "17555"
+    "codi": 81614,
+    "poblacio": 17555
   },
   {
     "nom": "Hostalets de Pierola, els",
-    "codi": "081629",
-    "poblacio": "3231"
+    "codi": 81629,
+    "poblacio": 3231
   },
   {
     "nom": "Pineda de Mar",
-    "codi": "081635",
-    "poblacio": "29455"
+    "codi": 81635,
+    "poblacio": 29455
   },
   {
     "nom": "Pla del Penedès, el",
-    "codi": "081640",
-    "poblacio": "1352"
+    "codi": 81640,
+    "poblacio": 1352
   },
   {
     "nom": "Pobla de Claramunt, la",
-    "codi": "081653",
-    "poblacio": "2353"
+    "codi": 81653,
+    "poblacio": 2353
   },
   {
     "nom": "Pobla de Lillet, la",
-    "codi": "081666",
-    "poblacio": "1109"
+    "codi": 81666,
+    "poblacio": 1109
   },
   {
     "nom": "Polinyà",
-    "codi": "081672",
-    "poblacio": "8555"
+    "codi": 81672,
+    "poblacio": 8555
   },
   {
     "nom": "Pontons",
-    "codi": "081688",
-    "poblacio": "518"
+    "codi": 81688,
+    "poblacio": 518
   },
   {
     "nom": "Prat de Llobregat, el",
-    "codi": "081691",
-    "poblacio": "66184"
+    "codi": 81691,
+    "poblacio": 66184
   },
   {
     "nom": "Prats de Rei, els",
-    "codi": "081705",
-    "poblacio": "553"
+    "codi": 81705,
+    "poblacio": 553
   },
   {
     "nom": "Prats de Lluçanès",
-    "codi": "081712",
-    "poblacio": "2688"
+    "codi": 81712,
+    "poblacio": 2688
   },
   {
     "nom": "Premià de Mar",
-    "codi": "081727",
-    "poblacio": "28951"
+    "codi": 81727,
+    "poblacio": 28951
   },
   {
     "nom": "Puigdàlber",
-    "codi": "081748",
-    "poblacio": "629"
+    "codi": 81748,
+    "poblacio": 629
   },
   {
     "nom": "Puig-reig",
-    "codi": "081751",
-    "poblacio": "4489"
+    "codi": 81751,
+    "poblacio": 4489
   },
   {
     "nom": "Pujalt",
-    "codi": "081764",
-    "poblacio": "210"
+    "codi": 81764,
+    "poblacio": 210
   },
   {
     "nom": "Quar, la",
-    "codi": "081770",
-    "poblacio": "42"
+    "codi": 81770,
+    "poblacio": 42
   },
   {
     "nom": "Rajadell",
-    "codi": "081786",
-    "poblacio": "594"
+    "codi": 81786,
+    "poblacio": 594
   },
   {
     "nom": "Rellinars",
-    "codi": "081799",
-    "poblacio": "920"
+    "codi": 81799,
+    "poblacio": 920
   },
   {
     "nom": "Ripollet",
-    "codi": "081803",
-    "poblacio": "39462"
+    "codi": 81803,
+    "poblacio": 39462
   },
   {
     "nom": "Roca del Vallès, la",
-    "codi": "081810",
-    "poblacio": "10962"
+    "codi": 81810,
+    "poblacio": 10962
   },
   {
     "nom": "Pont de Vilomara i Rocafort, el",
-    "codi": "081825",
-    "poblacio": "4140"
+    "codi": 81825,
+    "poblacio": 4140
   },
   {
     "nom": "Roda de Ter",
-    "codi": "081831",
-    "poblacio": "6900"
+    "codi": 81831,
+    "poblacio": 6900
   },
   {
     "nom": "Rubí",
-    "codi": "081846",
-    "poblacio": "81532"
+    "codi": 81846,
+    "poblacio": 81532
   },
   {
     "nom": "Rubió",
-    "codi": "081859",
-    "poblacio": "237"
+    "codi": 81859,
+    "poblacio": 237
   },
   {
     "nom": "Sabadell",
-    "codi": "081878",
-    "poblacio": "222177"
+    "codi": 81878,
+    "poblacio": 222177
   },
   {
     "nom": "Sagàs",
-    "codi": "081884",
-    "poblacio": "153"
+    "codi": 81884,
+    "poblacio": 153
   },
   {
     "nom": "Sant Pere Sallavinera",
-    "codi": "081897",
-    "poblacio": "158"
+    "codi": 81897,
+    "poblacio": 158
   },
   {
     "nom": "Saldes",
-    "codi": "081901",
-    "poblacio": "301"
+    "codi": 81901,
+    "poblacio": 301
   },
   {
     "nom": "Sallent",
-    "codi": "081918",
-    "poblacio": "6927"
+    "codi": 81918,
+    "poblacio": 6927
   },
   {
     "nom": "Santpedor",
-    "codi": "081923",
-    "poblacio": "7716"
+    "codi": 81923,
+    "poblacio": 7716
   },
   {
     "nom": "Sant Iscle de Vallalta",
-    "codi": "081939",
-    "poblacio": "1458"
+    "codi": 81939,
+    "poblacio": 1458
   },
   {
     "nom": "Sant Adrià de Besòs",
-    "codi": "081944",
-    "poblacio": "38490"
+    "codi": 81944,
+    "poblacio": 38490
   },
   {
     "nom": "Sant Agustí de Lluçanès",
-    "codi": "081957",
-    "poblacio": "108"
+    "codi": 81957,
+    "poblacio": 108
   },
   {
     "nom": "Sant Andreu de la Barca",
-    "codi": "081960",
-    "poblacio": "27062"
+    "codi": 81960,
+    "poblacio": 27062
   },
   {
     "nom": "Sant Andreu de Llavaneres",
-    "codi": "081976",
-    "poblacio": "11933"
+    "codi": 81976,
+    "poblacio": 11933
   },
   {
     "nom": "Sant Antoni de Vilamajor",
-    "codi": "081982",
-    "poblacio": "6668"
+    "codi": 81982,
+    "poblacio": 6668
   },
   {
     "nom": "Sant Bartomeu del Grau",
-    "codi": "081995",
-    "poblacio": "943"
+    "codi": 81995,
+    "poblacio": 943
   },
   {
     "nom": "Sant Boi de Llobregat",
-    "codi": "082009",
-    "poblacio": "84831"
+    "codi": 82009,
+    "poblacio": 84831
   },
   {
     "nom": "Sant Boi de Lluçanès",
-    "codi": "082016",
-    "poblacio": "575"
+    "codi": 82016,
+    "poblacio": 575
   },
   {
     "nom": "Sant Celoni",
-    "codi": "082021",
-    "poblacio": "18761"
+    "codi": 82021,
+    "poblacio": 18761
   },
   {
     "nom": "Sant Cebrià de Vallalta",
-    "codi": "082037",
-    "poblacio": "3828"
+    "codi": 82037,
+    "poblacio": 3828
   },
   {
     "nom": "Sant Climent de Llobregat",
-    "codi": "082042",
-    "poblacio": "4182"
+    "codi": 82042,
+    "poblacio": 4182
   },
   {
     "nom": "Sant Cugat del Vallès",
-    "codi": "082055",
-    "poblacio": "98621"
+    "codi": 82055,
+    "poblacio": 98621
   },
   {
     "nom": "Sant Cugat Sesgarrigues",
-    "codi": "082068",
-    "poblacio": "1031"
+    "codi": 82068,
+    "poblacio": 1031
   },
   {
     "nom": "Sant Esteve de Palautordera",
-    "codi": "082074",
-    "poblacio": "3080"
+    "codi": 82074,
+    "poblacio": 3080
   },
   {
     "nom": "Sant Esteve Sesrovires",
-    "codi": "082080",
-    "poblacio": "8060"
+    "codi": 82080,
+    "poblacio": 8060
   },
   {
     "nom": "Sant Fost de Campsentelles",
-    "codi": "082093",
-    "poblacio": "9227"
+    "codi": 82093,
+    "poblacio": 9227
   },
   {
     "nom": "Sant Feliu de Codines",
-    "codi": "082107",
-    "poblacio": "6661"
+    "codi": 82107,
+    "poblacio": 6661
   },
   {
     "nom": "Sant Feliu de Llobregat",
-    "codi": "082114",
-    "poblacio": "46554"
+    "codi": 82114,
+    "poblacio": 46554
   },
   {
     "nom": "Sant Feliu Sasserra",
-    "codi": "082129",
-    "poblacio": "629"
+    "codi": 82129,
+    "poblacio": 629
   },
   {
     "nom": "Sant Fruitós de Bages",
-    "codi": "082135",
-    "poblacio": "9248"
+    "codi": 82135,
+    "poblacio": 9248
   },
   {
     "nom": "Vilassar de Dalt",
-    "codi": "082140",
-    "poblacio": "9281"
+    "codi": 82140,
+    "poblacio": 9281
   },
   {
     "nom": "Sant Hipòlit de Voltregà",
-    "codi": "082153",
-    "poblacio": "3687"
+    "codi": 82153,
+    "poblacio": 3687
   },
   {
     "nom": "Sant Jaume de Frontanyà",
-    "codi": "082166",
-    "poblacio": "26"
+    "codi": 82166,
+    "poblacio": 26
   },
   {
     "nom": "Sant Joan Despí",
-    "codi": "082172",
-    "poblacio": "35083"
+    "codi": 82172,
+    "poblacio": 35083
   },
   {
     "nom": "Sant Joan de Vilatorrada",
-    "codi": "082188",
-    "poblacio": "11017"
+    "codi": 82188,
+    "poblacio": 11017
   },
   {
     "nom": "Vilassar de Mar",
-    "codi": "082191",
-    "poblacio": "21162"
+    "codi": 82191,
+    "poblacio": 21162
   },
   {
     "nom": "Sant Julià de Vilatorta",
-    "codi": "082205",
-    "poblacio": "3297"
+    "codi": 82205,
+    "poblacio": 3297
   },
   {
     "nom": "Sant Just Desvern",
-    "codi": "082212",
-    "poblacio": "20881"
+    "codi": 82212,
+    "poblacio": 20881
   },
   {
     "nom": "Sant Llorenç d'Hortons",
-    "codi": "082227",
-    "poblacio": "2617"
+    "codi": 82227,
+    "poblacio": 2617
   },
   {
     "nom": "Sant Llorenç Savall",
-    "codi": "082233",
-    "poblacio": "2586"
+    "codi": 82233,
+    "poblacio": 2586
   },
   {
     "nom": "Sant Martí de Centelles",
-    "codi": "082248",
-    "poblacio": "1259"
+    "codi": 82248,
+    "poblacio": 1259
   },
   {
     "nom": "Sant Martí d'Albars",
-    "codi": "082251",
-    "poblacio": "140"
+    "codi": 82251,
+    "poblacio": 140
   },
   {
     "nom": "Sant Martí de Tous",
-    "codi": "082264",
-    "poblacio": "1275"
+    "codi": 82264,
+    "poblacio": 1275
   },
   {
     "nom": "Sant Martí Sarroca",
-    "codi": "082270",
-    "poblacio": "3391"
+    "codi": 82270,
+    "poblacio": 3391
   },
   {
     "nom": "Sant Martí Sesgueioles",
-    "codi": "082286",
-    "poblacio": "360"
+    "codi": 82286,
+    "poblacio": 360
   },
   {
     "nom": "Sant Mateu de Bages",
-    "codi": "082299",
-    "poblacio": "637"
+    "codi": 82299,
+    "poblacio": 637
   },
   {
     "nom": "Premià de Dalt",
-    "codi": "082303",
-    "poblacio": "10594"
+    "codi": 82303,
+    "poblacio": 10594
   },
   {
     "nom": "Sant Pere de Ribes",
-    "codi": "082310",
-    "poblacio": "32121"
+    "codi": 82310,
+    "poblacio": 32121
   },
   {
     "nom": "Sant Pere de Riudebitlles",
-    "codi": "082325",
-    "poblacio": "2497"
+    "codi": 82325,
+    "poblacio": 2497
   },
   {
     "nom": "Sant Pere de Torelló",
-    "codi": "082331",
-    "poblacio": "2592"
+    "codi": 82331,
+    "poblacio": 2592
   },
   {
     "nom": "Sant Pere de Vilamajor",
-    "codi": "082346",
-    "poblacio": "4941"
+    "codi": 82346,
+    "poblacio": 4941
   },
   {
     "nom": "Sant Pol de Mar",
-    "codi": "082359",
-    "poblacio": "5834"
+    "codi": 82359,
+    "poblacio": 5834
   },
   {
     "nom": "Sant Quintí de Mediona",
-    "codi": "082362",
-    "poblacio": "2504"
+    "codi": 82362,
+    "poblacio": 2504
   },
   {
     "nom": "Sant Quirze de Besora",
-    "codi": "082378",
-    "poblacio": "2127"
+    "codi": 82378,
+    "poblacio": 2127
   },
   {
     "nom": "Sant Quirze del Vallès",
-    "codi": "082384",
-    "poblacio": "20161"
+    "codi": 82384,
+    "poblacio": 20161
   },
   {
     "nom": "Sant Quirze Safaja",
-    "codi": "082397",
-    "poblacio": "669"
+    "codi": 82397,
+    "poblacio": 669
   },
   {
     "nom": "Sant Sadurní d'Anoia",
-    "codi": "082401",
-    "poblacio": "12915"
+    "codi": 82401,
+    "poblacio": 12915
   },
   {
     "nom": "Sant Sadurní d'Osormort",
-    "codi": "082418",
-    "poblacio": "84"
+    "codi": 82418,
+    "poblacio": 84
   },
   {
     "nom": "Marganell",
-    "codi": "082423",
-    "poblacio": "308"
+    "codi": 82423,
+    "poblacio": 308
   },
   {
     "nom": "Santa Cecília de Voltregà",
-    "codi": "082439",
-    "poblacio": "192"
+    "codi": 82439,
+    "poblacio": 192
   },
   {
     "nom": "Santa Coloma de Cervelló",
-    "codi": "082444",
-    "poblacio": "8335"
+    "codi": 82444,
+    "poblacio": 8335
   },
   {
     "nom": "Santa Coloma de Gramenet",
-    "codi": "082457",
-    "poblacio": "121203"
+    "codi": 82457,
+    "poblacio": 121203
   },
   {
     "nom": "Santa Eugènia de Berga",
-    "codi": "082460",
-    "poblacio": "2308"
+    "codi": 82460,
+    "poblacio": 2308
   },
   {
     "nom": "Santa Eulàlia de Riuprimer",
-    "codi": "082476",
-    "poblacio": "1487"
+    "codi": 82476,
+    "poblacio": 1487
   },
   {
     "nom": "Santa Eulàlia de Ronçana",
-    "codi": "082482",
-    "poblacio": "7911"
+    "codi": 82482,
+    "poblacio": 7911
   },
   {
     "nom": "Santa Fe del Penedès",
-    "codi": "082495",
-    "poblacio": "360"
+    "codi": 82495,
+    "poblacio": 360
   },
   {
     "nom": "Santa Margarida de Montbui",
-    "codi": "082508",
-    "poblacio": "10549"
+    "codi": 82508,
+    "poblacio": 10549
   },
   {
     "nom": "Santa Margarida i els Monjos",
-    "codi": "082515",
-    "poblacio": "7736"
+    "codi": 82515,
+    "poblacio": 7736
   },
   {
     "nom": "Barberà del Vallès",
-    "codi": "082520",
-    "poblacio": "33575"
+    "codi": 82520,
+    "poblacio": 33575
   },
   {
     "nom": "Santa Maria de Besora",
-    "codi": "082536",
-    "poblacio": "164"
+    "codi": 82536,
+    "poblacio": 164
   },
   {
     "nom": "Esquirol, l'",
-    "codi": "082541",
-    "poblacio": "2277"
+    "codi": 82541,
+    "poblacio": 2277
   },
   {
     "nom": "Santa Maria de Merlès",
-    "codi": "082554",
-    "poblacio": "175"
+    "codi": 82554,
+    "poblacio": 175
   },
   {
     "nom": "Santa Maria de Martorelles",
-    "codi": "082567",
-    "poblacio": "873"
+    "codi": 82567,
+    "poblacio": 873
   },
   {
     "nom": "Santa Maria de Miralles",
-    "codi": "082573",
-    "poblacio": "137"
+    "codi": 82573,
+    "poblacio": 137
   },
   {
     "nom": "Santa Maria d'Oló",
-    "codi": "082589",
-    "poblacio": "1077"
+    "codi": 82589,
+    "poblacio": 1077
   },
   {
     "nom": "Santa Maria de Palautordera",
-    "codi": "082592",
-    "poblacio": "10008"
+    "codi": 82592,
+    "poblacio": 10008
   },
   {
     "nom": "Santa Perpètua de Mogoda",
-    "codi": "082606",
-    "poblacio": "25960"
+    "codi": 82606,
+    "poblacio": 25960
   },
   {
     "nom": "Santa Susanna",
-    "codi": "082613",
-    "poblacio": "4023"
+    "codi": 82613,
+    "poblacio": 4023
   },
   {
     "nom": "Sant Vicenç de Castellet",
-    "codi": "082628",
-    "poblacio": "10131"
+    "codi": 82628,
+    "poblacio": 10131
   },
   {
     "nom": "Sant Vicenç dels Horts",
-    "codi": "082634",
-    "poblacio": "28568"
+    "codi": 82634,
+    "poblacio": 28568
   },
   {
     "nom": "Sant Vicenç de Montalt",
-    "codi": "082649",
-    "poblacio": "6712"
+    "codi": 82649,
+    "poblacio": 6712
   },
   {
     "nom": "Sant Vicenç de Torelló",
-    "codi": "082652",
-    "poblacio": "2092"
+    "codi": 82652,
+    "poblacio": 2092
   },
   {
     "nom": "Cerdanyola del Vallès",
-    "codi": "082665",
-    "poblacio": "58100"
+    "codi": 82665,
+    "poblacio": 58100
   },
   {
     "nom": "Sentmenat",
-    "codi": "082671",
-    "poblacio": "9553"
+    "codi": 82671,
+    "poblacio": 9553
   },
   {
     "nom": "Cercs",
-    "codi": "082687",
-    "poblacio": "1193"
+    "codi": 82687,
+    "poblacio": 1193
   },
   {
     "nom": "Seva",
-    "codi": "082690",
-    "poblacio": "3798"
+    "codi": 82690,
+    "poblacio": 3798
   },
   {
     "nom": "Sitges",
-    "codi": "082704",
-    "poblacio": "32405"
+    "codi": 82704,
+    "poblacio": 32405
   },
   {
     "nom": "Sobremunt",
-    "codi": "082711",
-    "poblacio": "101"
+    "codi": 82711,
+    "poblacio": 101
   },
   {
     "nom": "Sora",
-    "codi": "082726",
-    "poblacio": "219"
+    "codi": 82726,
+    "poblacio": 219
   },
   {
     "nom": "Subirats",
-    "codi": "082732",
-    "poblacio": "3281"
+    "codi": 82732,
+    "poblacio": 3281
   },
   {
     "nom": "Súria",
-    "codi": "082747",
-    "poblacio": "6090"
+    "codi": 82747,
+    "poblacio": 6090
   },
   {
     "nom": "Tavèrnoles",
-    "codi": "082750",
-    "poblacio": "341"
+    "codi": 82750,
+    "poblacio": 341
   },
   {
     "nom": "Tagamanent",
-    "codi": "082763",
-    "poblacio": "339"
+    "codi": 82763,
+    "poblacio": 339
   },
   {
     "nom": "Talamanca",
-    "codi": "082779",
-    "poblacio": "212"
+    "codi": 82779,
+    "poblacio": 212
   },
   {
     "nom": "Taradell",
-    "codi": "082785",
-    "poblacio": "6844"
+    "codi": 82785,
+    "poblacio": 6844
   },
   {
     "nom": "Terrassa",
-    "codi": "082798",
-    "poblacio": "228708"
+    "codi": 82798,
+    "poblacio": 228708
   },
   {
     "nom": "Tavertet",
-    "codi": "082802",
-    "poblacio": "131"
+    "codi": 82802,
+    "poblacio": 131
   },
   {
     "nom": "Teià",
-    "codi": "082819",
-    "poblacio": "6818"
+    "codi": 82819,
+    "poblacio": 6818
   },
   {
     "nom": "Tiana",
-    "codi": "082824",
-    "poblacio": "9305"
+    "codi": 82824,
+    "poblacio": 9305
   },
   {
     "nom": "Tona",
-    "codi": "082830",
-    "poblacio": "8511"
+    "codi": 82830,
+    "poblacio": 8511
   },
   {
     "nom": "Tordera",
-    "codi": "082845",
-    "poblacio": "18780"
+    "codi": 82845,
+    "poblacio": 18780
   },
   {
     "nom": "Torelló",
-    "codi": "082858",
-    "poblacio": "15093"
+    "codi": 82858,
+    "poblacio": 15093
   },
   {
     "nom": "Torre de Claramunt, la",
-    "codi": "082861",
-    "poblacio": "4122"
+    "codi": 82861,
+    "poblacio": 4122
   },
   {
     "nom": "Torrelavit",
-    "codi": "082877",
-    "poblacio": "1509"
+    "codi": 82877,
+    "poblacio": 1509
   },
   {
     "nom": "Torrelles de Foix",
-    "codi": "082883",
-    "poblacio": "2657"
+    "codi": 82883,
+    "poblacio": 2657
   },
   {
     "nom": "Torrelles de Llobregat",
-    "codi": "082896",
-    "poblacio": "6155"
+    "codi": 82896,
+    "poblacio": 6155
   },
   {
     "nom": "Ullastrell",
-    "codi": "082900",
-    "poblacio": "2176"
+    "codi": 82900,
+    "poblacio": 2176
   },
   {
     "nom": "Vacarisses",
-    "codi": "082917",
-    "poblacio": "7563"
+    "codi": 82917,
+    "poblacio": 7563
   },
   {
     "nom": "Vallbona d'Anoia",
-    "codi": "082922",
-    "poblacio": "1406"
+    "codi": 82922,
+    "poblacio": 1406
   },
   {
     "nom": "Vallcebre",
-    "codi": "082938",
-    "poblacio": "271"
+    "codi": 82938,
+    "poblacio": 271
   },
   {
     "nom": "Vallgorguina",
-    "codi": "082943",
-    "poblacio": "3198"
+    "codi": 82943,
+    "poblacio": 3198
   },
   {
     "nom": "Vallirana",
-    "codi": "082956",
-    "poblacio": "15985"
+    "codi": 82956,
+    "poblacio": 15985
   },
   {
     "nom": "Vallromanes",
-    "codi": "082969",
-    "poblacio": "2742"
+    "codi": 82969,
+    "poblacio": 2742
   },
   {
     "nom": "Veciana",
-    "codi": "082975",
-    "poblacio": "172"
+    "codi": 82975,
+    "poblacio": 172
   },
   {
     "nom": "Vic",
-    "codi": "082981",
-    "poblacio": "49530"
+    "codi": 82981,
+    "poblacio": 49530
   },
   {
     "nom": "Vilada",
-    "codi": "082994",
-    "poblacio": "443"
+    "codi": 82994,
+    "poblacio": 443
   },
   {
     "nom": "Viladecavalls",
-    "codi": "083008",
-    "poblacio": "7802"
+    "codi": 83008,
+    "poblacio": 7802
   },
   {
     "nom": "Viladecans",
-    "codi": "083015",
-    "poblacio": "67348"
+    "codi": 83015,
+    "poblacio": 67348
   },
   {
     "nom": "Vilanova del Camí",
-    "codi": "083020",
-    "poblacio": "12844"
+    "codi": 83020,
+    "poblacio": 12844
   },
   {
     "nom": "Vilanova de Sau",
-    "codi": "083036",
-    "poblacio": "317"
+    "codi": 83036,
+    "poblacio": 317
   },
   {
     "nom": "Vilobí del Penedès",
-    "codi": "083041",
-    "poblacio": "1150"
+    "codi": 83041,
+    "poblacio": 1150
   },
   {
     "nom": "Vilafranca del Penedès",
-    "codi": "083054",
-    "poblacio": "41504"
+    "codi": 83054,
+    "poblacio": 41504
   },
   {
     "nom": "Vilalba Sasserra",
-    "codi": "083067",
-    "poblacio": "780"
+    "codi": 83067,
+    "poblacio": 780
   },
   {
     "nom": "Vilanova i la Geltrú",
-    "codi": "083073",
-    "poblacio": "70418"
+    "codi": 83073,
+    "poblacio": 70418
   },
   {
     "nom": "Viver i Serrateix",
-    "codi": "083089",
-    "poblacio": "175"
+    "codi": 83089,
+    "poblacio": 175
   },
   {
     "nom": "Rupit i Pruit",
-    "codi": "089019",
-    "poblacio": "281"
+    "codi": 89019,
+    "poblacio": 281
   },
   {
     "nom": "Vilanova del Vallès",
-    "codi": "089024",
-    "poblacio": "5632"
+    "codi": 89024,
+    "poblacio": 5632
   },
   {
     "nom": "Sant Julià de Cerdanyola",
-    "codi": "089030",
-    "poblacio": "232"
+    "codi": 89030,
+    "poblacio": 232
   },
   {
     "nom": "Badia del Vallès",
-    "codi": "089045",
-    "poblacio": "13118"
+    "codi": 89045,
+    "poblacio": 13118
   },
   {
     "nom": "Palma de Cervelló, la",
-    "codi": "089058",
-    "poblacio": "3044"
+    "codi": 89058,
+    "poblacio": 3044
   },
   {
     "nom": "Agullana",
-    "codi": "170010",
-    "poblacio": "909"
+    "codi": 170010,
+    "poblacio": 909
   },
   {
     "nom": "Aiguaviva",
-    "codi": "170025",
-    "poblacio": "802"
+    "codi": 170025,
+    "poblacio": 802
   },
   {
     "nom": "Albanyà",
-    "codi": "170031",
-    "poblacio": "168"
+    "codi": 170031,
+    "poblacio": 168
   },
   {
     "nom": "Albons",
-    "codi": "170046",
-    "poblacio": "830"
+    "codi": 170046,
+    "poblacio": 830
   },
   {
     "nom": "Far d'Empordà, el",
-    "codi": "170059",
-    "poblacio": "626"
+    "codi": 170059,
+    "poblacio": 626
   },
   {
     "nom": "Alp",
-    "codi": "170062",
-    "poblacio": "1728"
+    "codi": 170062,
+    "poblacio": 1728
   },
   {
     "nom": "Amer",
-    "codi": "170078",
-    "poblacio": "2415"
+    "codi": 170078,
+    "poblacio": 2415
   },
   {
     "nom": "Anglès",
-    "codi": "170084",
-    "poblacio": "5969"
+    "codi": 170084,
+    "poblacio": 5969
   },
   {
     "nom": "Arbúcies",
-    "codi": "170097",
-    "poblacio": "6574"
+    "codi": 170097,
+    "poblacio": 6574
   },
   {
     "nom": "Argelaguer",
-    "codi": "170101",
-    "poblacio": "452"
+    "codi": 170101,
+    "poblacio": 452
   },
   {
     "nom": "Armentera, l'",
-    "codi": "170118",
-    "poblacio": "1070"
+    "codi": 170118,
+    "poblacio": 1070
   },
   {
     "nom": "Avinyonet de Puigventós",
-    "codi": "170123",
-    "poblacio": "1684"
+    "codi": 170123,
+    "poblacio": 1684
   },
   {
     "nom": "Begur",
-    "codi": "170139",
-    "poblacio": "4245"
+    "codi": 170139,
+    "poblacio": 4245
   },
   {
     "nom": "Vajol, la",
-    "codi": "170144",
-    "poblacio": "96"
+    "codi": 170144,
+    "poblacio": 96
   },
   {
     "nom": "Banyoles",
-    "codi": "170157",
-    "poblacio": "20599"
+    "codi": 170157,
+    "poblacio": 20599
   },
   {
     "nom": "Bàscara",
-    "codi": "170160",
-    "poblacio": "1057"
+    "codi": 170160,
+    "poblacio": 1057
   },
   {
     "nom": "Bellcaire d'Empordà",
-    "codi": "170182",
-    "poblacio": "737"
+    "codi": 170182,
+    "poblacio": 737
   },
   {
     "nom": "Besalú",
-    "codi": "170195",
-    "poblacio": "2583"
+    "codi": 170195,
+    "poblacio": 2583
   },
   {
     "nom": "Bescanó",
-    "codi": "170209",
-    "poblacio": "5141"
+    "codi": 170209,
+    "poblacio": 5141
   },
   {
     "nom": "Beuda",
-    "codi": "170216",
-    "poblacio": "204"
+    "codi": 170216,
+    "poblacio": 204
   },
   {
     "nom": "Bisbal d'Empordà, la",
-    "codi": "170221",
-    "poblacio": "11683"
+    "codi": 170221,
+    "poblacio": 11683
   },
   {
     "nom": "Blanes",
-    "codi": "170237",
-    "poblacio": "42198"
+    "codi": 170237,
+    "poblacio": 42198
   },
   {
     "nom": "Bolvir",
-    "codi": "170242",
-    "poblacio": "497"
+    "codi": 170242,
+    "poblacio": 497
   },
   {
     "nom": "Bordils",
-    "codi": "170255",
-    "poblacio": "1804"
+    "codi": 170255,
+    "poblacio": 1804
   },
   {
     "nom": "Borrassà",
-    "codi": "170268",
-    "poblacio": "773"
+    "codi": 170268,
+    "poblacio": 773
   },
   {
     "nom": "Breda",
-    "codi": "170274",
-    "poblacio": "3930"
+    "codi": 170274,
+    "poblacio": 3930
   },
   {
     "nom": "Brunyola i Sant Martí Sapresa",
-    "codi": "170280",
-    "poblacio": "395"
+    "codi": 170280,
+    "poblacio": 395
   },
   {
     "nom": "Boadella i les Escaules",
-    "codi": "170293",
-    "poblacio": "260"
+    "codi": 170293,
+    "poblacio": 260
   },
   {
     "nom": "Cabanes",
-    "codi": "170307",
-    "poblacio": "978"
+    "codi": 170307,
+    "poblacio": 978
   },
   {
     "nom": "Cabanelles",
-    "codi": "170314",
-    "poblacio": "281"
+    "codi": 170314,
+    "poblacio": 281
   },
   {
     "nom": "Cadaqués",
-    "codi": "170329",
-    "poblacio": "2918"
+    "codi": 170329,
+    "poblacio": 2918
   },
   {
     "nom": "Caldes de Malavella",
-    "codi": "170335",
-    "poblacio": "8509"
+    "codi": 170335,
+    "poblacio": 8509
   },
   {
     "nom": "Calonge i Sant Antoni",
-    "codi": "170340",
-    "poblacio": "12316"
+    "codi": 170340,
+    "poblacio": 12316
   },
   {
     "nom": "Camós",
-    "codi": "170353",
-    "poblacio": "711"
+    "codi": 170353,
+    "poblacio": 711
   },
   {
     "nom": "Campdevànol",
-    "codi": "170366",
-    "poblacio": "3262"
+    "codi": 170366,
+    "poblacio": 3262
   },
   {
     "nom": "Campelles",
-    "codi": "170372",
-    "poblacio": "165"
+    "codi": 170372,
+    "poblacio": 165
   },
   {
     "nom": "Campllong",
-    "codi": "170388",
-    "poblacio": "544"
+    "codi": 170388,
+    "poblacio": 544
   },
   {
     "nom": "Camprodon",
-    "codi": "170391",
-    "poblacio": "2527"
+    "codi": 170391,
+    "poblacio": 2527
   },
   {
     "nom": "Canet d'Adri",
-    "codi": "170405",
-    "poblacio": "744"
+    "codi": 170405,
+    "poblacio": 744
   },
   {
     "nom": "Cantallops",
-    "codi": "170412",
-    "poblacio": "346"
+    "codi": 170412,
+    "poblacio": 346
   },
   {
     "nom": "Capmany",
-    "codi": "170427",
-    "poblacio": "693"
+    "codi": 170427,
+    "poblacio": 693
   },
   {
     "nom": "Queralbs",
-    "codi": "170433",
-    "poblacio": "206"
+    "codi": 170433,
+    "poblacio": 206
   },
   {
     "nom": "Cassà de la Selva",
-    "codi": "170448",
-    "poblacio": "10943"
+    "codi": 170448,
+    "poblacio": 10943
   },
   {
     "nom": "Castellfollit de la Roca",
-    "codi": "170464",
-    "poblacio": "957"
+    "codi": 170464,
+    "poblacio": 957
   },
   {
     "nom": "Castelló d'Empúries",
-    "codi": "170470",
-    "poblacio": "12163"
+    "codi": 170470,
+    "poblacio": 12163
   },
   {
     "nom": "Castell d'Aro, Platja d'Aro i s'Agaró",
-    "codi": "170486",
-    "poblacio": "12981"
+    "codi": 170486,
+    "poblacio": 12981
   },
   {
     "nom": "Celrà",
-    "codi": "170499",
-    "poblacio": "5561"
+    "codi": 170499,
+    "poblacio": 5561
   },
   {
     "nom": "Cervià de Ter",
-    "codi": "170502",
-    "poblacio": "997"
+    "codi": 170502,
+    "poblacio": 997
   },
   {
     "nom": "Cistella",
-    "codi": "170519",
-    "poblacio": "294"
+    "codi": 170519,
+    "poblacio": 294
   },
   {
     "nom": "Siurana",
-    "codi": "170524",
-    "poblacio": "180"
+    "codi": 170524,
+    "poblacio": 180
   },
   {
     "nom": "Colera",
-    "codi": "170545",
-    "poblacio": "491"
+    "codi": 170545,
+    "poblacio": 491
   },
   {
     "nom": "Colomers",
-    "codi": "170558",
-    "poblacio": "205"
+    "codi": 170558,
+    "poblacio": 205
   },
   {
     "nom": "Cornellà del Terri",
-    "codi": "170561",
-    "poblacio": "2390"
+    "codi": 170561,
+    "poblacio": 2390
   },
   {
     "nom": "Corçà",
-    "codi": "170577",
-    "poblacio": "1282"
+    "codi": 170577,
+    "poblacio": 1282
   },
   {
     "nom": "Crespià",
-    "codi": "170583",
-    "poblacio": "250"
+    "codi": 170583,
+    "poblacio": 250
   },
   {
     "nom": "Darnius",
-    "codi": "170600",
-    "poblacio": "548"
+    "codi": 170600,
+    "poblacio": 548
   },
   {
     "nom": "Das",
-    "codi": "170617",
-    "poblacio": "270"
+    "codi": 170617,
+    "poblacio": 270
   },
   {
     "nom": "Escala, l'",
-    "codi": "170622",
-    "poblacio": "10429"
+    "codi": 170622,
+    "poblacio": 10429
   },
   {
     "nom": "Espinelves",
-    "codi": "170638",
-    "poblacio": "254"
+    "codi": 170638,
+    "poblacio": 254
   },
   {
     "nom": "Espolla",
-    "codi": "170643",
-    "poblacio": "412"
+    "codi": 170643,
+    "poblacio": 412
   },
   {
     "nom": "Esponellà",
-    "codi": "170656",
-    "poblacio": "438"
+    "codi": 170656,
+    "poblacio": 438
   },
   {
     "nom": "Figueres",
-    "codi": "170669",
-    "poblacio": "48875"
+    "codi": 170669,
+    "poblacio": 48875
   },
   {
     "nom": "Flaçà",
-    "codi": "170675",
-    "poblacio": "1145"
+    "codi": 170675,
+    "poblacio": 1145
   },
   {
     "nom": "Foixà",
-    "codi": "170681",
-    "poblacio": "292"
+    "codi": 170681,
+    "poblacio": 292
   },
   {
     "nom": "Fontanals de Cerdanya",
-    "codi": "170694",
-    "poblacio": "531"
+    "codi": 170694,
+    "poblacio": 531
   },
   {
     "nom": "Fontanilles",
-    "codi": "170708",
-    "poblacio": "168"
+    "codi": 170708,
+    "poblacio": 168
   },
   {
     "nom": "Fontcoberta",
-    "codi": "170715",
-    "poblacio": "1503"
+    "codi": 170715,
+    "poblacio": 1503
   },
   {
     "nom": "Fornells de la Selva",
-    "codi": "170736",
-    "poblacio": "2781"
+    "codi": 170736,
+    "poblacio": 2781
   },
   {
     "nom": "Fortià",
-    "codi": "170741",
-    "poblacio": "801"
+    "codi": 170741,
+    "poblacio": 801
   },
   {
     "nom": "Garrigàs",
-    "codi": "170754",
-    "poblacio": "472"
+    "codi": 170754,
+    "poblacio": 472
   },
   {
     "nom": "Garrigoles",
-    "codi": "170767",
-    "poblacio": "185"
+    "codi": 170767,
+    "poblacio": 185
   },
   {
     "nom": "Garriguella",
-    "codi": "170773",
-    "poblacio": "967"
+    "codi": 170773,
+    "poblacio": 967
   },
   {
     "nom": "Ger",
-    "codi": "170789",
-    "poblacio": "494"
+    "codi": 170789,
+    "poblacio": 494
   },
   {
     "nom": "Girona",
-    "codi": "170792",
-    "poblacio": "107032"
+    "codi": 170792,
+    "poblacio": 107032
   },
   {
     "nom": "Gombrèn",
-    "codi": "170806",
-    "poblacio": "196"
+    "codi": 170806,
+    "poblacio": 196
   },
   {
     "nom": "Gualta",
-    "codi": "170813",
-    "poblacio": "419"
+    "codi": 170813,
+    "poblacio": 419
   },
   {
     "nom": "Guils de Cerdanya",
-    "codi": "170828",
-    "poblacio": "566"
+    "codi": 170828,
+    "poblacio": 566
   },
   {
     "nom": "Hostalric",
-    "codi": "170834",
-    "poblacio": "4446"
+    "codi": 170834,
+    "poblacio": 4446
   },
   {
     "nom": "Isòvol",
-    "codi": "170849",
-    "poblacio": "330"
+    "codi": 170849,
+    "poblacio": 330
   },
   {
     "nom": "Jafre",
-    "codi": "170852",
-    "poblacio": "387"
+    "codi": 170852,
+    "poblacio": 387
   },
   {
     "nom": "Jonquera, la",
-    "codi": "170865",
-    "poblacio": "3408"
+    "codi": 170865,
+    "poblacio": 3408
   },
   {
     "nom": "Juià",
-    "codi": "170871",
-    "poblacio": "342"
+    "codi": 170871,
+    "poblacio": 342
   },
   {
     "nom": "Lladó",
-    "codi": "170887",
-    "poblacio": "829"
+    "codi": 170887,
+    "poblacio": 829
   },
   {
     "nom": "Llagostera",
-    "codi": "170890",
-    "poblacio": "9508"
+    "codi": 170890,
+    "poblacio": 9508
   },
   {
     "nom": "Llambilles",
-    "codi": "170904",
-    "poblacio": "730"
+    "codi": 170904,
+    "poblacio": 730
   },
   {
     "nom": "Llanars",
-    "codi": "170911",
-    "poblacio": "515"
+    "codi": 170911,
+    "poblacio": 515
   },
   {
     "nom": "Llançà",
-    "codi": "170926",
-    "poblacio": "4943"
+    "codi": 170926,
+    "poblacio": 4943
   },
   {
     "nom": "Llers",
-    "codi": "170932",
-    "poblacio": "1248"
+    "codi": 170932,
+    "poblacio": 1248
   },
   {
     "nom": "Llívia",
-    "codi": "170947",
-    "poblacio": "1560"
+    "codi": 170947,
+    "poblacio": 1560
   },
   {
     "nom": "Lloret de Mar",
-    "codi": "170950",
-    "poblacio": "42600"
+    "codi": 170950,
+    "poblacio": 42600
   },
   {
     "nom": "Llosses, les",
-    "codi": "170963",
-    "poblacio": "199"
+    "codi": 170963,
+    "poblacio": 199
   },
   {
     "nom": "Madremanya",
-    "codi": "170979",
-    "poblacio": "289"
+    "codi": 170979,
+    "poblacio": 289
   },
   {
     "nom": "Maià de Montcal",
-    "codi": "170985",
-    "poblacio": "491"
+    "codi": 170985,
+    "poblacio": 491
   },
   {
     "nom": "Meranges",
-    "codi": "170998",
-    "poblacio": "112"
+    "codi": 170998,
+    "poblacio": 112
   },
   {
     "nom": "Masarac i Vilarnadal",
-    "codi": "171002",
-    "poblacio": "297"
+    "codi": 171002,
+    "poblacio": 297
   },
   {
     "nom": "Massanes",
-    "codi": "171019",
-    "poblacio": "843"
+    "codi": 171019,
+    "poblacio": 843
   },
   {
     "nom": "Maçanet de Cabrenys",
-    "codi": "171024",
-    "poblacio": "772"
+    "codi": 171024,
+    "poblacio": 772
   },
   {
     "nom": "Maçanet de la Selva",
-    "codi": "171030",
-    "poblacio": "7962"
+    "codi": 171030,
+    "poblacio": 7962
   },
   {
     "nom": "Mieres",
-    "codi": "171058",
-    "poblacio": "349"
+    "codi": 171058,
+    "poblacio": 349
   },
   {
     "nom": "Mollet de Peralada",
-    "codi": "171061",
-    "poblacio": "215"
+    "codi": 171061,
+    "poblacio": 215
   },
   {
     "nom": "Molló",
-    "codi": "171077",
-    "poblacio": "374"
+    "codi": 171077,
+    "poblacio": 374
   },
   {
     "nom": "Montagut i Oix",
-    "codi": "171096",
-    "poblacio": "1000"
+    "codi": 171096,
+    "poblacio": 1000
   },
   {
     "nom": "Mont-ras",
-    "codi": "171100",
-    "poblacio": "1690"
+    "codi": 171100,
+    "poblacio": 1690
   },
   {
     "nom": "Navata",
-    "codi": "171117",
-    "poblacio": "1469"
+    "codi": 171117,
+    "poblacio": 1469
   },
   {
     "nom": "Ogassa",
-    "codi": "171122",
-    "poblacio": "218"
+    "codi": 171122,
+    "poblacio": 218
   },
   {
     "nom": "Olot",
-    "codi": "171143",
-    "poblacio": "38822"
+    "codi": 171143,
+    "poblacio": 38822
   },
   {
     "nom": "Ordis",
-    "codi": "171156",
-    "poblacio": "400"
+    "codi": 171156,
+    "poblacio": 400
   },
   {
     "nom": "Osor",
-    "codi": "171169",
-    "poblacio": "418"
+    "codi": 171169,
+    "poblacio": 418
   },
   {
     "nom": "Palafrugell",
-    "codi": "171175",
-    "poblacio": "24300"
+    "codi": 171175,
+    "poblacio": 24300
   },
   {
     "nom": "Palamós",
-    "codi": "171181",
-    "poblacio": "18651"
+    "codi": 171181,
+    "poblacio": 18651
   },
   {
     "nom": "Palau de Santa Eulàlia",
-    "codi": "171194",
-    "poblacio": "136"
+    "codi": 171194,
+    "poblacio": 136
   },
   {
     "nom": "Palau-saverdera",
-    "codi": "171208",
-    "poblacio": "1503"
+    "codi": 171208,
+    "poblacio": 1503
   },
   {
     "nom": "Palau-sator",
-    "codi": "171215",
-    "poblacio": "300"
+    "codi": 171215,
+    "poblacio": 300
   },
   {
     "nom": "Palol de Revardit",
-    "codi": "171236",
-    "poblacio": "465"
+    "codi": 171236,
+    "poblacio": 465
   },
   {
     "nom": "Pals",
-    "codi": "171241",
-    "poblacio": "2556"
+    "codi": 171241,
+    "poblacio": 2556
   },
   {
     "nom": "Pardines",
-    "codi": "171254",
-    "poblacio": "161"
+    "codi": 171254,
+    "poblacio": 161
   },
   {
     "nom": "Parlavà",
-    "codi": "171267",
-    "poblacio": "427"
+    "codi": 171267,
+    "poblacio": 427
   },
   {
     "nom": "Pau",
-    "codi": "171289",
-    "poblacio": "584"
+    "codi": 171289,
+    "poblacio": 584
   },
   {
     "nom": "Pedret i Marzà",
-    "codi": "171292",
-    "poblacio": "188"
+    "codi": 171292,
+    "poblacio": 188
   },
   {
     "nom": "Pera, la",
-    "codi": "171306",
-    "poblacio": "450"
+    "codi": 171306,
+    "poblacio": 450
   },
   {
     "nom": "Peralada",
-    "codi": "171328",
-    "poblacio": "2047"
+    "codi": 171328,
+    "poblacio": 2047
   },
   {
     "nom": "Planes d'Hostoles, les",
-    "codi": "171334",
-    "poblacio": "1746"
+    "codi": 171334,
+    "poblacio": 1746
   },
   {
     "nom": "Planoles",
-    "codi": "171349",
-    "poblacio": "306"
+    "codi": 171349,
+    "poblacio": 306
   },
   {
     "nom": "Pont de Molins",
-    "codi": "171352",
-    "poblacio": "576"
+    "codi": 171352,
+    "poblacio": 576
   },
   {
     "nom": "Pontós",
-    "codi": "171365",
-    "poblacio": "290"
+    "codi": 171365,
+    "poblacio": 290
   },
   {
     "nom": "Porqueres",
-    "codi": "171371",
-    "poblacio": "4804"
+    "codi": 171371,
+    "poblacio": 4804
   },
   {
     "nom": "Portbou",
-    "codi": "171387",
-    "poblacio": "1082"
+    "codi": 171387,
+    "poblacio": 1082
   },
   {
     "nom": "Preses, les",
-    "codi": "171390",
-    "poblacio": "1925"
+    "codi": 171390,
+    "poblacio": 1925
   },
   {
     "nom": "Port de la Selva, el",
-    "codi": "171404",
-    "poblacio": "1061"
+    "codi": 171404,
+    "poblacio": 1061
   },
   {
     "nom": "Puigcerdà",
-    "codi": "171411",
-    "poblacio": "10008"
+    "codi": 171411,
+    "poblacio": 10008
   },
   {
     "nom": "Quart",
-    "codi": "171426",
-    "poblacio": "4099"
+    "codi": 171426,
+    "poblacio": 4099
   },
   {
     "nom": "Rabós",
-    "codi": "171432",
-    "poblacio": "230"
+    "codi": 171432,
+    "poblacio": 230
   },
   {
     "nom": "Regencós",
-    "codi": "171447",
-    "poblacio": "279"
+    "codi": 171447,
+    "poblacio": 279
   },
   {
     "nom": "Ribes de Freser",
-    "codi": "171450",
-    "poblacio": "1847"
+    "codi": 171450,
+    "poblacio": 1847
   },
   {
     "nom": "Riells i Viabrea",
-    "codi": "171463",
-    "poblacio": "4499"
+    "codi": 171463,
+    "poblacio": 4499
   },
   {
     "nom": "Ripoll",
-    "codi": "171479",
-    "poblacio": "10692"
+    "codi": 171479,
+    "poblacio": 10692
   },
   {
     "nom": "Riudarenes",
-    "codi": "171485",
-    "poblacio": "2445"
+    "codi": 171485,
+    "poblacio": 2445
   },
   {
     "nom": "Riudaura",
-    "codi": "171498",
-    "poblacio": "529"
+    "codi": 171498,
+    "poblacio": 529
   },
   {
     "nom": "Riudellots de la Selva",
-    "codi": "171501",
-    "poblacio": "2142"
+    "codi": 171501,
+    "poblacio": 2142
   },
   {
     "nom": "Riumors",
-    "codi": "171518",
-    "poblacio": "262"
+    "codi": 171518,
+    "poblacio": 262
   },
   {
     "nom": "Roses",
-    "codi": "171523",
-    "poblacio": "20362"
+    "codi": 171523,
+    "poblacio": 20362
   },
   {
     "nom": "Rupià",
-    "codi": "171539",
-    "poblacio": "330"
+    "codi": 171539,
+    "poblacio": 330
   },
   {
     "nom": "Sales de Llierca",
-    "codi": "171544",
-    "poblacio": "158"
+    "codi": 171544,
+    "poblacio": 158
   },
   {
     "nom": "Salt",
-    "codi": "171557",
-    "poblacio": "33904"
+    "codi": 171557,
+    "poblacio": 33904
   },
   {
     "nom": "Sant Andreu Salou",
-    "codi": "171576",
-    "poblacio": "172"
+    "codi": 171576,
+    "poblacio": 172
   },
   {
     "nom": "Sant Climent Sescebes",
-    "codi": "171582",
-    "poblacio": "675"
+    "codi": 171582,
+    "poblacio": 675
   },
   {
     "nom": "Sant Feliu de Buixalleu",
-    "codi": "171595",
-    "poblacio": "878"
+    "codi": 171595,
+    "poblacio": 878
   },
   {
     "nom": "Sant Feliu de Guíxols",
-    "codi": "171609",
-    "poblacio": "23050"
+    "codi": 171609,
+    "poblacio": 23050
   },
   {
     "nom": "Sant Feliu de Pallerols",
-    "codi": "171616",
-    "poblacio": "1692"
+    "codi": 171616,
+    "poblacio": 1692
   },
   {
     "nom": "Sant Ferriol",
-    "codi": "171621",
-    "poblacio": "233"
+    "codi": 171621,
+    "poblacio": 233
   },
   {
     "nom": "Sant Gregori",
-    "codi": "171637",
-    "poblacio": "4243"
+    "codi": 171637,
+    "poblacio": 4243
   },
   {
     "nom": "Sant Hilari Sacalm",
-    "codi": "171642",
-    "poblacio": "5982"
+    "codi": 171642,
+    "poblacio": 5982
   },
   {
     "nom": "Sant Jaume de Llierca",
-    "codi": "171655",
-    "poblacio": "849"
+    "codi": 171655,
+    "poblacio": 849
   },
   {
     "nom": "Sant Jordi Desvalls",
-    "codi": "171668",
-    "poblacio": "871"
+    "codi": 171668,
+    "poblacio": 871
   },
   {
     "nom": "Sant Joan de les Abadesses",
-    "codi": "171674",
-    "poblacio": "3375"
+    "codi": 171674,
+    "poblacio": 3375
   },
   {
     "nom": "Sant Joan de Mollet",
-    "codi": "171680",
-    "poblacio": "526"
+    "codi": 171680,
+    "poblacio": 526
   },
   {
     "nom": "Sant Julià de Ramis",
-    "codi": "171693",
-    "poblacio": "3644"
+    "codi": 171693,
+    "poblacio": 3644
   },
   {
     "nom": "Vallfogona de Ripollès",
-    "codi": "171707",
-    "poblacio": "222"
+    "codi": 171707,
+    "poblacio": 222
   },
   {
     "nom": "Sant Llorenç de la Muga",
-    "codi": "171714",
-    "poblacio": "258"
+    "codi": 171714,
+    "poblacio": 258
   },
   {
     "nom": "Sant Martí de Llémena",
-    "codi": "171729",
-    "poblacio": "706"
+    "codi": 171729,
+    "poblacio": 706
   },
   {
     "nom": "Sant Martí Vell",
-    "codi": "171735",
-    "poblacio": "264"
+    "codi": 171735,
+    "poblacio": 264
   },
   {
     "nom": "Sant Miquel de Campmajor",
-    "codi": "171740",
-    "poblacio": "254"
+    "codi": 171740,
+    "poblacio": 254
   },
   {
     "nom": "Sant Miquel de Fluvià",
-    "codi": "171753",
-    "poblacio": "839"
+    "codi": 171753,
+    "poblacio": 839
   },
   {
     "nom": "Sant Mori",
-    "codi": "171766",
-    "poblacio": "163"
+    "codi": 171766,
+    "poblacio": 163
   },
   {
     "nom": "Sant Pau de Segúries",
-    "codi": "171772",
-    "poblacio": "724"
+    "codi": 171772,
+    "poblacio": 724
   },
   {
     "nom": "Sant Pere Pescador",
-    "codi": "171788",
-    "poblacio": "2241"
+    "codi": 171788,
+    "poblacio": 2241
   },
   {
     "nom": "Santa Coloma de Farners",
-    "codi": "171805",
-    "poblacio": "13657"
+    "codi": 171805,
+    "poblacio": 13657
   },
   {
     "nom": "Santa Cristina d'Aro",
-    "codi": "171812",
-    "poblacio": "5866"
+    "codi": 171812,
+    "poblacio": 5866
   },
   {
     "nom": "Santa Llogaia d'Àlguema",
-    "codi": "171827",
-    "poblacio": "397"
+    "codi": 171827,
+    "poblacio": 397
   },
   {
     "nom": "Sant Aniol de Finestres",
-    "codi": "171833",
-    "poblacio": "372"
+    "codi": 171833,
+    "poblacio": 372
   },
   {
     "nom": "Santa Pau",
-    "codi": "171848",
-    "poblacio": "1611"
+    "codi": 171848,
+    "poblacio": 1611
   },
   {
     "nom": "Sant Joan les Fonts",
-    "codi": "171851",
-    "poblacio": "3111"
+    "codi": 171851,
+    "poblacio": 3111
   },
   {
     "nom": "Sarrià de Ter",
-    "codi": "171864",
-    "poblacio": "5392"
+    "codi": 171864,
+    "poblacio": 5392
   },
   {
     "nom": "Saus, Camallera i Llampaies",
-    "codi": "171870",
-    "poblacio": "898"
+    "codi": 171870,
+    "poblacio": 898
   },
   {
     "nom": "Selva de Mar, la",
-    "codi": "171886",
-    "poblacio": "220"
+    "codi": 171886,
+    "poblacio": 220
   },
   {
     "nom": "Cellera de Ter, la",
-    "codi": "171899",
-    "poblacio": "2014"
+    "codi": 171899,
+    "poblacio": 2014
   },
   {
     "nom": "Serinyà",
-    "codi": "171903",
-    "poblacio": "1198"
+    "codi": 171903,
+    "poblacio": 1198
   },
   {
     "nom": "Serra de Daró",
-    "codi": "171910",
-    "poblacio": "229"
+    "codi": 171910,
+    "poblacio": 229
   },
   {
     "nom": "Setcases",
-    "codi": "171925",
-    "poblacio": "191"
+    "codi": 171925,
+    "poblacio": 191
   },
   {
     "nom": "Sils",
-    "codi": "171931",
-    "poblacio": "6720"
+    "codi": 171931,
+    "poblacio": 6720
   },
   {
     "nom": "Susqueda",
-    "codi": "171946",
-    "poblacio": "97"
+    "codi": 171946,
+    "poblacio": 97
   },
   {
     "nom": "Tallada d'Empordà, la",
-    "codi": "171959",
-    "poblacio": "478"
+    "codi": 171959,
+    "poblacio": 478
   },
   {
     "nom": "Terrades",
-    "codi": "171962",
-    "poblacio": "345"
+    "codi": 171962,
+    "poblacio": 345
   },
   {
     "nom": "Torrent",
-    "codi": "171978",
-    "poblacio": "173"
+    "codi": 171978,
+    "poblacio": 173
   },
   {
     "nom": "Torroella de Fluvià",
-    "codi": "171984",
-    "poblacio": "772"
+    "codi": 171984,
+    "poblacio": 772
   },
   {
     "nom": "Torroella de Montgrí",
-    "codi": "171997",
-    "poblacio": "12521"
+    "codi": 171997,
+    "poblacio": 12521
   },
   {
     "nom": "Tortellà",
-    "codi": "172001",
-    "poblacio": "828"
+    "codi": 172001,
+    "poblacio": 828
   },
   {
     "nom": "Toses",
-    "codi": "172018",
-    "poblacio": "191"
+    "codi": 172018,
+    "poblacio": 191
   },
   {
     "nom": "Tossa de Mar",
-    "codi": "172023",
-    "poblacio": "6274"
+    "codi": 172023,
+    "poblacio": 6274
   },
   {
     "nom": "Ultramort",
-    "codi": "172039",
-    "poblacio": "214"
+    "codi": 172039,
+    "poblacio": 214
   },
   {
     "nom": "Ullà",
-    "codi": "172044",
-    "poblacio": "1219"
+    "codi": 172044,
+    "poblacio": 1219
   },
   {
     "nom": "Ullastret",
-    "codi": "172057",
-    "poblacio": "260"
+    "codi": 172057,
+    "poblacio": 260
   },
   {
     "nom": "Urús",
-    "codi": "172060",
-    "poblacio": "207"
+    "codi": 172060,
+    "poblacio": 207
   },
   {
     "nom": "Vall d'en Bas, la",
-    "codi": "172076",
-    "poblacio": "3219"
+    "codi": 172076,
+    "poblacio": 3219
   },
   {
     "nom": "Vall de Bianya, la",
-    "codi": "172082",
-    "poblacio": "1350"
+    "codi": 172082,
+    "poblacio": 1350
   },
   {
     "nom": "Vall-llobrega",
-    "codi": "172095",
-    "poblacio": "906"
+    "codi": 172095,
+    "poblacio": 906
   },
   {
     "nom": "Ventalló",
-    "codi": "172109",
-    "poblacio": "891"
+    "codi": 172109,
+    "poblacio": 891
   },
   {
     "nom": "Verges",
-    "codi": "172116",
-    "poblacio": "1187"
+    "codi": 172116,
+    "poblacio": 1187
   },
   {
     "nom": "Vidrà",
-    "codi": "172121",
-    "poblacio": "169"
+    "codi": 172121,
+    "poblacio": 169
   },
   {
     "nom": "Vidreres",
-    "codi": "172137",
-    "poblacio": "8538"
+    "codi": 172137,
+    "poblacio": 8538
   },
   {
     "nom": "Vilabertran",
-    "codi": "172142",
-    "poblacio": "984"
+    "codi": 172142,
+    "poblacio": 984
   },
   {
     "nom": "Vilablareix",
-    "codi": "172155",
-    "poblacio": "3772"
+    "codi": 172155,
+    "poblacio": 3772
   },
   {
     "nom": "Viladasens",
-    "codi": "172168",
-    "poblacio": "212"
+    "codi": 172168,
+    "poblacio": 212
   },
   {
     "nom": "Viladamat",
-    "codi": "172174",
-    "poblacio": "492"
+    "codi": 172174,
+    "poblacio": 492
   },
   {
     "nom": "Vilademuls",
-    "codi": "172180",
-    "poblacio": "866"
+    "codi": 172180,
+    "poblacio": 866
   },
   {
     "nom": "Viladrau",
-    "codi": "172207",
-    "poblacio": "1172"
+    "codi": 172207,
+    "poblacio": 1172
   },
   {
     "nom": "Vilafant",
-    "codi": "172214",
-    "poblacio": "5706"
+    "codi": 172214,
+    "poblacio": 5706
   },
   {
     "nom": "Vilaür",
-    "codi": "172229",
-    "poblacio": "170"
+    "codi": 172229,
+    "poblacio": 170
   },
   {
     "nom": "Vilajuïga",
-    "codi": "172235",
-    "poblacio": "1179"
+    "codi": 172235,
+    "poblacio": 1179
   },
   {
     "nom": "Vilallonga de Ter",
-    "codi": "172240",
-    "poblacio": "395"
+    "codi": 172240,
+    "poblacio": 395
   },
   {
     "nom": "Vilamacolum",
-    "codi": "172253",
-    "poblacio": "376"
+    "codi": 172253,
+    "poblacio": 376
   },
   {
     "nom": "Vilamalla",
-    "codi": "172266",
-    "poblacio": "1220"
+    "codi": 172266,
+    "poblacio": 1220
   },
   {
     "nom": "Vilamaniscle",
-    "codi": "172272",
-    "poblacio": "201"
+    "codi": 172272,
+    "poblacio": 201
   },
   {
     "nom": "Vilanant",
-    "codi": "172288",
-    "poblacio": "402"
+    "codi": 172288,
+    "poblacio": 402
   },
   {
     "nom": "Vila-sacra",
-    "codi": "172305",
-    "poblacio": "811"
+    "codi": 172305,
+    "poblacio": 811
   },
   {
     "nom": "Vilopriu",
-    "codi": "172327",
-    "poblacio": "201"
+    "codi": 172327,
+    "poblacio": 201
   },
   {
     "nom": "Vilobí d'Onyar",
-    "codi": "172333",
-    "poblacio": "3315"
+    "codi": 172333,
+    "poblacio": 3315
   },
   {
     "nom": "Biure",
-    "codi": "172348",
-    "poblacio": "223"
+    "codi": 172348,
+    "poblacio": 223
   },
   {
     "nom": "Cruïlles, Monells i Sant Sadurní de l'Heura",
-    "codi": "179011",
-    "poblacio": "1329"
+    "codi": 179011,
+    "poblacio": 1329
   },
   {
     "nom": "Forallac",
-    "codi": "179026",
-    "poblacio": "1766"
+    "codi": 179026,
+    "poblacio": 1766
   },
   {
     "nom": "Sant Julià del Llor i Bonmatí",
-    "codi": "179032",
-    "poblacio": "1373"
+    "codi": 179032,
+    "poblacio": 1373
   },
   {
     "nom": "Abella de la Conca",
-    "codi": "250019",
-    "poblacio": "158"
+    "codi": 250019,
+    "poblacio": 158
   },
   {
     "nom": "Àger",
-    "codi": "250024",
-    "poblacio": "602"
+    "codi": 250024,
+    "poblacio": 602
   },
   {
     "nom": "Agramunt",
-    "codi": "250030",
-    "poblacio": "5629"
+    "codi": 250030,
+    "poblacio": 5629
   },
   {
     "nom": "Alamús, els",
-    "codi": "250045",
-    "poblacio": "800"
+    "codi": 250045,
+    "poblacio": 800
   },
   {
     "nom": "Alàs i Cerc",
-    "codi": "250058",
-    "poblacio": "322"
+    "codi": 250058,
+    "poblacio": 322
   },
   {
     "nom": "Albagés, l'",
-    "codi": "250061",
-    "poblacio": "344"
+    "codi": 250061,
+    "poblacio": 344
   },
   {
     "nom": "Albatàrrec",
-    "codi": "250077",
-    "poblacio": "2251"
+    "codi": 250077,
+    "poblacio": 2251
   },
   {
     "nom": "Albesa",
-    "codi": "250083",
-    "poblacio": "1584"
+    "codi": 250083,
+    "poblacio": 1584
   },
   {
     "nom": "Albi, l'",
-    "codi": "250096",
-    "poblacio": "766"
+    "codi": 250096,
+    "poblacio": 766
   },
   {
     "nom": "Alcanó",
-    "codi": "250100",
-    "poblacio": "239"
+    "codi": 250100,
+    "poblacio": 239
   },
   {
     "nom": "Alcarràs",
-    "codi": "250117",
-    "poblacio": "10018"
+    "codi": 250117,
+    "poblacio": 10018
   },
   {
     "nom": "Alcoletge",
-    "codi": "250122",
-    "poblacio": "3594"
+    "codi": 250122,
+    "poblacio": 3594
   },
   {
     "nom": "Alfarràs",
-    "codi": "250138",
-    "poblacio": "2778"
+    "codi": 250138,
+    "poblacio": 2778
   },
   {
     "nom": "Alfés",
-    "codi": "250143",
-    "poblacio": "281"
+    "codi": 250143,
+    "poblacio": 281
   },
   {
     "nom": "Algerri",
-    "codi": "250156",
-    "poblacio": "424"
+    "codi": 250156,
+    "poblacio": 424
   },
   {
     "nom": "Alguaire",
-    "codi": "250169",
-    "poblacio": "2986"
+    "codi": 250169,
+    "poblacio": 2986
   },
   {
     "nom": "Alins",
-    "codi": "250175",
-    "poblacio": "275"
+    "codi": 250175,
+    "poblacio": 275
   },
   {
     "nom": "Almacelles",
-    "codi": "250194",
-    "poblacio": "6896"
+    "codi": 250194,
+    "poblacio": 6896
   },
   {
     "nom": "Almatret",
-    "codi": "250208",
-    "poblacio": "305"
+    "codi": 250208,
+    "poblacio": 305
   },
   {
     "nom": "Almenar",
-    "codi": "250215",
-    "poblacio": "3338"
+    "codi": 250215,
+    "poblacio": 3338
   },
   {
     "nom": "Alòs de Balaguer",
-    "codi": "250220",
-    "poblacio": "120"
+    "codi": 250220,
+    "poblacio": 120
   },
   {
     "nom": "Alpicat",
-    "codi": "250236",
-    "poblacio": "6387"
+    "codi": 250236,
+    "poblacio": 6387
   },
   {
     "nom": "Alt Àneu",
-    "codi": "250241",
-    "poblacio": "455"
+    "codi": 250241,
+    "poblacio": 455
   },
   {
     "nom": "Naut Aran",
-    "codi": "250254",
-    "poblacio": "1899"
+    "codi": 250254,
+    "poblacio": 1899
   },
   {
     "nom": "Anglesola",
-    "codi": "250273",
-    "poblacio": "1367"
+    "codi": 250273,
+    "poblacio": 1367
   },
   {
     "nom": "Arbeca",
-    "codi": "250292",
-    "poblacio": "2081"
+    "codi": 250292,
+    "poblacio": 2081
   },
   {
     "nom": "Pont de Bar, el",
-    "codi": "250306",
-    "poblacio": "165"
+    "codi": 250306,
+    "poblacio": 165
   },
   {
     "nom": "Arres",
-    "codi": "250313",
-    "poblacio": "64"
+    "codi": 250313,
+    "poblacio": 64
   },
   {
     "nom": "Arsèguel",
-    "codi": "250328",
-    "poblacio": "78"
+    "codi": 250328,
+    "poblacio": 78
   },
   {
     "nom": "Artesa de Lleida",
-    "codi": "250334",
-    "poblacio": "1539"
+    "codi": 250334,
+    "poblacio": 1539
   },
   {
     "nom": "Artesa de Segre",
-    "codi": "250349",
-    "poblacio": "3485"
+    "codi": 250349,
+    "poblacio": 3485
   },
   {
     "nom": "Sentiu de Sió, la",
-    "codi": "250352",
-    "poblacio": "455"
+    "codi": 250352,
+    "poblacio": 455
   },
   {
     "nom": "Aspa",
-    "codi": "250365",
-    "poblacio": "220"
+    "codi": 250365,
+    "poblacio": 220
   },
   {
     "nom": "Avellanes i Santa Linya, les",
-    "codi": "250371",
-    "poblacio": "430"
+    "codi": 250371,
+    "poblacio": 430
   },
   {
     "nom": "Aitona",
-    "codi": "250387",
-    "poblacio": "2603"
+    "codi": 250387,
+    "poblacio": 2603
   },
   {
     "nom": "Baix Pallars",
-    "codi": "250390",
-    "poblacio": "340"
+    "codi": 250390,
+    "poblacio": 340
   },
   {
     "nom": "Balaguer",
-    "codi": "250404",
-    "poblacio": "17705"
+    "codi": 250404,
+    "poblacio": 17705
   },
   {
     "nom": "Barbens",
-    "codi": "250411",
-    "poblacio": "926"
+    "codi": 250411,
+    "poblacio": 926
   },
   {
     "nom": "Baronia de Rialb, la",
-    "codi": "250426",
-    "poblacio": "231"
+    "codi": 250426,
+    "poblacio": 231
   },
   {
     "nom": "Vall de Boí, la",
-    "codi": "250432",
-    "poblacio": "1116"
+    "codi": 250432,
+    "poblacio": 1116
   },
   {
     "nom": "Bassella",
-    "codi": "250447",
-    "poblacio": "210"
+    "codi": 250447,
+    "poblacio": 210
   },
   {
     "nom": "Bausen",
-    "codi": "250450",
-    "poblacio": "60"
+    "codi": 250450,
+    "poblacio": 60
   },
   {
     "nom": "Belianes",
-    "codi": "250463",
-    "poblacio": "517"
+    "codi": 250463,
+    "poblacio": 517
   },
   {
     "nom": "Bellcaire d'Urgell",
-    "codi": "250479",
-    "poblacio": "1228"
+    "codi": 250479,
+    "poblacio": 1228
   },
   {
     "nom": "Bell-lloc d'Urgell",
-    "codi": "250485",
-    "poblacio": "2359"
+    "codi": 250485,
+    "poblacio": 2359
   },
   {
     "nom": "Bellmunt d'Urgell",
-    "codi": "250498",
-    "poblacio": "182"
+    "codi": 250498,
+    "poblacio": 182
   },
   {
     "nom": "Bellpuig",
-    "codi": "250501",
-    "poblacio": "5276"
+    "codi": 250501,
+    "poblacio": 5276
   },
   {
     "nom": "Bellver de Cerdanya",
-    "codi": "250518",
-    "poblacio": "2260"
+    "codi": 250518,
+    "poblacio": 2260
   },
   {
     "nom": "Bellvís",
-    "codi": "250523",
-    "poblacio": "2269"
+    "codi": 250523,
+    "poblacio": 2269
   },
   {
     "nom": "Benavent de Segrià",
-    "codi": "250539",
-    "poblacio": "1578"
+    "codi": 250539,
+    "poblacio": 1578
   },
   {
     "nom": "Biosca",
-    "codi": "250557",
-    "poblacio": "176"
+    "codi": 250557,
+    "poblacio": 176
   },
   {
     "nom": "Bovera",
-    "codi": "250560",
-    "poblacio": "247"
+    "codi": 250560,
+    "poblacio": 247
   },
   {
     "nom": "Bòrdes, Es",
-    "codi": "250576",
-    "poblacio": "280"
+    "codi": 250576,
+    "poblacio": 280
   },
   {
     "nom": "Borges Blanques, les",
-    "codi": "250582",
-    "poblacio": "6379"
+    "codi": 250582,
+    "poblacio": 6379
   },
   {
     "nom": "Bossòst",
-    "codi": "250595",
-    "poblacio": "1141"
+    "codi": 250595,
+    "poblacio": 1141
   },
   {
     "nom": "Cabanabona",
-    "codi": "250609",
-    "poblacio": "65"
+    "codi": 250609,
+    "poblacio": 65
   },
   {
     "nom": "Cabó",
-    "codi": "250616",
-    "poblacio": "89"
+    "codi": 250616,
+    "poblacio": 89
   },
   {
     "nom": "Camarasa",
-    "codi": "250621",
-    "poblacio": "805"
+    "codi": 250621,
+    "poblacio": 805
   },
   {
     "nom": "Canejan",
-    "codi": "250637",
-    "poblacio": "101"
+    "codi": 250637,
+    "poblacio": 101
   },
   {
     "nom": "Castellar de la Ribera",
-    "codi": "250642",
-    "poblacio": "144"
+    "codi": 250642,
+    "poblacio": 144
   },
   {
     "nom": "Castelldans",
-    "codi": "250674",
-    "poblacio": "891"
+    "codi": 250674,
+    "poblacio": 891
   },
   {
     "nom": "Castellnou de Seana",
-    "codi": "250680",
-    "poblacio": "723"
+    "codi": 250680,
+    "poblacio": 723
   },
   {
     "nom": "Castelló de Farfanya",
-    "codi": "250693",
-    "poblacio": "544"
+    "codi": 250693,
+    "poblacio": 544
   },
   {
     "nom": "Castellserà",
-    "codi": "250707",
-    "poblacio": "993"
+    "codi": 250707,
+    "poblacio": 993
   },
   {
     "nom": "Cava",
-    "codi": "250714",
-    "poblacio": "39"
+    "codi": 250714,
+    "poblacio": 39
   },
   {
     "nom": "Cervera",
-    "codi": "250729",
-    "poblacio": "9533"
+    "codi": 250729,
+    "poblacio": 9533
   },
   {
     "nom": "Cervià de les Garrigues",
-    "codi": "250735",
-    "poblacio": "641"
+    "codi": 250735,
+    "poblacio": 641
   },
   {
     "nom": "Ciutadilla",
-    "codi": "250740",
-    "poblacio": "194"
+    "codi": 250740,
+    "poblacio": 194
   },
   {
     "nom": "Clariana de Cardener",
-    "codi": "250753",
-    "poblacio": "161"
+    "codi": 250753,
+    "poblacio": 161
   },
   {
     "nom": "Cogul, el",
-    "codi": "250766",
-    "poblacio": "161"
+    "codi": 250766,
+    "poblacio": 161
   },
   {
     "nom": "Coll de Nargó",
-    "codi": "250772",
-    "poblacio": "587"
+    "codi": 250772,
+    "poblacio": 587
   },
   {
     "nom": "Corbins",
-    "codi": "250788",
-    "poblacio": "1502"
+    "codi": 250788,
+    "poblacio": 1502
   },
   {
     "nom": "Cubells",
-    "codi": "250791",
-    "poblacio": "343"
+    "codi": 250791,
+    "poblacio": 343
   },
   {
     "nom": "Espluga Calba, l'",
-    "codi": "250812",
-    "poblacio": "331"
+    "codi": 250812,
+    "poblacio": 331
   },
   {
     "nom": "Espot",
-    "codi": "250827",
-    "poblacio": "379"
+    "codi": 250827,
+    "poblacio": 379
   },
   {
     "nom": "Estaràs",
-    "codi": "250851",
-    "poblacio": "162"
+    "codi": 250851,
+    "poblacio": 162
   },
   {
     "nom": "Esterri d'Àneu",
-    "codi": "250864",
-    "poblacio": "921"
+    "codi": 250864,
+    "poblacio": 921
   },
   {
     "nom": "Esterri de Cardós",
-    "codi": "250870",
-    "poblacio": "63"
+    "codi": 250870,
+    "poblacio": 63
   },
   {
     "nom": "Estamariu",
-    "codi": "250886",
-    "poblacio": "132"
+    "codi": 250886,
+    "poblacio": 132
   },
   {
     "nom": "Farrera",
-    "codi": "250899",
-    "poblacio": "127"
+    "codi": 250899,
+    "poblacio": 127
   },
   {
     "nom": "Floresta, la",
-    "codi": "250925",
-    "poblacio": "164"
+    "codi": 250925,
+    "poblacio": 164
   },
   {
     "nom": "Fondarella",
-    "codi": "250931",
-    "poblacio": "805"
+    "codi": 250931,
+    "poblacio": 805
   },
   {
     "nom": "Foradada",
-    "codi": "250946",
-    "poblacio": "195"
+    "codi": 250946,
+    "poblacio": 195
   },
   {
     "nom": "Fuliola, la",
-    "codi": "250962",
-    "poblacio": "1238"
+    "codi": 250962,
+    "poblacio": 1238
   },
   {
     "nom": "Fulleda",
-    "codi": "250978",
-    "poblacio": "91"
+    "codi": 250978,
+    "poblacio": 91
   },
   {
     "nom": "Gavet de la Conca",
-    "codi": "250984",
-    "poblacio": "259"
+    "codi": 250984,
+    "poblacio": 259
   },
   {
     "nom": "Golmés",
-    "codi": "250997",
-    "poblacio": "1916"
+    "codi": 250997,
+    "poblacio": 1916
   },
   {
     "nom": "Gósol",
-    "codi": "251001",
-    "poblacio": "215"
+    "codi": 251001,
+    "poblacio": 215
   },
   {
     "nom": "Granadella, la",
-    "codi": "251018",
-    "poblacio": "758"
+    "codi": 251018,
+    "poblacio": 758
   },
   {
     "nom": "Granja d'Escarp, la",
-    "codi": "251023",
-    "poblacio": "943"
+    "codi": 251023,
+    "poblacio": 943
   },
   {
     "nom": "Granyanella",
-    "codi": "251039",
-    "poblacio": "140"
+    "codi": 251039,
+    "poblacio": 140
   },
   {
     "nom": "Granyena de Segarra",
-    "codi": "251044",
-    "poblacio": "145"
+    "codi": 251044,
+    "poblacio": 145
   },
   {
     "nom": "Granyena de les Garrigues",
-    "codi": "251057",
-    "poblacio": "163"
+    "codi": 251057,
+    "poblacio": 163
   },
   {
     "nom": "Guimerà",
-    "codi": "251095",
-    "poblacio": "246"
+    "codi": 251095,
+    "poblacio": 246
   },
   {
     "nom": "Guissona",
-    "codi": "251109",
-    "poblacio": "7635"
+    "codi": 251109,
+    "poblacio": 7635
   },
   {
     "nom": "Guixers",
-    "codi": "251116",
-    "poblacio": "134"
+    "codi": 251116,
+    "poblacio": 134
   },
   {
     "nom": "Ivars de Noguera",
-    "codi": "251121",
-    "poblacio": "318"
+    "codi": 251121,
+    "poblacio": 318
   },
   {
     "nom": "Ivars d'Urgell",
-    "codi": "251137",
-    "poblacio": "1590"
+    "codi": 251137,
+    "poblacio": 1590
   },
   {
     "nom": "Ivorra",
-    "codi": "251142",
-    "poblacio": "100"
+    "codi": 251142,
+    "poblacio": 100
   },
   {
     "nom": "Isona i Conca Dellà",
-    "codi": "251155",
-    "poblacio": "1046"
+    "codi": 251155,
+    "poblacio": 1046
   },
   {
     "nom": "Juncosa",
-    "codi": "251180",
-    "poblacio": "390"
+    "codi": 251180,
+    "poblacio": 390
   },
   {
     "nom": "Juneda",
-    "codi": "251193",
-    "poblacio": "3473"
+    "codi": 251193,
+    "poblacio": 3473
   },
   {
     "nom": "Lleida",
-    "codi": "251207",
-    "poblacio": "144739"
+    "codi": 251207,
+    "poblacio": 144739
   },
   {
     "nom": "Les",
-    "codi": "251214",
-    "poblacio": "1013"
+    "codi": 251214,
+    "poblacio": 1013
   },
   {
     "nom": "Linyola",
-    "codi": "251229",
-    "poblacio": "2749"
+    "codi": 251229,
+    "poblacio": 2749
   },
   {
     "nom": "Lladorre",
-    "codi": "251235",
-    "poblacio": "254"
+    "codi": 251235,
+    "poblacio": 254
   },
   {
     "nom": "Lladurs",
-    "codi": "251240",
-    "poblacio": "185"
+    "codi": 251240,
+    "poblacio": 185
   },
   {
     "nom": "Llardecans",
-    "codi": "251253",
-    "poblacio": "428"
+    "codi": 251253,
+    "poblacio": 428
   },
   {
     "nom": "Llavorsí",
-    "codi": "251266",
-    "poblacio": "336"
+    "codi": 251266,
+    "poblacio": 336
   },
   {
     "nom": "Lles de Cerdanya",
-    "codi": "251272",
-    "poblacio": "285"
+    "codi": 251272,
+    "poblacio": 285
   },
   {
     "nom": "Llimiana",
-    "codi": "251288",
-    "poblacio": "131"
+    "codi": 251288,
+    "poblacio": 131
   },
   {
     "nom": "Llobera",
-    "codi": "251291",
-    "poblacio": "209"
+    "codi": 251291,
+    "poblacio": 209
   },
   {
     "nom": "Maldà",
-    "codi": "251305",
-    "poblacio": "236"
+    "codi": 251305,
+    "poblacio": 236
   },
   {
     "nom": "Massalcoreig",
-    "codi": "251312",
-    "poblacio": "584"
+    "codi": 251312,
+    "poblacio": 584
   },
   {
     "nom": "Massoteres",
-    "codi": "251327",
-    "poblacio": "216"
+    "codi": 251327,
+    "poblacio": 216
   },
   {
     "nom": "Maials",
-    "codi": "251333",
-    "poblacio": "921"
+    "codi": 251333,
+    "poblacio": 921
   },
   {
     "nom": "Menàrguens",
-    "codi": "251348",
-    "poblacio": "789"
+    "codi": 251348,
+    "poblacio": 789
   },
   {
     "nom": "Miralcamp",
-    "codi": "251351",
-    "poblacio": "1390"
+    "codi": 251351,
+    "poblacio": 1390
   },
   {
     "nom": "Molsosa, la",
-    "codi": "251364",
-    "poblacio": "103"
+    "codi": 251364,
+    "poblacio": 103
   },
   {
     "nom": "Mollerussa",
-    "codi": "251370",
-    "poblacio": "15544"
+    "codi": 251370,
+    "poblacio": 15544
   },
   {
     "nom": "Montgai",
-    "codi": "251386",
-    "poblacio": "637"
+    "codi": 251386,
+    "poblacio": 637
   },
   {
     "nom": "Montellà i Martinet",
-    "codi": "251399",
-    "poblacio": "620"
+    "codi": 251399,
+    "poblacio": 620
   },
   {
     "nom": "Montferrer i Castellbò",
-    "codi": "251403",
-    "poblacio": "1164"
+    "codi": 251403,
+    "poblacio": 1164
   },
   {
     "nom": "Montoliu de Segarra",
-    "codi": "251410",
-    "poblacio": "180"
+    "codi": 251410,
+    "poblacio": 180
   },
   {
     "nom": "Montoliu de Lleida",
-    "codi": "251425",
-    "poblacio": "475"
+    "codi": 251425,
+    "poblacio": 475
   },
   {
     "nom": "Montornès de Segarra",
-    "codi": "251431",
-    "poblacio": "88"
+    "codi": 251431,
+    "poblacio": 88
   },
   {
     "nom": "Nalec",
-    "codi": "251459",
-    "poblacio": "89"
+    "codi": 251459,
+    "poblacio": 89
   },
   {
     "nom": "Navès",
-    "codi": "251462",
-    "poblacio": "300"
+    "codi": 251462,
+    "poblacio": 300
   },
   {
     "nom": "Odèn",
-    "codi": "251484",
-    "poblacio": "230"
+    "codi": 251484,
+    "poblacio": 230
   },
   {
     "nom": "Oliana",
-    "codi": "251497",
-    "poblacio": "1839"
+    "codi": 251497,
+    "poblacio": 1839
   },
   {
     "nom": "Oliola",
-    "codi": "251500",
-    "poblacio": "196"
+    "codi": 251500,
+    "poblacio": 196
   },
   {
     "nom": "Olius",
-    "codi": "251517",
-    "poblacio": "1003"
+    "codi": 251517,
+    "poblacio": 1003
   },
   {
     "nom": "Oluges, les",
-    "codi": "251522",
-    "poblacio": "167"
+    "codi": 251522,
+    "poblacio": 167
   },
   {
     "nom": "Omellons, els",
-    "codi": "251538",
-    "poblacio": "190"
+    "codi": 251538,
+    "poblacio": 190
   },
   {
     "nom": "Omells de na Gaia, els",
-    "codi": "251543",
-    "poblacio": "121"
+    "codi": 251543,
+    "poblacio": 121
   },
   {
     "nom": "Organyà",
-    "codi": "251556",
-    "poblacio": "811"
+    "codi": 251556,
+    "poblacio": 811
   },
   {
     "nom": "Os de Balaguer",
-    "codi": "251569",
-    "poblacio": "1075"
+    "codi": 251569,
+    "poblacio": 1075
   },
   {
     "nom": "Ossó de Sió",
-    "codi": "251575",
-    "poblacio": "195"
+    "codi": 251575,
+    "poblacio": 195
   },
   {
     "nom": "Palau d'Anglesola, el",
-    "codi": "251581",
-    "poblacio": "2205"
+    "codi": 251581,
+    "poblacio": 2205
   },
   {
     "nom": "Conca de Dalt",
-    "codi": "251615",
-    "poblacio": "434"
+    "codi": 251615,
+    "poblacio": 434
   },
   {
     "nom": "Coma i la Pedra, la",
-    "codi": "251636",
-    "poblacio": "282"
+    "codi": 251636,
+    "poblacio": 282
   },
   {
     "nom": "Penelles",
-    "codi": "251641",
-    "poblacio": "435"
+    "codi": 251641,
+    "poblacio": 435
   },
   {
     "nom": "Peramola",
-    "codi": "251654",
-    "poblacio": "357"
+    "codi": 251654,
+    "poblacio": 357
   },
   {
     "nom": "Pinell de Solsonès",
-    "codi": "251667",
-    "poblacio": "203"
+    "codi": 251667,
+    "poblacio": 203
   },
   {
     "nom": "Pinós",
-    "codi": "251673",
-    "poblacio": "277"
+    "codi": 251673,
+    "poblacio": 277
   },
   {
     "nom": "Poal, el",
-    "codi": "251689",
-    "poblacio": "653"
+    "codi": 251689,
+    "poblacio": 653
   },
   {
     "nom": "Pobla de Cérvoles, la",
-    "codi": "251692",
-    "poblacio": "205"
+    "codi": 251692,
+    "poblacio": 205
   },
   {
     "nom": "Bellaguarda",
-    "codi": "251706",
-    "poblacio": "288"
+    "codi": 251706,
+    "poblacio": 288
   },
   {
     "nom": "Pobla de Segur, la",
-    "codi": "251713",
-    "poblacio": "3015"
+    "codi": 251713,
+    "poblacio": 3015
   },
   {
     "nom": "Ponts",
-    "codi": "251728",
-    "poblacio": "2703"
+    "codi": 251728,
+    "poblacio": 2703
   },
   {
     "nom": "Pont de Suert, el",
-    "codi": "251734",
-    "poblacio": "2380"
+    "codi": 251734,
+    "poblacio": 2380
   },
   {
     "nom": "Portella, la",
-    "codi": "251749",
-    "poblacio": "735"
+    "codi": 251749,
+    "poblacio": 735
   },
   {
     "nom": "Prats i Sansor",
-    "codi": "251752",
-    "poblacio": "249"
+    "codi": 251752,
+    "poblacio": 249
   },
   {
     "nom": "Preixana",
-    "codi": "251765",
-    "poblacio": "406"
+    "codi": 251765,
+    "poblacio": 406
   },
   {
     "nom": "Preixens",
-    "codi": "251771",
-    "poblacio": "392"
+    "codi": 251771,
+    "poblacio": 392
   },
   {
     "nom": "Prullans",
-    "codi": "251790",
-    "poblacio": "252"
+    "codi": 251790,
+    "poblacio": 252
   },
   {
     "nom": "Puiggròs",
-    "codi": "251804",
-    "poblacio": "258"
+    "codi": 251804,
+    "poblacio": 258
   },
   {
     "nom": "Puigverd d'Agramunt",
-    "codi": "251811",
-    "poblacio": "240"
+    "codi": 251811,
+    "poblacio": 240
   },
   {
     "nom": "Puigverd de Lleida",
-    "codi": "251826",
-    "poblacio": "1418"
+    "codi": 251826,
+    "poblacio": 1418
   },
   {
     "nom": "Rialp",
-    "codi": "251832",
-    "poblacio": "664"
+    "codi": 251832,
+    "poblacio": 664
   },
   {
     "nom": "Ribera d'Urgellet",
-    "codi": "251850",
-    "poblacio": "965"
+    "codi": 251850,
+    "poblacio": 965
   },
   {
     "nom": "Riner",
-    "codi": "251863",
-    "poblacio": "262"
+    "codi": 251863,
+    "poblacio": 262
   },
   {
     "nom": "Rosselló",
-    "codi": "251898",
-    "poblacio": "3353"
+    "codi": 251898,
+    "poblacio": 3353
   },
   {
     "nom": "Salàs de Pallars",
-    "codi": "251902",
-    "poblacio": "349"
+    "codi": 251902,
+    "poblacio": 349
   },
   {
     "nom": "Sanaüja",
-    "codi": "251919",
-    "poblacio": "379"
+    "codi": 251919,
+    "poblacio": 379
   },
   {
     "nom": "Sant Guim de Freixenet",
-    "codi": "251924",
-    "poblacio": "1222"
+    "codi": 251924,
+    "poblacio": 1222
   },
   {
     "nom": "Sant Llorenç de Morunys",
-    "codi": "251930",
-    "poblacio": "1003"
+    "codi": 251930,
+    "poblacio": 1003
   },
   {
     "nom": "Sant Ramon",
-    "codi": "251945",
-    "poblacio": "495"
+    "codi": 251945,
+    "poblacio": 495
   },
   {
     "nom": "Sant Esteve de la Sarga",
-    "codi": "251961",
-    "poblacio": "127"
+    "codi": 251961,
+    "poblacio": 127
   },
   {
     "nom": "Sant Guim de la Plana",
-    "codi": "251977",
-    "poblacio": "193"
+    "codi": 251977,
+    "poblacio": 193
   },
   {
     "nom": "Sarroca de Lleida",
-    "codi": "252000",
-    "poblacio": "381"
+    "codi": 252000,
+    "poblacio": 381
   },
   {
     "nom": "Sarroca de Bellera",
-    "codi": "252017",
-    "poblacio": "115"
+    "codi": 252017,
+    "poblacio": 115
   },
   {
     "nom": "Senterada",
-    "codi": "252022",
-    "poblacio": "158"
+    "codi": 252022,
+    "poblacio": 158
   },
   {
     "nom": "Seu d'Urgell, la",
-    "codi": "252038",
-    "poblacio": "12831"
+    "codi": 252038,
+    "poblacio": 12831
   },
   {
     "nom": "Seròs",
-    "codi": "252043",
-    "poblacio": "1902"
+    "codi": 252043,
+    "poblacio": 1902
   },
   {
     "nom": "Sidamon",
-    "codi": "252056",
-    "poblacio": "767"
+    "codi": 252056,
+    "poblacio": 767
   },
   {
     "nom": "Soleràs, el",
-    "codi": "252069",
-    "poblacio": "310"
+    "codi": 252069,
+    "poblacio": 310
   },
   {
     "nom": "Solsona",
-    "codi": "252075",
-    "poblacio": "9480"
+    "codi": 252075,
+    "poblacio": 9480
   },
   {
     "nom": "Soriguera",
-    "codi": "252081",
-    "poblacio": "444"
+    "codi": 252081,
+    "poblacio": 444
   },
   {
     "nom": "Sort",
-    "codi": "252094",
-    "poblacio": "2213"
+    "codi": 252094,
+    "poblacio": 2213
   },
   {
     "nom": "Soses",
-    "codi": "252108",
-    "poblacio": "1881"
+    "codi": 252108,
+    "poblacio": 1881
   },
   {
     "nom": "Sudanell",
-    "codi": "252115",
-    "poblacio": "897"
+    "codi": 252115,
+    "poblacio": 897
   },
   {
     "nom": "Sunyer",
-    "codi": "252120",
-    "poblacio": "313"
+    "codi": 252120,
+    "poblacio": 313
   },
   {
     "nom": "Talarn",
-    "codi": "252154",
-    "poblacio": "539"
+    "codi": 252154,
+    "poblacio": 539
   },
   {
     "nom": "Talavera",
-    "codi": "252167",
-    "poblacio": "280"
+    "codi": 252167,
+    "poblacio": 280
   },
   {
     "nom": "Tàrrega",
-    "codi": "252173",
-    "poblacio": "18542"
+    "codi": 252173,
+    "poblacio": 18542
   },
   {
     "nom": "Tarrés",
-    "codi": "252189",
-    "poblacio": "125"
+    "codi": 252189,
+    "poblacio": 125
   },
   {
     "nom": "Tarroja de Segarra",
-    "codi": "252192",
-    "poblacio": "170"
+    "codi": 252192,
+    "poblacio": 170
   },
   {
     "nom": "Térmens",
-    "codi": "252206",
-    "poblacio": "1347"
+    "codi": 252206,
+    "poblacio": 1347
   },
   {
     "nom": "Tírvia",
-    "codi": "252213",
-    "poblacio": "144"
+    "codi": 252213,
+    "poblacio": 144
   },
   {
     "nom": "Tiurana",
-    "codi": "252228",
-    "poblacio": "66"
+    "codi": 252228,
+    "poblacio": 66
   },
   {
     "nom": "Torà",
-    "codi": "252234",
-    "poblacio": "1207"
+    "codi": 252234,
+    "poblacio": 1207
   },
   {
     "nom": "Torms, els",
-    "codi": "252249",
-    "poblacio": "137"
+    "codi": 252249,
+    "poblacio": 137
   },
   {
     "nom": "Tornabous",
-    "codi": "252252",
-    "poblacio": "851"
+    "codi": 252252,
+    "poblacio": 851
   },
   {
     "nom": "Torrebesses",
-    "codi": "252265",
-    "poblacio": "273"
+    "codi": 252265,
+    "poblacio": 273
   },
   {
     "nom": "Torre de Cabdella, la",
-    "codi": "252271",
-    "poblacio": "785"
+    "codi": 252271,
+    "poblacio": 785
   },
   {
     "nom": "Torrefarrera",
-    "codi": "252287",
-    "poblacio": "4861"
+    "codi": 252287,
+    "poblacio": 4861
   },
   {
     "nom": "Torregrossa",
-    "codi": "252304",
-    "poblacio": "2194"
+    "codi": 252304,
+    "poblacio": 2194
   },
   {
     "nom": "Torrelameu",
-    "codi": "252311",
-    "poblacio": "766"
+    "codi": 252311,
+    "poblacio": 766
   },
   {
     "nom": "Torres de Segre",
-    "codi": "252326",
-    "poblacio": "2318"
+    "codi": 252326,
+    "poblacio": 2318
   },
   {
     "nom": "Torre-serona",
-    "codi": "252332",
-    "poblacio": "435"
+    "codi": 252332,
+    "poblacio": 435
   },
   {
     "nom": "Tremp",
-    "codi": "252347",
-    "poblacio": "6015"
+    "codi": 252347,
+    "poblacio": 6015
   },
   {
     "nom": "Vallbona de les Monges",
-    "codi": "252385",
-    "poblacio": "223"
+    "codi": 252385,
+    "poblacio": 223
   },
   {
     "nom": "Valls de Valira, les",
-    "codi": "252398",
-    "poblacio": "810"
+    "codi": 252398,
+    "poblacio": 810
   },
   {
     "nom": "Vallfogona de Balaguer",
-    "codi": "252402",
-    "poblacio": "2000"
+    "codi": 252402,
+    "poblacio": 2000
   },
   {
     "nom": "Verdú",
-    "codi": "252424",
-    "poblacio": "886"
+    "codi": 252424,
+    "poblacio": 886
   },
   {
     "nom": "Vielha e Mijaran",
-    "codi": "252430",
-    "poblacio": "5832"
+    "codi": 252430,
+    "poblacio": 5832
   },
   {
     "nom": "Vilagrassa",
-    "codi": "252445",
-    "poblacio": "633"
+    "codi": 252445,
+    "poblacio": 633
   },
   {
     "nom": "Vilaller",
-    "codi": "252458",
-    "poblacio": "506"
+    "codi": 252458,
+    "poblacio": 506
   },
   {
     "nom": "Vilamòs",
-    "codi": "252477",
-    "poblacio": "175"
+    "codi": 252477,
+    "poblacio": 175
   },
   {
     "nom": "Vilanova de Bellpuig",
-    "codi": "252483",
-    "poblacio": "1168"
+    "codi": 252483,
+    "poblacio": 1168
   },
   {
     "nom": "Vilanova de l'Aguda",
-    "codi": "252496",
-    "poblacio": "193"
+    "codi": 252496,
+    "poblacio": 193
   },
   {
     "nom": "Vilanova de Meià",
-    "codi": "252509",
-    "poblacio": "466"
+    "codi": 252509,
+    "poblacio": 466
   },
   {
     "nom": "Vilanova de Segrià",
-    "codi": "252516",
-    "poblacio": "1065"
+    "codi": 252516,
+    "poblacio": 1065
   },
   {
     "nom": "Vila-sana",
-    "codi": "252521",
-    "poblacio": "753"
+    "codi": 252521,
+    "poblacio": 753
   },
   {
     "nom": "Vilosell, el",
-    "codi": "252537",
-    "poblacio": "194"
+    "codi": 252537,
+    "poblacio": 194
   },
   {
     "nom": "Vilanova de la Barca",
-    "codi": "252542",
-    "poblacio": "1107"
+    "codi": 252542,
+    "poblacio": 1107
   },
   {
     "nom": "Vinaixa",
-    "codi": "252555",
-    "poblacio": "450"
+    "codi": 252555,
+    "poblacio": 450
   },
   {
     "nom": "Vall de Cardós",
-    "codi": "259010",
-    "poblacio": "375"
+    "codi": 259010,
+    "poblacio": 375
   },
   {
     "nom": "Sant Martí de Riucorb",
-    "codi": "259025",
-    "poblacio": "673"
+    "codi": 259025,
+    "poblacio": 673
   },
   {
     "nom": "Guingueta d'Àneu, la",
-    "codi": "259031",
-    "poblacio": "285"
+    "codi": 259031,
+    "poblacio": 285
   },
   {
     "nom": "Castell de Mur",
-    "codi": "259046",
-    "poblacio": "170"
+    "codi": 259046,
+    "poblacio": 170
   },
   {
     "nom": "Ribera d'Ondara",
-    "codi": "259059",
-    "poblacio": "454"
+    "codi": 259059,
+    "poblacio": 454
   },
   {
     "nom": "Valls d'Aguilar, les",
-    "codi": "259062",
-    "poblacio": "262"
+    "codi": 259062,
+    "poblacio": 262
   },
   {
     "nom": "Torrefeta i Florejacs",
-    "codi": "259078",
-    "poblacio": "605"
+    "codi": 259078,
+    "poblacio": 605
   },
   {
     "nom": "Fígols i Alinyà",
-    "codi": "259084",
-    "poblacio": "243"
+    "codi": 259084,
+    "poblacio": 243
   },
   {
     "nom": "Vansa i Fórnols, la",
-    "codi": "259097",
-    "poblacio": "188"
+    "codi": 259097,
+    "poblacio": 188
   },
   {
     "nom": "Josa i Tuixén",
-    "codi": "259101",
-    "poblacio": "122"
+    "codi": 259101,
+    "poblacio": 122
   },
   {
     "nom": "Plans de Sió, els",
-    "codi": "259118",
-    "poblacio": "512"
+    "codi": 259118,
+    "poblacio": 512
   },
   {
     "nom": "Gimenells i el Pla de la Font",
-    "codi": "259123",
-    "poblacio": "1097"
+    "codi": 259123,
+    "poblacio": 1097
   },
   {
     "nom": "Riu de Cerdanya",
-    "codi": "259139",
-    "poblacio": "99"
+    "codi": 259139,
+    "poblacio": 99
   },
   {
     "nom": "Aiguamúrcia",
-    "codi": "430017",
-    "poblacio": "957"
+    "codi": 430017,
+    "poblacio": 957
   },
   {
     "nom": "Albinyana",
-    "codi": "430022",
-    "poblacio": "2677"
+    "codi": 430022,
+    "poblacio": 2677
   },
   {
     "nom": "Albiol, l'",
-    "codi": "430038",
-    "poblacio": "537"
+    "codi": 430038,
+    "poblacio": 537
   },
   {
     "nom": "Alcanar",
-    "codi": "430043",
-    "poblacio": "9943"
+    "codi": 430043,
+    "poblacio": 9943
   },
   {
     "nom": "Alcover",
-    "codi": "430056",
-    "poblacio": "5348"
+    "codi": 430056,
+    "poblacio": 5348
   },
   {
     "nom": "Aldover",
-    "codi": "430069",
-    "poblacio": "880"
+    "codi": 430069,
+    "poblacio": 880
   },
   {
     "nom": "Aleixar, l'",
-    "codi": "430075",
-    "poblacio": "962"
+    "codi": 430075,
+    "poblacio": 962
   },
   {
     "nom": "Alfara de Carles",
-    "codi": "430081",
-    "poblacio": "361"
+    "codi": 430081,
+    "poblacio": 361
   },
   {
     "nom": "Alforja",
-    "codi": "430094",
-    "poblacio": "2019"
+    "codi": 430094,
+    "poblacio": 2019
   },
   {
     "nom": "Alió",
-    "codi": "430108",
-    "poblacio": "504"
+    "codi": 430108,
+    "poblacio": 504
   },
   {
     "nom": "Almoster",
-    "codi": "430115",
-    "poblacio": "1338"
+    "codi": 430115,
+    "poblacio": 1338
   },
   {
     "nom": "Altafulla",
-    "codi": "430120",
-    "poblacio": "5838"
+    "codi": 430120,
+    "poblacio": 5838
   },
   {
     "nom": "Ametlla de Mar, l'",
-    "codi": "430136",
-    "poblacio": "7373"
+    "codi": 430136,
+    "poblacio": 7373
   },
   {
     "nom": "Amposta",
-    "codi": "430141",
-    "poblacio": "22637"
+    "codi": 430141,
+    "poblacio": 22637
   },
   {
     "nom": "Arbolí",
-    "codi": "430154",
-    "poblacio": "129"
+    "codi": 430154,
+    "poblacio": 129
   },
   {
     "nom": "Arboç, l'",
-    "codi": "430167",
-    "poblacio": "5758"
+    "codi": 430167,
+    "poblacio": 5758
   },
   {
     "nom": "Argentera, l'",
-    "codi": "430173",
-    "poblacio": "129"
+    "codi": 430173,
+    "poblacio": 129
   },
   {
     "nom": "Arnes",
-    "codi": "430189",
-    "poblacio": "463"
+    "codi": 430189,
+    "poblacio": 463
   },
   {
     "nom": "Ascó",
-    "codi": "430192",
-    "poblacio": "1608"
+    "codi": 430192,
+    "poblacio": 1608
   },
   {
     "nom": "Banyeres del Penedès",
-    "codi": "430206",
-    "poblacio": "3347"
+    "codi": 430206,
+    "poblacio": 3347
   },
   {
     "nom": "Barberà de la Conca",
-    "codi": "430213",
-    "poblacio": "471"
+    "codi": 430213,
+    "poblacio": 471
   },
   {
     "nom": "Batea",
-    "codi": "430228",
-    "poblacio": "1877"
+    "codi": 430228,
+    "poblacio": 1877
   },
   {
     "nom": "Bellmunt del Priorat",
-    "codi": "430234",
-    "poblacio": "298"
+    "codi": 430234,
+    "poblacio": 298
   },
   {
     "nom": "Bellvei",
-    "codi": "430249",
-    "poblacio": "2417"
+    "codi": 430249,
+    "poblacio": 2417
   },
   {
     "nom": "Benifallet",
-    "codi": "430252",
-    "poblacio": "718"
+    "codi": 430252,
+    "poblacio": 718
   },
   {
     "nom": "Benissanet",
-    "codi": "430265",
-    "poblacio": "1186"
+    "codi": 430265,
+    "poblacio": 1186
   },
   {
     "nom": "Bisbal de Montsant, la",
-    "codi": "430271",
-    "poblacio": "208"
+    "codi": 430271,
+    "poblacio": 208
   },
   {
     "nom": "Bisbal del Penedès, la",
-    "codi": "430287",
-    "poblacio": "4168"
+    "codi": 430287,
+    "poblacio": 4168
   },
   {
     "nom": "Blancafort",
-    "codi": "430290",
-    "poblacio": "393"
+    "codi": 430290,
+    "poblacio": 393
   },
   {
     "nom": "Bonastre",
-    "codi": "430304",
-    "poblacio": "760"
+    "codi": 430304,
+    "poblacio": 760
   },
   {
     "nom": "Borges del Camp, les",
-    "codi": "430311",
-    "poblacio": "2260"
+    "codi": 430311,
+    "poblacio": 2260
   },
   {
     "nom": "Bot",
-    "codi": "430326",
-    "poblacio": "554"
+    "codi": 430326,
+    "poblacio": 554
   },
   {
     "nom": "Botarell",
-    "codi": "430332",
-    "poblacio": "1174"
+    "codi": 430332,
+    "poblacio": 1174
   },
   {
     "nom": "Bràfim",
-    "codi": "430347",
-    "poblacio": "696"
+    "codi": 430347,
+    "poblacio": 696
   },
   {
     "nom": "Cabacés",
-    "codi": "430350",
-    "poblacio": "302"
+    "codi": 430350,
+    "poblacio": 302
   },
   {
     "nom": "Cabra del Camp",
-    "codi": "430363",
-    "poblacio": "1321"
+    "codi": 430363,
+    "poblacio": 1321
   },
   {
     "nom": "Calafell",
-    "codi": "430379",
-    "poblacio": "31828"
+    "codi": 430379,
+    "poblacio": 31828
   },
   {
     "nom": "Cambrils",
-    "codi": "430385",
-    "poblacio": "36849"
+    "codi": 430385,
+    "poblacio": 36849
   },
   {
     "nom": "Capafonts",
-    "codi": "430398",
-    "poblacio": "106"
+    "codi": 430398,
+    "poblacio": 106
   },
   {
     "nom": "Capçanes",
-    "codi": "430402",
-    "poblacio": "428"
+    "codi": 430402,
+    "poblacio": 428
   },
   {
     "nom": "Caseres",
-    "codi": "430419",
-    "poblacio": "240"
+    "codi": 430419,
+    "poblacio": 240
   },
   {
     "nom": "Castellvell del Camp",
-    "codi": "430424",
-    "poblacio": "2995"
+    "codi": 430424,
+    "poblacio": 2995
   },
   {
     "nom": "Catllar, el",
-    "codi": "430430",
-    "poblacio": "5218"
+    "codi": 430430,
+    "poblacio": 5218
   },
   {
     "nom": "Sénia, la",
-    "codi": "430445",
-    "poblacio": "5594"
+    "codi": 430445,
+    "poblacio": 5594
   },
   {
     "nom": "Colldejou",
-    "codi": "430458",
-    "poblacio": "160"
+    "codi": 430458,
+    "poblacio": 160
   },
   {
     "nom": "Conesa",
-    "codi": "430461",
-    "poblacio": "113"
+    "codi": 430461,
+    "poblacio": 113
   },
   {
     "nom": "Constantí",
-    "codi": "430477",
-    "poblacio": "6888"
+    "codi": 430477,
+    "poblacio": 6888
   },
   {
     "nom": "Corbera d'Ebre",
-    "codi": "430483",
-    "poblacio": "1019"
+    "codi": 430483,
+    "poblacio": 1019
   },
   {
     "nom": "Cornudella de Montsant",
-    "codi": "430496",
-    "poblacio": "1023"
+    "codi": 430496,
+    "poblacio": 1023
   },
   {
     "nom": "Creixell",
-    "codi": "430509",
-    "poblacio": "4190"
+    "codi": 430509,
+    "poblacio": 4190
   },
   {
     "nom": "Cunit",
-    "codi": "430516",
-    "poblacio": "15804"
+    "codi": 430516,
+    "poblacio": 15804
   },
   {
     "nom": "Xerta",
-    "codi": "430521",
-    "poblacio": "1156"
+    "codi": 430521,
+    "poblacio": 1156
   },
   {
     "nom": "Duesaigües",
-    "codi": "430537",
-    "poblacio": "222"
+    "codi": 430537,
+    "poblacio": 222
   },
   {
     "nom": "Espluga de Francolí, l'",
-    "codi": "430542",
-    "poblacio": "3817"
+    "codi": 430542,
+    "poblacio": 3817
   },
   {
     "nom": "Falset",
-    "codi": "430555",
-    "poblacio": "2856"
+    "codi": 430555,
+    "poblacio": 2856
   },
   {
     "nom": "Fatarella, la",
-    "codi": "430568",
-    "poblacio": "852"
+    "codi": 430568,
+    "poblacio": 852
   },
   {
     "nom": "Febró, la",
-    "codi": "430574",
-    "poblacio": "36"
+    "codi": 430574,
+    "poblacio": 36
   },
   {
     "nom": "Figuera, la",
-    "codi": "430580",
-    "poblacio": "122"
+    "codi": 430580,
+    "poblacio": 122
   },
   {
     "nom": "Figuerola del Camp",
-    "codi": "430593",
-    "poblacio": "345"
+    "codi": 430593,
+    "poblacio": 345
   },
   {
     "nom": "Flix",
-    "codi": "430607",
-    "poblacio": "3324"
+    "codi": 430607,
+    "poblacio": 3324
   },
   {
     "nom": "Forès",
-    "codi": "430614",
-    "poblacio": "40"
+    "codi": 430614,
+    "poblacio": 40
   },
   {
     "nom": "Freginals",
-    "codi": "430629",
-    "poblacio": "424"
+    "codi": 430629,
+    "poblacio": 424
   },
   {
     "nom": "Galera, la",
-    "codi": "430635",
-    "poblacio": "708"
+    "codi": 430635,
+    "poblacio": 708
   },
   {
     "nom": "Gandesa",
-    "codi": "430640",
-    "poblacio": "3166"
+    "codi": 430640,
+    "poblacio": 3166
   },
   {
     "nom": "Garcia",
-    "codi": "430653",
-    "poblacio": "543"
+    "codi": 430653,
+    "poblacio": 543
   },
   {
     "nom": "Garidells, els",
-    "codi": "430666",
-    "poblacio": "202"
+    "codi": 430666,
+    "poblacio": 202
   },
   {
     "nom": "Ginestar",
-    "codi": "430672",
-    "poblacio": "794"
+    "codi": 430672,
+    "poblacio": 794
   },
   {
     "nom": "Godall",
-    "codi": "430688",
-    "poblacio": "612"
+    "codi": 430688,
+    "poblacio": 612
   },
   {
     "nom": "Gratallops",
-    "codi": "430691",
-    "poblacio": "229"
+    "codi": 430691,
+    "poblacio": 229
   },
   {
     "nom": "Guiamets, els",
-    "codi": "430705",
-    "poblacio": "258"
+    "codi": 430705,
+    "poblacio": 258
   },
   {
     "nom": "Horta de Sant Joan",
-    "codi": "430712",
-    "poblacio": "1157"
+    "codi": 430712,
+    "poblacio": 1157
   },
   {
     "nom": "Lloar, el",
-    "codi": "430727",
-    "poblacio": "101"
+    "codi": 430727,
+    "poblacio": 101
   },
   {
     "nom": "Llorac",
-    "codi": "430733",
-    "poblacio": "101"
+    "codi": 430733,
+    "poblacio": 101
   },
   {
     "nom": "Llorenç del Penedès",
-    "codi": "430748",
-    "poblacio": "2431"
+    "codi": 430748,
+    "poblacio": 2431
   },
   {
     "nom": "Margalef",
-    "codi": "430751",
-    "poblacio": "106"
+    "codi": 430751,
+    "poblacio": 106
   },
   {
     "nom": "Marçà",
-    "codi": "430764",
-    "poblacio": "598"
+    "codi": 430764,
+    "poblacio": 598
   },
   {
     "nom": "Mas de Barberans",
-    "codi": "430770",
-    "poblacio": "547"
+    "codi": 430770,
+    "poblacio": 547
   },
   {
     "nom": "Masdenverge",
-    "codi": "430786",
-    "poblacio": "1149"
+    "codi": 430786,
+    "poblacio": 1149
   },
   {
     "nom": "Masllorenç",
-    "codi": "430799",
-    "poblacio": "573"
+    "codi": 430799,
+    "poblacio": 573
   },
   {
     "nom": "Masó, la",
-    "codi": "430803",
-    "poblacio": "288"
+    "codi": 430803,
+    "poblacio": 288
   },
   {
     "nom": "Maspujols",
-    "codi": "430810",
-    "poblacio": "889"
+    "codi": 430810,
+    "poblacio": 889
   },
   {
     "nom": "Masroig, el",
-    "codi": "430825",
-    "poblacio": "480"
+    "codi": 430825,
+    "poblacio": 480
   },
   {
     "nom": "Milà, el",
-    "codi": "430831",
-    "poblacio": "197"
+    "codi": 430831,
+    "poblacio": 197
   },
   {
     "nom": "Miravet",
-    "codi": "430846",
-    "poblacio": "688"
+    "codi": 430846,
+    "poblacio": 688
   },
   {
     "nom": "Molar, el",
-    "codi": "430859",
-    "poblacio": "307"
+    "codi": 430859,
+    "poblacio": 307
   },
   {
     "nom": "Montblanc",
-    "codi": "430862",
-    "poblacio": "7550"
+    "codi": 430862,
+    "poblacio": 7550
   },
   {
     "nom": "Montbrió del Camp",
-    "codi": "430884",
-    "poblacio": "3128"
+    "codi": 430884,
+    "poblacio": 3128
   },
   {
     "nom": "Montferri",
-    "codi": "430897",
-    "poblacio": "473"
+    "codi": 430897,
+    "poblacio": 473
   },
   {
     "nom": "Montmell, el",
-    "codi": "430901",
-    "poblacio": "1917"
+    "codi": 430901,
+    "poblacio": 1917
   },
   {
     "nom": "Mont-ral",
-    "codi": "430918",
-    "poblacio": "184"
+    "codi": 430918,
+    "poblacio": 184
   },
   {
     "nom": "Mont-roig del Camp",
-    "codi": "430923",
-    "poblacio": "14114"
+    "codi": 430923,
+    "poblacio": 14114
   },
   {
     "nom": "Móra d'Ebre",
-    "codi": "430939",
-    "poblacio": "5726"
+    "codi": 430939,
+    "poblacio": 5726
   },
   {
     "nom": "Móra la Nova",
-    "codi": "430944",
-    "poblacio": "3314"
+    "codi": 430944,
+    "poblacio": 3314
   },
   {
     "nom": "Morell, el",
-    "codi": "430957",
-    "poblacio": "3878"
+    "codi": 430957,
+    "poblacio": 3878
   },
   {
     "nom": "Morera de Montsant, la",
-    "codi": "430960",
-    "poblacio": "138"
+    "codi": 430960,
+    "poblacio": 138
   },
   {
     "nom": "Nou de Gaià, la",
-    "codi": "430976",
-    "poblacio": "611"
+    "codi": 430976,
+    "poblacio": 611
   },
   {
     "nom": "Nulles",
-    "codi": "430982",
-    "poblacio": "552"
+    "codi": 430982,
+    "poblacio": 552
   },
   {
     "nom": "Palma d'Ebre, la",
-    "codi": "430995",
-    "poblacio": "335"
+    "codi": 430995,
+    "poblacio": 335
   },
   {
     "nom": "Pallaresos, els",
-    "codi": "431009",
-    "poblacio": "5006"
+    "codi": 431009,
+    "poblacio": 5006
   },
   {
     "nom": "Passanant i Belltall",
-    "codi": "431016",
-    "poblacio": "162"
+    "codi": 431016,
+    "poblacio": 162
   },
   {
     "nom": "Paüls",
-    "codi": "431021",
-    "poblacio": "544"
+    "codi": 431021,
+    "poblacio": 544
   },
   {
     "nom": "Perafort",
-    "codi": "431037",
-    "poblacio": "1308"
+    "codi": 431037,
+    "poblacio": 1308
   },
   {
     "nom": "Perelló, el",
-    "codi": "431042",
-    "poblacio": "2907"
+    "codi": 431042,
+    "poblacio": 2907
   },
   {
     "nom": "Piles, les",
-    "codi": "431055",
-    "poblacio": "229"
+    "codi": 431055,
+    "poblacio": 229
   },
   {
     "nom": "Pinell de Brai, el",
-    "codi": "431068",
-    "poblacio": "979"
+    "codi": 431068,
+    "poblacio": 979
   },
   {
     "nom": "Pira",
-    "codi": "431074",
-    "poblacio": "498"
+    "codi": 431074,
+    "poblacio": 498
   },
   {
     "nom": "Pla de Santa Maria, el",
-    "codi": "431080",
-    "poblacio": "2389"
+    "codi": 431080,
+    "poblacio": 2389
   },
   {
     "nom": "Pobla de Mafumet, la",
-    "codi": "431093",
-    "poblacio": "4115"
+    "codi": 431093,
+    "poblacio": 4115
   },
   {
     "nom": "Pobla de Massaluca, la",
-    "codi": "431107",
-    "poblacio": "344"
+    "codi": 431107,
+    "poblacio": 344
   },
   {
     "nom": "Pobla de Montornès, la",
-    "codi": "431114",
-    "poblacio": "3329"
+    "codi": 431114,
+    "poblacio": 3329
   },
   {
     "nom": "Poboleda",
-    "codi": "431129",
-    "poblacio": "334"
+    "codi": 431129,
+    "poblacio": 334
   },
   {
     "nom": "Pont d'Armentera, el",
-    "codi": "431135",
-    "poblacio": "498"
+    "codi": 431135,
+    "poblacio": 498
   },
   {
     "nom": "Porrera",
-    "codi": "431140",
-    "poblacio": "417"
+    "codi": 431140,
+    "poblacio": 417
   },
   {
     "nom": "Pradell de la Teixeta",
-    "codi": "431153",
-    "poblacio": "178"
+    "codi": 431153,
+    "poblacio": 178
   },
   {
     "nom": "Prades",
-    "codi": "431166",
-    "poblacio": "665"
+    "codi": 431166,
+    "poblacio": 665
   },
   {
     "nom": "Prat de Comte",
-    "codi": "431172",
-    "poblacio": "185"
+    "codi": 431172,
+    "poblacio": 185
   },
   {
     "nom": "Pratdip",
-    "codi": "431188",
-    "poblacio": "759"
+    "codi": 431188,
+    "poblacio": 759
   },
   {
     "nom": "Puigpelat",
-    "codi": "431191",
-    "poblacio": "1205"
+    "codi": 431191,
+    "poblacio": 1205
   },
   {
     "nom": "Querol",
-    "codi": "431205",
-    "poblacio": "591"
+    "codi": 431205,
+    "poblacio": 591
   },
   {
     "nom": "Rasquera",
-    "codi": "431212",
-    "poblacio": "792"
+    "codi": 431212,
+    "poblacio": 792
   },
   {
     "nom": "Renau",
-    "codi": "431227",
-    "poblacio": "158"
+    "codi": 431227,
+    "poblacio": 158
   },
   {
     "nom": "Reus",
-    "codi": "431233",
-    "poblacio": "109930"
+    "codi": 431233,
+    "poblacio": 109930
   },
   {
     "nom": "Riba, la",
-    "codi": "431248",
-    "poblacio": "569"
+    "codi": 431248,
+    "poblacio": 569
   },
   {
     "nom": "Riba-roja d'Ebre",
-    "codi": "431251",
-    "poblacio": "1128"
+    "codi": 431251,
+    "poblacio": 1128
   },
   {
     "nom": "Riera de Gaià, la",
-    "codi": "431264",
-    "poblacio": "1807"
+    "codi": 431264,
+    "poblacio": 1807
   },
   {
     "nom": "Riudecanyes",
-    "codi": "431270",
-    "poblacio": "1345"
+    "codi": 431270,
+    "poblacio": 1345
   },
   {
     "nom": "Riudecols",
-    "codi": "431286",
-    "poblacio": "1232"
+    "codi": 431286,
+    "poblacio": 1232
   },
   {
     "nom": "Riudoms",
-    "codi": "431299",
-    "poblacio": "6905"
+    "codi": 431299,
+    "poblacio": 6905
   },
   {
     "nom": "Rocafort de Queralt",
-    "codi": "431303",
-    "poblacio": "246"
+    "codi": 431303,
+    "poblacio": 246
   },
   {
     "nom": "Roda de Berà",
-    "codi": "431310",
-    "poblacio": "8048"
+    "codi": 431310,
+    "poblacio": 8048
   },
   {
     "nom": "Rodonyà",
-    "codi": "431325",
-    "poblacio": "521"
+    "codi": 431325,
+    "poblacio": 521
   },
   {
     "nom": "Roquetes",
-    "codi": "431331",
-    "poblacio": "8369"
+    "codi": 431331,
+    "poblacio": 8369
   },
   {
     "nom": "Rourell, el",
-    "codi": "431346",
-    "poblacio": "403"
+    "codi": 431346,
+    "poblacio": 403
   },
   {
     "nom": "Salomó",
-    "codi": "431359",
-    "poblacio": "525"
+    "codi": 431359,
+    "poblacio": 525
   },
   {
     "nom": "Ràpita, la",
-    "codi": "431362",
-    "poblacio": "15683"
+    "codi": 431362,
+    "poblacio": 15683
   },
   {
     "nom": "Sant Jaume dels Domenys",
-    "codi": "431378",
-    "poblacio": "2803"
+    "codi": 431378,
+    "poblacio": 2803
   },
   {
     "nom": "Santa Bàrbara",
-    "codi": "431384",
-    "poblacio": "3827"
+    "codi": 431384,
+    "poblacio": 3827
   },
   {
     "nom": "Santa Coloma de Queralt",
-    "codi": "431397",
-    "poblacio": "2800"
+    "codi": 431397,
+    "poblacio": 2800
   },
   {
     "nom": "Santa Oliva",
-    "codi": "431401",
-    "poblacio": "3672"
+    "codi": 431401,
+    "poblacio": 3672
   },
   {
     "nom": "Pontils",
-    "codi": "431418",
-    "poblacio": "123"
+    "codi": 431418,
+    "poblacio": 123
   },
   {
     "nom": "Sarral",
-    "codi": "431423",
-    "poblacio": "1583"
+    "codi": 431423,
+    "poblacio": 1583
   },
   {
     "nom": "Savallà del Comtat",
-    "codi": "431439",
-    "poblacio": "50"
+    "codi": 431439,
+    "poblacio": 50
   },
   {
     "nom": "Secuita, la",
-    "codi": "431444",
-    "poblacio": "1828"
+    "codi": 431444,
+    "poblacio": 1828
   },
   {
     "nom": "Selva del Camp, la",
-    "codi": "431457",
-    "poblacio": "5819"
+    "codi": 431457,
+    "poblacio": 5819
   },
   {
     "nom": "Senan",
-    "codi": "431460",
-    "poblacio": "46"
+    "codi": 431460,
+    "poblacio": 46
   },
   {
     "nom": "Solivella",
-    "codi": "431476",
-    "poblacio": "626"
+    "codi": 431476,
+    "poblacio": 626
   },
   {
     "nom": "Tarragona",
-    "codi": "431482",
-    "poblacio": "141151"
+    "codi": 431482,
+    "poblacio": 141151
   },
   {
     "nom": "Tivenys",
-    "codi": "431495",
-    "poblacio": "936"
+    "codi": 431495,
+    "poblacio": 936
   },
   {
     "nom": "Tivissa",
-    "codi": "431508",
-    "poblacio": "1632"
+    "codi": 431508,
+    "poblacio": 1632
   },
   {
     "nom": "Torre de Fontaubella, la",
-    "codi": "431515",
-    "poblacio": "119"
+    "codi": 431515,
+    "poblacio": 119
   },
   {
     "nom": "Torre de l'Espanyol, la",
-    "codi": "431520",
-    "poblacio": "631"
+    "codi": 431520,
+    "poblacio": 631
   },
   {
     "nom": "Torredembarra",
-    "codi": "431536",
-    "poblacio": "17984"
+    "codi": 431536,
+    "poblacio": 17984
   },
   {
     "nom": "Torroja del Priorat",
-    "codi": "431541",
-    "poblacio": "137"
+    "codi": 431541,
+    "poblacio": 137
   },
   {
     "nom": "Tortosa",
-    "codi": "431554",
-    "poblacio": "35265"
+    "codi": 431554,
+    "poblacio": 35265
   },
   {
     "nom": "Ulldecona",
-    "codi": "431567",
-    "poblacio": "6551"
+    "codi": 431567,
+    "poblacio": 6551
   },
   {
     "nom": "Ulldemolins",
-    "codi": "431573",
-    "poblacio": "416"
+    "codi": 431573,
+    "poblacio": 416
   },
   {
     "nom": "Vallclara",
-    "codi": "431589",
-    "poblacio": "89"
+    "codi": 431589,
+    "poblacio": 89
   },
   {
     "nom": "Vallfogona de Riucorb",
-    "codi": "431592",
-    "poblacio": "97"
+    "codi": 431592,
+    "poblacio": 97
   },
   {
     "nom": "Vallmoll",
-    "codi": "431606",
-    "poblacio": "1951"
+    "codi": 431606,
+    "poblacio": 1951
   },
   {
     "nom": "Valls",
-    "codi": "431613",
-    "poblacio": "25047"
+    "codi": 431613,
+    "poblacio": 25047
   },
   {
     "nom": "Vandellòs i l'Hospitalet de l'Infant",
-    "codi": "431628",
-    "poblacio": "7104"
+    "codi": 431628,
+    "poblacio": 7104
   },
   {
     "nom": "Vendrell, el",
-    "codi": "431634",
-    "poblacio": "40440"
+    "codi": 431634,
+    "poblacio": 40440
   },
   {
     "nom": "Vespella de Gaià",
-    "codi": "431649",
-    "poblacio": "506"
+    "codi": 431649,
+    "poblacio": 506
   },
   {
     "nom": "Vilabella",
-    "codi": "431652",
-    "poblacio": "723"
+    "codi": 431652,
+    "poblacio": 723
   },
   {
     "nom": "Vilallonga del Camp",
-    "codi": "431665",
-    "poblacio": "2451"
+    "codi": 431665,
+    "poblacio": 2451
   },
   {
     "nom": "Vilanova d'Escornalbou",
-    "codi": "431671",
-    "poblacio": "610"
+    "codi": 431671,
+    "poblacio": 610
   },
   {
     "nom": "Vilanova de Prades",
-    "codi": "431687",
-    "poblacio": "111"
+    "codi": 431687,
+    "poblacio": 111
   },
   {
     "nom": "Vilaplana",
-    "codi": "431690",
-    "poblacio": "553"
+    "codi": 431690,
+    "poblacio": 553
   },
   {
     "nom": "Vila-rodona",
-    "codi": "431704",
-    "poblacio": "1374"
+    "codi": 431704,
+    "poblacio": 1374
   },
   {
     "nom": "Vila-seca",
-    "codi": "431711",
-    "poblacio": "23826"
+    "codi": 431711,
+    "poblacio": 23826
   },
   {
     "nom": "Vilaverd",
-    "codi": "431726",
-    "poblacio": "468"
+    "codi": 431726,
+    "poblacio": 468
   },
   {
     "nom": "Vilella Alta, la",
-    "codi": "431732",
-    "poblacio": "128"
+    "codi": 431732,
+    "poblacio": 128
   },
   {
     "nom": "Vilella Baixa, la",
-    "codi": "431747",
-    "poblacio": "207"
+    "codi": 431747,
+    "poblacio": 207
   },
   {
     "nom": "Vilalba dels Arcs",
-    "codi": "431750",
-    "poblacio": "608"
+    "codi": 431750,
+    "poblacio": 608
   },
   {
     "nom": "Vimbodí i Poblet",
-    "codi": "431763",
-    "poblacio": "893"
+    "codi": 431763,
+    "poblacio": 893
   },
   {
     "nom": "Vinebre",
-    "codi": "431779",
-    "poblacio": "424"
+    "codi": 431779,
+    "poblacio": 424
   },
   {
     "nom": "Vinyols i els Arcs",
-    "codi": "431785",
-    "poblacio": "2400"
+    "codi": 431785,
+    "poblacio": 2400
   },
   {
     "nom": "Deltebre",
-    "codi": "439018",
-    "poblacio": "11951"
+    "codi": 439018,
+    "poblacio": 11951
   },
   {
     "nom": "Sant Jaume d'Enveja",
-    "codi": "439023",
-    "poblacio": "3667"
+    "codi": 439023,
+    "poblacio": 3667
   },
   {
     "nom": "Camarles",
-    "codi": "439039",
-    "poblacio": "3392"
+    "codi": 439039,
+    "poblacio": 3392
   },
   {
     "nom": "Aldea, l'",
-    "codi": "439044",
-    "poblacio": "4471"
+    "codi": 439044,
+    "poblacio": 4471
   },
   {
     "nom": "Salou",
-    "codi": "439057",
-    "poblacio": "30810"
+    "codi": 439057,
+    "poblacio": 30810
   },
   {
     "nom": "Ampolla, l'",
-    "codi": "439060",
-    "poblacio": "3681"
+    "codi": 439060,
+    "poblacio": 3681
   },
   {
     "nom": "Canonja, la",
-    "codi": "439076",
-    "poblacio": "5943"
+    "codi": 439076,
+    "poblacio": 5943
   }
 ]

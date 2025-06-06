@@ -32,7 +32,7 @@ jobs:
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
-          git add src/data/certificats.parquet src/data/municipis.json src/data/labels.json
+          git add src/data/certificats.parquet src/data/municipis.parquet src/data/labels.json
           git commit -m "Update processed data"
           git push
         continue-on-error: true  # Prevents failure if no changes have been made
