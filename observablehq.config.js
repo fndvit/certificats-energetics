@@ -7,7 +7,8 @@ export default {
   // all pages will be listed in alphabetical order. Listing pages explicitly
   // lets you organize them into sections and have unlisted pages.
   pages: [
-    {name: "Observatori", path: "observatori.html"}
+    {name: "Observatori", path: "observatori.html"},
+    {name: "Mosaic test", path: "mosaic.html"}
   ],
 
   // Content to add to the head of the page, e.g. for a favicon:
@@ -27,6 +28,7 @@ export default {
   // search: true, // activate search
   // linkify: true, // convert URLs in Markdown to links
   // typographer: false, // smart quotes and other typographic improvements
-  // preserveExtension: false, // drop .html from URLs
   // preserveIndex: false, // drop /index from URLs
+  cleanUrls: false,
+  preserveExtension: true,
 };
