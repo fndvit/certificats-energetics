@@ -190,6 +190,10 @@ def regenerateCodes(df, municipi_dict):
 
   df['codi_comarca'] = df['codi_poblacio'].map(get_comarca).apply(pd.Series)
 
+  most_common_zona = df.groupby('codi_poblacio')['zona_climatica'].agg(lambda x: x.mode().iloc[0] if not x.mode().empty else None)
+
+  df['zona_climatica'] = df['codi_poblacio'].map(most_common_zona)
+
   df['codi_provincia'] = df['codi_poblacio'] // 10000
 
   return df
