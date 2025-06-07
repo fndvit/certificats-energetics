@@ -8,23 +8,15 @@ import { qualifColorDomain, qualifColorRange, categoricalScheme5 } from './compo
 
 // Fitxers 
 const labels = FileAttachment("./data/labels.json").json();
-  // TODO: Mirar de fer funcionar l'API per obtenir i fer merge d'aquests dos datasets
-const comarques = FileAttachment("./data/comarques.csv").csv();
-const poblacioMunicipis = FileAttachment("./data/poblacioMunicipis.csv").csv().then((data) => {
-    return data.filter((d) => d.any == "2024" && (d.sexe == "total" || d.concepte == "total")).map((row) => ({
-      any: +row.any,
-      municipi: row.municipi,
-      poblacio: +row.valor
-    }));
-  })
+const municipis = FileAttachment("./data/municipis.json").json();
 ```
 
 ```js
 // Diccionaris 
-const municipisByCode = comarques.filter((d) => d.Nivell == "Municipi").reduce((dict, row) => {
-  const codi = String(+row.Codi); 
+const municipisByCode = municipis.reduce((dict, row) => {
+  const codi = String(+row.codi); 
   if (!(codi in dict)) {
-    dict[codi] = row.Nom;
+    dict[codi] = row.nom;
   }
   return dict;
 }, {});
@@ -45,7 +37,10 @@ const qualifColorScheme = d3.scaleLinear()
     .interpolate()
 
 // DuckDB
-const db = await DuckDBClient.of({certificats: FileAttachment("./data/certificats.parquet")});
+const db = await DuckDBClient.of({
+  certificats: FileAttachment("./data/certificats.parquet"),
+  municipis: FileAttachment("./data/municipis.parquet")
+  });
 const sql = db.sql.bind(db);
 
 
@@ -79,30 +74,34 @@ FROM certificats_grouped;
 ```
 
 ```js
-const populationRangeInput = Inputs.range([2000, 100000], {step: 1000, label: "Població mínima"});
+const populationRangeInput = Inputs.range([2000, 100000], {step: 10000, label: "Població mínima"});
 const populationThreshold = Generators.input(populationRangeInput);
 ```
 
 ```js
-
+municipisByCode
 ```
+
 ```js
-poblacioMunicipis
+municipis.find((d) => d.codi == '80155')
 ```
 
 ```sql id=grouped_poblacio display
 SELECT
-  zona_climatica,
   codi_poblacio,
   COUNT(*) AS n_certificats,
   AVG(emissions_de_co2) AS avg_emissions,
   AVG(qual_emissions) AS avg_qual_emissions,
   SUM(emissions_de_co2) AS sum_emissions,
+  municipis.poblacio
 FROM certificats
+INNER JOIN municipis
+ ON certificats.codi_poblacio = municipis.codi
 WHERE emissions_de_co2 IS NOT NULL
   AND zona_climatica IS NOT NULL
   AND codi_poblacio IS NOT NULL
-GROUP BY zona_climatica, codi_poblacio
+  AND municipis.poblacio > ${populationThreshold}
+GROUP BY codi_poblacio, municipis.poblacio
 ORDER BY avg_emissions ASC;
 ```
 
@@ -113,7 +112,7 @@ grouped_poblacio
 
 ${populationRangeInput}
 <div class="card">
-<p> Color </p>
+<p> Color/ Dins una població hi han múltiples zones climàtiques </p>
   <h2 style="font-weight: 600"> Certificacions per zona climàtica </h2>
     ${Plot.plot({
       width: 900,
@@ -196,8 +195,10 @@ ${populationRangeInput}
         Plot.barX(grouped_poblacio.slice(-10), {
           x: "avg_emissions",
           y: "codi_poblacio",
-          order: "avg_emissions",
-          reverse: true,
+          sort: {
+            y: "x",
+            reverse: true
+          },
           fill: "avg_qual_emissions",
           tip: true
           }
