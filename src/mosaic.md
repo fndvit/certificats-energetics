@@ -88,6 +88,7 @@ municipis.find((d) => d.codi == '80155')
 
 ```sql id=grouped_poblacio display
 SELECT
+  zona_climatica,
   codi_poblacio,
   COUNT(*) AS n_certificats,
   AVG(emissions_de_co2) AS avg_emissions,
@@ -101,7 +102,7 @@ WHERE emissions_de_co2 IS NOT NULL
   AND zona_climatica IS NOT NULL
   AND codi_poblacio IS NOT NULL
   AND municipis.poblacio > ${populationThreshold}
-GROUP BY codi_poblacio, municipis.poblacio
+GROUP BY zona_climatica, codi_poblacio, municipis.poblacio
 ORDER BY avg_emissions ASC;
 ```
 
