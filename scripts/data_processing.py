@@ -141,7 +141,7 @@ def castColumns(df):
     print("Casting the columns to their correct type...")
     df = df.copy()
     
-    intColumns = ['codi_provincia', 'codi_poblacio', 'codi_comarca', 'MUNDISSEC']
+    intColumns = ['codi_provincia', 'codi_poblacio', 'codi_comarca']
     
     for col in intColumns:
         df[col] = pd.to_numeric(df[col], errors="coerce")
@@ -150,6 +150,9 @@ def castColumns(df):
 
     df['data_entrada'] = pd.to_datetime(df['data_entrada'], errors='coerce')
     df['data_entrada'] = df['data_entrada'].apply(pd.offsets.MonthBegin().rollback)
+
+    df = df.dropna(subset=['MUNDISSEC']) # Eliminem els 24 registres amb MUNDISSEC nan
+    df['MUNDISSEC'] = df['MUNDISSEC'].astype(str).str.zfill(11)
 
     df['qual_emissions'] = df['qual_emissions'].map(QUALIFICATIONS_NUMERICAL_EQUIVALENCE)
     df['qual_energia'] = df['qual_energia'].map(QUALIFICATIONS_NUMERICAL_EQUIVALENCE)
@@ -178,8 +181,8 @@ def removeOutliers(df):
 
 def regenerateCodes(df, municipi_dict):
   print("Regenerating codes...")
-  df['MUNDISSEC'] = pd.to_numeric(df['MUNDISSEC'], errors='coerce').fillna(0).astype('Int64')
-  df['codi_poblacio'] = df['MUNDISSEC'] // 100000
+  df['MUNDISSEC_AUX'] = pd.to_numeric(df['MUNDISSEC'], errors='coerce').fillna(0).astype('Int64')
+  df['codi_poblacio'] = df['MUNDISSEC_AUX'] // 100000
 
   def get_comarca(codi_poblacio):
       dict_entry = municipi_dict.get(codi_poblacio)
@@ -195,6 +198,8 @@ def regenerateCodes(df, municipi_dict):
   df['zona_climatica'] = df['codi_poblacio'].map(most_common_zona)
 
   df['codi_provincia'] = df['codi_poblacio'] // 10000
+
+  df = df.drop(columns=["MUNDISSEC_AUX"])
 
   return df
 
