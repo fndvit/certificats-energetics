@@ -14,7 +14,7 @@ const municipis = FileAttachment("./data/municipis.json").json();
 ```js
 // Diccionaris 
 const municipisByCode = municipis.reduce((dict, row) => {
-  const codi = String(+row.codi); 
+  const codi = row.codi; 
   if (!(codi in dict)) {
     dict[codi] = row.nom;
   }
