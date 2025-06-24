@@ -184,8 +184,8 @@ def removeOutliers(df):
 
 def regenerateCodes(df, municipi_dict):
     print("Regenerating codes...")
-    df['MUNDISSEC_AUX'] = pd.to_numeric(df['MUNDISSEC'], errors='coerce').fillna(0).astype('Int64')
-    df['codi_poblacio'] = df['MUNDISSEC_AUX'] // 100000
+
+    df['codi_poblacio'] = df['MUNDISSEC'].str[:6]
 
     def get_comarca(codi_poblacio):
         dict_entry = municipi_dict.get(codi_poblacio)
@@ -200,9 +200,7 @@ def regenerateCodes(df, municipi_dict):
 
     df['zona_climatica'] = df['codi_poblacio'].map(most_common_zona)
 
-    df['codi_provincia'] = df['codi_poblacio'] // 10000
-
-    df = df.drop(columns=["MUNDISSEC_AUX"])
+    df['codi_provincia'] = df['MUNDISSEC'].str[:2]
 
     return df
 

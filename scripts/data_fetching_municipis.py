@@ -32,7 +32,7 @@ def fetch_all_municipis():
 
             poblacions.append({
                 "nom": e.get("title"),
-                "codi": int(section.get("AREA")),
+                "codi": section.get("AREA"),
                 "poblacio": int(total) if total is not None else None
             })
 
