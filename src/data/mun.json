@@ -652,10 +652,10 @@
   },
   {
     "CODIMUNI":"080958",
-    "mean_emissions":65.6747058824,
-    "total_emissions":146460.0773,
-    "mean_energy_qual":5.2941176471,
-    "mean_emissions_qual":5.25
+    "mean_emissions":67.4205555556,
+    "total_emissions":154193.1213,
+    "mean_energy_qual":5.3888888889,
+    "mean_emissions_qual":5.3529411765
   },
   {
     "CODIMUNI":"080961",
@@ -883,10 +883,10 @@
   },
   {
     "CODIMUNI":"081287",
-    "mean_emissions":58.8508974359,
-    "total_emissions":1100645.3903000001,
-    "mean_energy_qual":5.5128205128,
-    "mean_emissions_qual":5.0448717949
+    "mean_emissions":58.2889285714,
+    "total_emissions":1145271.2773,
+    "mean_energy_qual":5.5119047619,
+    "mean_emissions_qual":5.0421686747
   },
   {
     "CODIMUNI":"081290",
@@ -953,10 +953,10 @@
   },
   {
     "CODIMUNI":"081385",
-    "mean_emissions":51.5295229523,
-    "total_emissions":6513359.7400000002,
-    "mean_energy_qual":5.2646264626,
-    "mean_emissions_qual":4.7851782364
+    "mean_emissions":51.4870619946,
+    "total_emissions":6515726.3080000002,
+    "mean_energy_qual":5.2659478886,
+    "mean_emissions_qual":4.7835051546
   },
   {
     "CODIMUNI":"081398",
@@ -1646,10 +1646,10 @@
   },
   {
     "CODIMUNI":"082397",
-    "mean_emissions":54.8520430108,
-    "total_emissions":1473453.5334999999,
-    "mean_energy_qual":5.2419354839,
-    "mean_emissions_qual":5.0795454545
+    "mean_emissions":55.1389304813,
+    "total_emissions":1483249.9985,
+    "mean_energy_qual":5.2513368984,
+    "mean_emissions_qual":5.0903954802
   },
   {
     "CODIMUNI":"082401",
@@ -4348,10 +4348,10 @@
   },
   {
     "CODIMUNI":"251207",
-    "mean_emissions":51.5903103448,
-    "total_emissions":153938107.7136999965,
-    "mean_energy_qual":5.1697492163,
-    "mean_emissions_qual":4.7995334201
+    "mean_emissions":51.5900287341,
+    "total_emissions":153942219.5137000084,
+    "mean_energy_qual":5.1697403479,
+    "mean_emissions_qual":4.7995442956
   },
   {
     "CODIMUNI":"251214",
