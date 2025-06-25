@@ -18,9 +18,9 @@ current_comarca = {}
 for _, row in comarques_file.iterrows():
     if row["Nivell"] == "Comarca":
         # Store comarca info
-        current_comarca = {"codi": row["Codi"], "nom": row["Nom"]}
+        current_comarca = {"codi": str(row["Codi"]).zfill(2), "nom": row["Nom"]}
     elif row["Nivell"] == "Municipi":
-        municipi_dict[row["Codi"]] = {
+        municipi_dict[str(row["Codi"]).zfill(6)] = {
             "municipi": row["Nom"],
             "codi_comarca": current_comarca["codi"],
             "comarca": current_comarca["nom"],
@@ -140,15 +140,8 @@ def reduceColumns(df, columns):
 def castColumns(df):
     print("Casting the columns to their correct type...")
     df = df.copy()
-    
-    intColumns = ['codi_provincia', 'codi_poblacio', 'codi_comarca']
-    
-    for col in intColumns:
-        df[col] = pd.to_numeric(df[col], errors="coerce")
-        df = df.dropna(subset=[col])
-        df[col] = df[col].astype("Int64")
 
-    df['data_entrada'] = pd.to_datetime(df['data_entrada'], errors='coerce')
+    df['data_entrada'] = pd.to_datetime(df['data_entrada'], errors='coerce', dayfirst=True)
     df['data_entrada'] = df['data_entrada'].apply(pd.offsets.MonthBegin().rollback)
 
     df = df.dropna(subset=['MUNDISSEC']) # Eliminem els 24 registres amb MUNDISSEC nan
