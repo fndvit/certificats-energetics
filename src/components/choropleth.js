@@ -1,32 +1,44 @@
-import { bin, mean, min } from 'd3-array';
+import { bin, mean, min, quantile, range } from 'd3-array';
 import mapboxgl from 'npm:mapbox-gl';
 import { ckmeans } from 'simple-statistics';
-// import { mapThresholdScheme } from './components/colors.js';
+import { mapThresholdScheme } from './colors.js';
 
 class DataManager {
-  static DatasetKeys = ['MUNDISSEC', 'CODIMUNI', 'CODICOMAR'];
-
   /* ------------------
    Datasets
    [seccen, mun, com] 
    ------------------
   */
+  static DatasetKeys = ['MUNDISSEC', 'CODIMUNI', 'CODICOMAR'];
+
   emissionsCKMeans = [];
   ckMeansThresholds = [];
-  incomeIndicatorMeanValue = 0;
+
+  incomeIndicatorValue = {
+    min: 0,
+    max: 0,
+    mean: 0,
+    q1: 0,
+    q3: 0
+  };
 
   constructor(datasets) {
     this.datasets = datasets;
   }
 
-  updateData(emissionsIndicator, incomeIndicator) {
-    console.log('Update Data Start ---------------------');
-    console.log('Datasets:', this.datasets);
-    console.log('Emissions indicator:', emissionsIndicator);
+  getIndicatorData(level, indicator) {
+    return this.datasets[level].map((d) => ({
+      id: d[DataManager.DatasetKeys[level]],
+      value: d[indicator]
+    }));
+  }
+
+  updateEmissionsData(emissionsIndicator) {
+    //console.log('Update Emissions Data Start ---------------------');
+    //console.log('Datasets:', this.datasets);
+    //console.log('Emissions indicator:', emissionsIndicator);
 
     let emissionsIndicatorArray = this.datasets[0].map((d) => d[emissionsIndicator]);
-
-    this.incomeIndicatorMeanValue = mean(this.datasets[0].map((d) => d[incomeIndicator]));
 
     this.emissionsCKMeans = bin()
       .thresholds(ckmeans(emissionsIndicatorArray, 7).map((d) => min(d)))
@@ -36,14 +48,32 @@ class DataManager {
       .map((d) => d.x1)
       .slice(0, this.emissionsCKMeans.length - 1);
 
-    // return this.datasets[level].map((d) => ({
-    //   code: d[DataManager.DatasetKeys[level]],
-    //   valueA: d[indicatorA],
-    //   valueB: d[indicatorB]
-    // }));
-    console.log('Income Indicator Mean Value:', this.incomeIndicatorMeanValue);
-    console.log('Emissions CKMeans:', this.emissionsCKMeans);
-    console.log('CKMeans Thresholds:', this.ckMeansThresholds);
+    //console.log('Emissions CKMeans:', this.emissionsCKMeans);
+    //console.log('CKMeans Thresholds:', this.ckMeansThresholds);
+  }
+
+  updateIncomeData(incomeIndicator) {
+    const values = this.datasets[0]
+      .map((d) => d[incomeIndicator])
+      .filter((v) => v != null && !isNaN(v))
+      .sort((a, b) => a - b);
+
+    const sum = values.reduce((a, b) => a + b, 0);
+    const count = values.length;
+    const minVal = values[0];
+    const maxVal = values[values.length - 1];
+    const q1 = quantile(values, 0.25);
+    const q3 = quantile(values, 0.75);
+
+    this.incomeIndicatorValue = { mean: sum / count, min: minVal, max: maxVal, q1: q1, q3: q3 };
+
+    console.log('Mean income indicator value:', this.incomeIndicatorValue.mean);
+
+    const incomeUpdateEvent = new CustomEvent('income-values-updated', {
+      bubbles: true,
+      detail: { min: minVal, max: maxVal, mean: sum / count, q1, q3 }
+    });
+    document.dispatchEvent(incomeUpdateEvent);
   }
 }
 
@@ -57,10 +87,14 @@ export class ChoroplethMap {
   ];
 
   static defaults = {
-    zoom: 6.5,
-    minZoom: 6.5,
+    zoom: 7,
+    minZoom: 7,
     maxZoom: 14,
-    center: [2.5, 41.5]
+    center: [1.8, 41.7]
+    // bounds: [
+    //   [0.9, 40.8],
+    //   [2.7, 42.7]
+    // ]
   };
 
   static Metadata = [
@@ -129,6 +163,9 @@ export class ChoroplethMap {
   emissionsIndicator = '';
   incomeIndicator = '';
 
+  layerColor = [];
+  layerOpacity = [];
+
   constructor(container, datasets) {
     this.accessToken =
       'pk.eyJ1IjoiZm5kdml0IiwiYSI6ImNrYzBzYjhkMDBicG4yc2xrbnMzNXVoeDIifQ.mrdvw_7AIeOwa5IgHLaHJg';
@@ -141,48 +178,13 @@ export class ChoroplethMap {
       center: ChoroplethMap.defaults.center,
       minZoom: ChoroplethMap.defaults.minZoom,
       maxZoom: ChoroplethMap.defaults.maxZoom,
+      // maxBounds: ChoroplethMap.defaults.bounds,
       accessToken: this.accessToken,
       style: 'mapbox://styles/fndvit/clvnpq95k01jg01qz1px52jzf'
     });
 
     this.map.on('load', () => this.onMapLoad());
-
-    //   this.map.on('load', () => {
-    //     this.map.addSource('seccen', {
-    //       type: 'geojson',
-    //       data: options.geojson,
-    //       generateId: true
-    //     });
-
-    //     this.map.addLayer({
-    //       id: 'choropleth',
-    //       type: 'fill',
-    //       source: 'seccen',
-    //       paint: {
-    //         'fill-color': options.colorExpr,
-    //         'fill-opacity': [
-    //           'case',
-    //           ['boolean', ['feature-state', 'visible'], false],
-    //           1,
-    //           0.1
-    //         ]
-    //       }
-    //     });
-
-    //     this.updateOpacity(options.threshold || 0);
-    //   });
   }
-
-  // updateOpacity(threshold) {
-  //   const features = this.map.getSource('seccen')._data.features;
-  //   for (const f of features) {
-  //     const visible = f.properties.renta > threshold;
-  //     this.map.setFeatureState(
-  //       { source: 'seccen', id: f.id },
-  //       { visible }
-  //     );
-  //   }
-  // }
 
   static create(container, datasets) {
     return new ChoroplethMap(container, datasets);
@@ -192,31 +194,139 @@ export class ChoroplethMap {
     this.map.remove();
   }
 
-  updateData(emissionsIndicator, incomeIndicator) {
-    if (this.emissionsIndicator != emissionsIndicator || this.incomeIndicator != incomeIndicator) {
-      this.dataManager.updateData(emissionsIndicator, incomeIndicator);
-    }
-  }
-
   async onMapLoad() {
     this.map
       .addSource(ChoroplethMap.Metadata[0].source.id, ChoroplethMap.Metadata[0].source)
-      .addLayer(ChoroplethMap.Metadata[0].layers.fill)
+      .addLayer(ChoroplethMap.Metadata[0].layers.fill, 'tunnel-simple')
       .addControl(
         new mapboxgl.NavigationControl({ showCompass: false, showZoom: true }),
         'top-right'
       );
 
-    // console.log(
+    // //console.log(
     //   'Layers:',
     //   this.map.getStyle().layers.map((l) => l.id)
     // );
-    // console.log('Sources:', this.map.getStyle().sources);
+    // //console.log('Sources:', this.map.getStyle().sources);
 
     this.updateData(ChoroplethMap.InitialIndicators[0], ChoroplethMap.InitialIndicators[1]);
   }
 
+  /**
+   * Creates a color step expression.
+   * @param {{id: string, value: number}[]} data
+   * @param {string} tilesetId
+   * @param {{domain: number[], range: string[]}} scheme
+   */
+  createColorExpression(data, tilesetId, scheme) {
+    const { domain, range } = scheme;
+    const colors = range.flatMap((color, index) => {
+      return index < domain.length ? [color, domain[index]] : [color];
+    });
+
+    const colorExpression = ['step', ...colors];
+    const matchExpression = ['match', ['get', tilesetId]];
+    data.forEach((entry) => {
+      matchExpression.push(entry.id, entry.value);
+    });
+    matchExpression.push(0);
+
+    colorExpression.splice(1, 0, matchExpression);
+
+    //console.log(colorExpression);
+
+    return colorExpression;
+  }
+
+  /**
+   * Creates a range treshold opacity expression.
+   * Features out of the range will be transparent.
+   * @param {{id: string, value: number}[]} data
+   * @param {string} tilesetId
+   * @param {number[]} range
+   */
+  createOpacityExpression(data, tilesetId, range) {
+    // console.log('Range', range);
+    const matchExpression = ['match', ['get', tilesetId]];
+    // console.log(data);
+    data.forEach((entry) => {
+      if (entry.value) {
+        matchExpression.push(entry.id, entry.value);
+      }
+    });
+    matchExpression.push(0);
+
+    return [
+      'let',
+      'indicatorValue',
+      matchExpression,
+      [
+        'case',
+        [
+          'all',
+          ['>=', ['var', 'indicatorValue'], range[0]],
+          ['<=', ['var', 'indicatorValue'], range[1]]
+        ],
+        1,
+        0
+      ]
+    ];
+  }
+
+  /**
+   * Updates the map colors based on the emissions indicator data
+   */
+  updateMapPalette() {
+    this.layerColor = this.createColorExpression(
+      this.dataManager.getIndicatorData(0, this.emissionsIndicator),
+      DataManager.DatasetKeys[0],
+      { domain: this.dataManager.ckMeansThresholds, range: mapThresholdScheme }
+    );
+
+    this.map.setPaintProperty('seccen-fill', 'fill-color', this.layerColor);
+  }
+
+  /**
+   * Update map opacity based on an income value range.
+   * @param {number[]} range - An array of two integers: [min, max]
+   */
+  updateMapOpacity(range) {
+    // console.log('Entered updateMapOpacity function', range);
+    this.layerOpacity = this.createOpacityExpression(
+      this.dataManager.getIndicatorData(0, this.incomeIndicator),
+      DataManager.DatasetKeys[0],
+      range
+    );
+
+    this.map.setPaintProperty('seccen-fill', 'fill-opacity', this.layerOpacity);
+  }
+
+  /**
+   * Runs once on initialization and every time an indicator changes
+   * @param {string} emissionsIndicator
+   * @param {string} incomeIndicator
+   */
+  updateData(emissionsIndicator, incomeIndicator) {
+    if (this.emissionsIndicator != emissionsIndicator) {
+      this.dataManager.updateEmissionsData(emissionsIndicator);
+      this.emissionsIndicator = emissionsIndicator;
+      this.updateMapPalette();
+    }
+
+    if (this.incomeIndicator != incomeIndicator) {
+      this.dataManager.updateIncomeData(incomeIndicator);
+      this.incomeIndicator = incomeIndicator;
+      this.updateMapOpacity([
+        this.dataManager.incomeIndicatorValue.q1,
+        this.dataManager.incomeIndicatorValue.q3
+      ]);
+    }
+  }
+
+  /**
+   * Indicator mean value getter
+   */
   get incomeIndicatorMeanValue() {
-    return this.dataManager.incomeIndicatorMeanValue;
+    return this.dataManager.incomeIndicatorMean;
   }
 }
