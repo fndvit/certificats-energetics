@@ -1,5 +1,7 @@
 ---
 title: Eina de decisions
+toc: false
+style: ./dashboard.css
 ---
 
 ```js
@@ -13,7 +15,7 @@ import mapboxgl from 'npm:mapbox-gl';
 import * as vgplot from 'npm:@uwdata/vgplot';
 import rangeSlider from "npm:range-slider-input";
 import { ckmeans } from 'simple-statistics';
-import { qualifColorDomain, qualifColorRange, categoricalScheme5 } from './components/colors.js';
+import { qualifColorDomain, qualifColorRange, categoricalScheme5, mapThresholdScheme } from './components/colors.js';
 import { ChoroplethMap } from './components/choropleth.js';
 
 const labels = FileAttachment('./data/labels.json').json();
@@ -46,7 +48,10 @@ const emissionsIndicators = [
 ];
 
 const incomeIndicators = [
-  {name: 'Mitjana de la renda per unitat de consum (2022)', value: 'Mediana de la renta por unidad de consumo_2022'}
+  {
+    name: 'Mitjana de la renda per unitat de consum (2022)', 
+    value: 'Mediana de la renta por unidad de consumo_2022'
+  }
 ];
 ```
 
@@ -63,8 +68,6 @@ const ckMeansThresholds = emissionsCKMeans
   .slice(0, emissionsCKMeans.length - 1);
 ```
 
-
-
 <!-- Update income indicator -->
 ```js
 const incomeValues = datasets[0]
@@ -74,31 +77,38 @@ const incomeValues = datasets[0]
 
 const sum = incomeValues.reduce((a, b) => a + b, 0);
 const count = incomeValues.length;
-const minVal = incomeValues[0];
-const maxVal = incomeValues[incomeValues.length - 1];
-const q1 = d3.quantile(incomeValues, 0.25);
-const q3 = d3.quantile(incomeValues, 0.75);
 
-const incomeIndicatorStats = { mean: sum / count, min: minVal, max: maxVal, q1: q1, q3: q3 };
+const incomeIndicatorStats = { 
+  mean: sum / count, 
+  min: incomeValues[0], 
+  max: incomeValues[incomeValues.length - 1], 
+  q1: d3.quantile(incomeValues, 0.25), 
+  q3: d3.quantile(incomeValues, 0.75) 
+};
 
-updateSliderBounds(incomeIndicatorStats.min, incomeIndicatorStats.max, incomeIndicatorStats.q1, incomeIndicatorStats.q3);
+updateSliderBounds(
+  incomeIndicatorStats.min, 
+  incomeIndicatorStats.max, 
+  incomeIndicatorStats.q1, 
+  incomeIndicatorStats.q3
+);
 ```
 
 <!-- Inputs -->
 ```js
 // Slider -----------
-const incomeMin = 20000;
-const incomeMax = 50000;
+const defaultMin = 20000;
+const defaultMax = 50000;
 
 const sliderElement = html`<div></div>`;
 
 const slider = rangeSlider(sliderElement, {
-  min: incomeMin,
-  max: incomeMax,
+  min: defaultMin,
+  max: defaultMax,
   step: 1000,
   value: [
-    incomeMin + (incomeMax - incomeMin) * 0.2,
-    incomeMax - (incomeMax - incomeMin) * 0.2
+    defaultMin + (defaultMax - defaultMin) * 0.2,
+    defaultMax - (defaultMax - defaultMin) * 0.2
   ],
   onInput: (v, user) => {
     sliderElement.value = v;
@@ -154,7 +164,13 @@ document.addEventListener('map-loaded', () => {
   console.log('Map loaded event recieved')
   map.updateEmissionsData(emissionsIndicator.value, ckMeansThresholds);
   map.updateIncomeData(incomeIndicator.value, incomeIndicatorStats);
-  updateSliderBounds(incomeIndicatorStats.min, incomeIndicatorStats.max, incomeIndicatorStats.q1, incomeIndicatorStats.q3);
+  updateSliderBounds(
+    incomeIndicatorStats.min, 
+    incomeIndicatorStats.max, 
+    incomeIndicatorStats.q1, 
+    incomeIndicatorStats.q3
+  );
+  sliderElement.dispatchEvent(new Event("input", { bubbles: true }));
   setMapLoaded(true)
 });
 ```
@@ -181,9 +197,8 @@ incomeRange
 
 ```js
 display(emissionsIndicatorInput)
-display(emissionsIndicator)
 display(incomeIndicatorInput)
-display(sliderElement)
+// display(sliderElement)
 ```
 
 ```js
@@ -194,7 +209,58 @@ const map = ChoroplethMap.create(mapContainer, datasets);
 invalidation.then(() => map.destroy());
 ```
 
+<div class="grid grid-cols-4">
+  <div class="card grid-colspan-2">
+    ${mapContainer}
+  </div>
+  <div class="card grid-colspan-2">
+    ${sliderElement}
+    ${resize((width) => 
+      Plot.plot({
+        color: {
+          type: "threshold",
+          domain: Array.from({ length: 7 }, (_, i) => i.toString()),
+          range: mapThresholdScheme
+        },
+        y: { grid: true}, // Per mantenir escala -> domain: [0, mostFrequentClass[1]] 
+        x: { domain: Array.from({ length: 7 }, (_, i) => i.toString()) },
+        marks: [
+          Plot.barY(
+            histogramData,
+            Plot.groupX({ y: "count" }, { x: "class", fill: "class", tip:true })
+          ),
+          Plot.ruleY([0])
+        ]
+      })
+    )}
+  </div>
+</div>
+
+
+<!-- Histogram cells -->
+```js
+const getEntryClass = (value) =>
+  emissionsCKMeans.findIndex((d) => value >= d.x0 && value <= d.x1).toString();
+
+const valuesByClass = datasets[0].map((d) => {
+  const emissionsValue = d[emissionsIndicator.value];
+  const incomeValue = d[incomeIndicator.value];
+  return { class: getEntryClass(emissionsValue), emissionsValue, incomeValue };
+});
+
+const mostFrequentClass = d3.greatest(
+  d3.rollup(valuesByClass, v => v.length, d => d.class),
+  ([, count]) => count
+);
+
+const histogramData = valuesByClass.filter(
+  d => d.incomeValue >= incomeRange[0] && d.incomeValue <= incomeRange[1]
+);
+```
+
 ```js
 display(ckMeansThresholds)
 display(incomeIndicatorStats)
+display(valuesByClass)
+display(histogramData)
 ```
