@@ -253,41 +253,45 @@ def remove_sixth_digit_from_right(number_str):
         return number_str
   
 
-def fetch_and_flatten(code, mundissec_map):
+def fetch_and_flatten(code, mundissec_map, municipis_map):
     url = f"https://servicios.ine.es/wstempus/js/ES/DATOS_TABLA/{code}"
     params = {"tip": "AM"}
     response = requests.get(url, params=params)
     data = response.json()
 
-    records = []
+    seccions_records = []
+    municipis_records = []
+
     for item in data:
         meta = item.get("MetaData", [])
-        if not meta or meta[0].get("T3_Variable") != "Secciones":
+        if not meta:
             continue
 
-        mundissecShort = meta[0]["Codigo"]
-        mundissec = mundissec_map.get(mundissecShort)
+        var = meta[0].get("T3_Variable")
+        if var not in ["Secciones", "Municipios"]:
+            continue
 
-        if not mundissec:
-          mundissec = mundissecShort
+        code_short = meta[0]["Codigo"]
+        if var == "Secciones":
+            key = mundissec_map.get(code_short, code_short)
+            df = seccions_records
+        else:  # Municipios
+            key = municipis_map.get(code_short, code_short)
+            df = municipis_records
 
-        indicador = None
-        for m in meta:
-            if m["T3_Variable"] == "SALDOS CONTABLES":
-                indicador = m["Nombre"]
-                break
+        indicador = next((m["Nombre"] for m in meta if m["T3_Variable"] == "SALDOS CONTABLES"), None)
         if not indicador:
             continue
 
         for entry in item.get("Data", []):
-            records.append({
-                "MUNDISSEC": mundissec,
+            df.append({
+                "codi": key,
                 "indicador": indicador,
                 "any": entry["Anyo"],
-                "valor": entry["Valor"]
+                "valor": entry["Valor"],
             })
 
-    return pd.DataFrame(records)
+    return pd.DataFrame(seccions_records), pd.DataFrame(municipis_records)
 
 
 def get_rendes_dataset(sections_dataset):
@@ -296,20 +300,30 @@ def get_rendes_dataset(sections_dataset):
     sections_dataset['MUNDISSEC_truncated'] = sections_dataset['mundissec'].astype(str).apply(remove_sixth_digit_from_right)
     mundissec_map = sections_dataset.drop_duplicates('MUNDISSEC_truncated').set_index('MUNDISSEC_truncated')['mundissec'].to_dict()
 
-    df_all = pd.concat([fetch_and_flatten(code, mundissec_map) for code in codes], ignore_index=True)
+    sections_dataset['Codi municipi_truncated'] = sections_dataset['Codi municipi'].astype(str).str.slice(0, -1)
+    municipis_map = sections_dataset.drop_duplicates('Codi municipi_truncated').set_index('Codi municipi_truncated')['Codi municipi'].to_dict()
 
-    renta_df = df_all.pivot_table(
-        index="MUNDISSEC",
-        columns=["indicador", "any"],
-        values="valor"
-    )
+    df_all = [fetch_and_flatten(code, mundissec_map, municipis_map) for code in codes]
 
-    renta_df.columns = [f"{col[0]}_{col[1]}" for col in renta_df.columns]
-    renta_df = renta_df.reset_index()
-    subsetColumns = [column for column in renta_df.columns[1:] if ('_' in str(column) and str(column).split('_')[1] == '2022')]
-    subsetColumns.append('MUNDISSEC')
+    seccions_all = pd.concat([df[0] for df in df_all], ignore_index=True)
+    municipis_all = pd.concat([df[1] for df in df_all], ignore_index=True)
 
-    return renta_df[subsetColumns]
+    def pivot_dataset(df):
+        df_pivot = df.pivot_table(
+            index="codi",
+            columns=["indicador", "any"],
+            values="valor"
+        )
+        df_pivot.columns = [f"{col[0]}_{col[1]}" for col in df_pivot.columns]
+        return df_pivot.reset_index()
+
+    renta_seccions_df = pivot_dataset(seccions_all)
+    renta_municipis_df = pivot_dataset(municipis_all)
+
+    subsetColumns = [column for column in renta_seccions_df.columns[1:] if ('_' in str(column) and str(column).split('_')[1] == '2022')]
+    subsetColumns.append('codi')
+
+    return [renta_seccions_df[subsetColumns], renta_municipis_df[subsetColumns]]
 
 
 def aggregateByLevel(df, level):
@@ -323,27 +337,19 @@ def aggregateByLevel(df, level):
   return aggDf
 
 
-def get_aggregated_datasets(certificates, rendes):
+def get_aggregated_datasets(certificates, rendes_datasets):
     # Secció censal
     certificates['emissions_totals'] = certificates['emissions_de_co2'] * certificates['metres_cadastre']
+
     certificates_by_section = aggregateByLevel(certificates, 'MUNDISSEC')
-    certificates_by_section = certificates_by_section.merge(rendes, on="MUNDISSEC", how="outer")
+    certificates_by_mun = aggregateByLevel(certificates, 'codi_poblacio')
 
-    # Municipi i comarca
-    census_levels = ['codi_poblacio' ,'codi_comarca']
-    aggregated_datasets = []
+    certificates_by_section = certificates_by_section.merge(rendes_datasets[0], left_on="MUNDISSEC", right_on='codi', how="outer")
+    certificates_by_mun = certificates_by_mun.merge(rendes_datasets[1], left_on="codi_poblacio", right_on='codi', how="outer")
 
-    for level in census_levels:
-      aggDf = aggregateByLevel(certificates, level)
-      aggregated_datasets.append(aggDf)
+    certificates_by_com = aggregateByLevel(certificates, 'codi_comarca')
 
-    aggregated_datasets.insert(0, certificates_by_section)
-
-    # Rename de columnes perquè coincideixin amb els IDs dels tilesets de Mapbox
-    aggregated_datasets[1] = aggregated_datasets[1].rename(columns={'codi_poblacio': 'CODIMUNI'})
-    aggregated_datasets[2] = aggregated_datasets[2].rename(columns={'codi_comarca': 'CODICOMAR'})
-
-    return aggregated_datasets
+    return [certificates_by_section, certificates_by_mun, certificates_by_com]
 
 
 def save_data(certificates, label_mapping, aggregated_datasets):
@@ -371,6 +377,6 @@ def save_data(certificates, label_mapping, aggregated_datasets):
 df = pd.read_json("static/raw_data.json")
 certificates, label_mapping = process_certificates_dataset(df, municipi_dict)
 sections = get_sections_dataset()
-rendes = get_rendes_dataset(sections)
-aggregated_datasets = get_aggregated_datasets(certificates, rendes)
+rendes_datasets = get_rendes_dataset(sections)
+aggregated_datasets = get_aggregated_datasets(certificates, rendes_datasets)
 save_data(certificates, label_mapping, aggregated_datasets)
