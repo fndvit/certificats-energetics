@@ -11,7 +11,6 @@ class DataManager {
   */
   static DatasetKeys = ['MUNDISSEC', 'CODIMUNI', 'CODICOMAR'];
 
-  emissionsCKMeans = [];
   ckMeansThresholds = [];
 
   incomeIndicatorValue = {
@@ -31,49 +30,6 @@ class DataManager {
       id: d[DataManager.DatasetKeys[level]],
       value: d[indicator]
     }));
-  }
-
-  updateEmissionsData(emissionsIndicator) {
-    //console.log('Update Emissions Data Start ---------------------');
-    //console.log('Datasets:', this.datasets);
-    //console.log('Emissions indicator:', emissionsIndicator);
-
-    let emissionsIndicatorArray = this.datasets[0].map((d) => d[emissionsIndicator]);
-
-    this.emissionsCKMeans = bin()
-      .thresholds(ckmeans(emissionsIndicatorArray, 7).map((d) => min(d)))
-      .value((d) => d)(emissionsIndicatorArray);
-
-    this.ckMeansThresholds = this.emissionsCKMeans
-      .map((d) => d.x1)
-      .slice(0, this.emissionsCKMeans.length - 1);
-
-    //console.log('Emissions CKMeans:', this.emissionsCKMeans);
-    //console.log('CKMeans Thresholds:', this.ckMeansThresholds);
-  }
-
-  updateIncomeData(incomeIndicator) {
-    const values = this.datasets[0]
-      .map((d) => d[incomeIndicator])
-      .filter((v) => v != null && !isNaN(v))
-      .sort((a, b) => a - b);
-
-    const sum = values.reduce((a, b) => a + b, 0);
-    const count = values.length;
-    const minVal = values[0];
-    const maxVal = values[values.length - 1];
-    const q1 = quantile(values, 0.25);
-    const q3 = quantile(values, 0.75);
-
-    this.incomeIndicatorValue = { mean: sum / count, min: minVal, max: maxVal, q1: q1, q3: q3 };
-
-    console.log('Mean income indicator value:', this.incomeIndicatorValue.mean);
-
-    const incomeUpdateEvent = new CustomEvent('income-values-updated', {
-      bubbles: true,
-      detail: { min: minVal, max: maxVal, mean: sum / count, q1, q3 }
-    });
-    document.dispatchEvent(incomeUpdateEvent);
   }
 }
 
@@ -209,7 +165,7 @@ export class ChoroplethMap {
     // );
     // //console.log('Sources:', this.map.getStyle().sources);
 
-    this.updateData(ChoroplethMap.InitialIndicators[0], ChoroplethMap.InitialIndicators[1]);
+    document.dispatchEvent(new Event('map-loaded', { bubbles: true }));
   }
 
   /**
@@ -219,6 +175,7 @@ export class ChoroplethMap {
    * @param {{domain: number[], range: string[]}} scheme
    */
   createColorExpression(data, tilesetId, scheme) {
+    console.log('Create color args', { data, tilesetId, scheme });
     const { domain, range } = scheme;
     const colors = range.flatMap((color, index) => {
       return index < domain.length ? [color, domain[index]] : [color];
@@ -301,25 +258,22 @@ export class ChoroplethMap {
     this.map.setPaintProperty('seccen-fill', 'fill-opacity', this.layerOpacity);
   }
 
-  /**
-   * Runs once on initialization and every time an indicator changes
-   * @param {string} emissionsIndicator
-   * @param {string} incomeIndicator
-   */
-  updateData(emissionsIndicator, incomeIndicator) {
+  updateEmissionsData(emissionsIndicator, ckmeansThresholds) {
+    console.log('Init update emissions data', ckmeansThresholds);
     if (this.emissionsIndicator != emissionsIndicator) {
-      this.dataManager.updateEmissionsData(emissionsIndicator);
+      console.log('Entered if');
+      this.dataManager.ckMeansThresholds = ckmeansThresholds;
       this.emissionsIndicator = emissionsIndicator;
       this.updateMapPalette();
     }
+  }
 
+  updateIncomeData(incomeIndicator, incomeIndicatorStats) {
+    console.log('Initi update income data', { incomeIndicator, incomeIndicatorStats });
     if (this.incomeIndicator != incomeIndicator) {
-      this.dataManager.updateIncomeData(incomeIndicator);
+      // this.dataManager.updateIncomeData(incomeIndicator);
       this.incomeIndicator = incomeIndicator;
-      this.updateMapOpacity([
-        this.dataManager.incomeIndicatorValue.q1,
-        this.dataManager.incomeIndicatorValue.q3
-      ]);
+      this.updateMapOpacity([incomeIndicatorStats.q1, incomeIndicatorStats.q3]);
     }
   }
 
