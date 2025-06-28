@@ -55,9 +55,14 @@ const incomeIndicators = [
 ];
 ```
 
+```js
+const currentDatasetIndex = Mutable(0);
+const setCurrentDatasetIndex = (x) => (currentDatasetIndex.value = x);
+```
+
 <!-- Update Emissions Indicator -->
 ```js
-const emissionsIndicatorArray = datasets[0].map((d) => d[emissionsIndicator.value]);
+const emissionsIndicatorArray = datasets[currentDatasetIndex].map((d) => d[emissionsIndicator.value]);
 
 const emissionsCKMeans = d3.bin()
   .thresholds(ckmeans(emissionsIndicatorArray, 7).map((d) => d3.min(d)))
@@ -70,7 +75,7 @@ const ckMeansThresholds = emissionsCKMeans
 
 <!-- Update income indicator -->
 ```js
-const incomeValues = datasets[0]
+const incomeValues = datasets[currentDatasetIndex]
   .map((d) => d[incomeIndicator.value])
   .filter((v) => v != null && !isNaN(v))
   .sort((a, b) => a - b);
@@ -173,6 +178,14 @@ document.addEventListener('map-loaded', () => {
   sliderElement.dispatchEvent(new Event("input", { bubbles: true }));
   setMapLoaded(true)
 });
+
+```
+
+```js
+document.addEventListener('zoom-level-changed', (event) => {
+  console.log('Zoom level changed', event.detail)
+  // setCurrentDatasetIndex(event.detail.zoomLevel)
+})
 ```
 
 ```js
@@ -242,7 +255,7 @@ invalidation.then(() => map.destroy());
 const getEntryClass = (value) =>
   emissionsCKMeans.findIndex((d) => value >= d.x0 && value <= d.x1).toString();
 
-const valuesByClass = datasets[0].map((d) => {
+const valuesByClass = datasets[currentDatasetIndex].map((d) => {
   const emissionsValue = d[emissionsIndicator.value];
   const incomeValue = d[incomeIndicator.value];
   return { class: getEntryClass(emissionsValue), emissionsValue, incomeValue };

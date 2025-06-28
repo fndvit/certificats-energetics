@@ -121,12 +121,22 @@ export class ChoroplethMap {
 
   layerColor = [];
   layerOpacity = [];
+  zoomLevels = [];
+  zoomLevel = 2;
 
   constructor(container, datasets) {
     this.accessToken =
       'pk.eyJ1IjoiZm5kdml0IiwiYSI6ImNrYzBzYjhkMDBicG4yc2xrbnMzNXVoeDIifQ.mrdvw_7AIeOwa5IgHLaHJg';
 
     this.dataManager = new DataManager(datasets);
+
+    this.zoomLevels = [
+      { zoomExtent: [11, 22] },
+      { zoomExtent: [8.5, 11] },
+      { zoomExtent: [0, 8.5] }
+    ];
+
+    this.zoomLevel = 2;
 
     this.map = new mapboxgl.Map({
       container,
@@ -140,6 +150,7 @@ export class ChoroplethMap {
     });
 
     this.map.on('load', () => this.onMapLoad());
+    this.map.on('zoom', () => this.onMapZoom());
   }
 
   static create(container, datasets) {
@@ -166,6 +177,24 @@ export class ChoroplethMap {
     // //console.log('Sources:', this.map.getStyle().sources);
 
     document.dispatchEvent(new Event('map-loaded', { bubbles: true }));
+  }
+
+  async onMapZoom() {
+    const currentZoom = this.map.getZoom();
+    const newZoomLevel = this.zoomLevels.findIndex(
+      ({ zoomExtent: [min, max] }) => currentZoom >= min && currentZoom < max
+    );
+
+    if (newZoomLevel !== this.map.zoomLevel) {
+      this.map.zoomLevel = newZoomLevel;
+
+      const event = new CustomEvent('zoom-level-changed', {
+        detail: { zoomLevel: newZoomLevel },
+        bubbles: true
+      });
+
+      document.dispatchEvent(event);
+    }
   }
 
   /**
