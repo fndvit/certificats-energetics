@@ -1,293 +1,293 @@
 [
   {
-    "CODICOMAR":"01",
+    "codi_comarca":"01",
     "mean_emissions":42.6155637294,
     "total_emissions":33253807.9695999995,
     "mean_energy_qual":5.118183272,
     "mean_emissions_qual":4.6994171524
   },
   {
-    "CODICOMAR":"02",
+    "codi_comarca":"02",
     "mean_emissions":45.6344828981,
     "total_emissions":188946316.665899992,
     "mean_energy_qual":5.5300705311,
     "mean_emissions_qual":4.9102870179
   },
   {
-    "CODICOMAR":"03",
+    "codi_comarca":"03",
     "mean_emissions":41.6239641401,
     "total_emissions":92220078.0869999975,
     "mean_energy_qual":5.0870803776,
     "mean_emissions_qual":4.7300771208
   },
   {
-    "CODICOMAR":"04",
+    "codi_comarca":"04",
     "mean_emissions":59.6065683521,
     "total_emissions":21389180.7437000014,
     "mean_energy_qual":4.9639513109,
     "mean_emissions_qual":4.6236036911
   },
   {
-    "CODICOMAR":"05",
+    "codi_comarca":"05",
     "mean_emissions":50.9485714286,
     "total_emissions":5185987.6193000004,
     "mean_energy_qual":4.9813258637,
     "mean_emissions_qual":4.3936170213
   },
   {
-    "CODICOMAR":"06",
+    "codi_comarca":"06",
     "mean_emissions":50.4182510962,
     "total_emissions":115615216.9889000058,
     "mean_energy_qual":5.2620331637,
     "mean_emissions_qual":4.9422691293
   },
   {
-    "CODICOMAR":"07",
+    "codi_comarca":"07",
     "mean_emissions":41.6343507553,
     "total_emissions":143308010.9147999883,
     "mean_energy_qual":5.2095241472,
     "mean_emissions_qual":4.8239110287
   },
   {
-    "CODICOMAR":"08",
+    "codi_comarca":"08",
     "mean_emissions":39.9603284196,
     "total_emissions":170736872.106400013,
     "mean_energy_qual":5.2853239069,
     "mean_emissions_qual":4.6905364835
   },
   {
-    "CODICOMAR":"09",
+    "codi_comarca":"09",
     "mean_emissions":39.1148811828,
     "total_emissions":55440282.7018999979,
     "mean_energy_qual":5.3850917254,
     "mean_emissions_qual":4.6105944197
   },
   {
-    "CODICOMAR":"10",
+    "codi_comarca":"10",
     "mean_emissions":44.6109424772,
     "total_emissions":194242957.0534000099,
     "mean_energy_qual":5.4012937477,
     "mean_emissions_qual":4.8313483392
   },
   {
-    "CODICOMAR":"11",
+    "codi_comarca":"11",
     "mean_emissions":40.2287755366,
     "total_emissions":666784212.32099998,
     "mean_energy_qual":5.174347039,
     "mean_emissions_qual":4.8315869414
   },
   {
-    "CODICOMAR":"12",
+    "codi_comarca":"12",
     "mean_emissions":42.4173116734,
     "total_emissions":127166933.2213999927,
     "mean_energy_qual":5.3501054246,
     "mean_emissions_qual":4.7736550397
   },
   {
-    "CODICOMAR":"13",
+    "codi_comarca":"13",
     "mean_emissions":38.9154177894,
     "total_emissions":2019279260.6068999767,
     "mean_energy_qual":5.2579495359,
     "mean_emissions_qual":4.8266050816
   },
   {
-    "CODICOMAR":"14",
+    "codi_comarca":"14",
     "mean_emissions":51.2695495787,
     "total_emissions":39959753.3319000006,
     "mean_energy_qual":5.3724886585,
     "mean_emissions_qual":4.8972498735
   },
   {
-    "CODICOMAR":"15",
+    "codi_comarca":"15",
     "mean_emissions":53.0081902776,
     "total_emissions":38008658.1243000031,
     "mean_energy_qual":4.9744906145,
     "mean_emissions_qual":4.504004004
   },
   {
-    "CODICOMAR":"16",
+    "codi_comarca":"16",
     "mean_emissions":45.1435491241,
     "total_emissions":14893718.9831000008,
     "mean_energy_qual":5.040365575,
     "mean_emissions_qual":4.752254018
   },
   {
-    "CODICOMAR":"17",
+    "codi_comarca":"17",
     "mean_emissions":41.5080695077,
     "total_emissions":153818885.7394999862,
     "mean_energy_qual":5.229269358,
     "mean_emissions_qual":4.8098390744
   },
   {
-    "CODICOMAR":"18",
+    "codi_comarca":"18",
     "mean_emissions":54.8244810625,
     "total_emissions":15623562.5118000004,
     "mean_energy_qual":4.7348745696,
     "mean_emissions_qual":4.585562847
   },
   {
-    "CODICOMAR":"19",
+    "codi_comarca":"19",
     "mean_emissions":55.0139841345,
     "total_emissions":51869833.0309000015,
     "mean_energy_qual":5.1457494672,
     "mean_emissions_qual":4.9263210122
   },
   {
-    "CODICOMAR":"20",
+    "codi_comarca":"20",
     "mean_emissions":44.9766520073,
     "total_emissions":184451459.0821999907,
     "mean_energy_qual":5.0997989571,
     "mean_emissions_qual":4.7730207609
   },
   {
-    "CODICOMAR":"21",
+    "codi_comarca":"21",
     "mean_emissions":40.9551895539,
     "total_emissions":402545367.997600019,
     "mean_energy_qual":5.2058267697,
     "mean_emissions_qual":4.8244033381
   },
   {
-    "CODICOMAR":"22",
+    "codi_comarca":"22",
     "mean_emissions":38.8359729513,
     "total_emissions":45289377.4472000003,
     "mean_energy_qual":5.4729068422,
     "mean_emissions_qual":4.662601626
   },
   {
-    "CODICOMAR":"23",
+    "codi_comarca":"23",
     "mean_emissions":54.8320870871,
     "total_emissions":28267004.0956999995,
     "mean_energy_qual":4.9564564565,
     "mean_emissions_qual":4.6969066805
   },
   {
-    "CODICOMAR":"24",
+    "codi_comarca":"24",
     "mean_emissions":48.2391260191,
     "total_emissions":130362843.0257000029,
     "mean_energy_qual":4.982576287,
     "mean_emissions_qual":4.752568785
   },
   {
-    "CODICOMAR":"25",
+    "codi_comarca":"25",
     "mean_emissions":55.3011151242,
     "total_emissions":14995007.2374000009,
     "mean_energy_qual":5.2004514673,
     "mean_emissions_qual":4.7275307474
   },
   {
-    "CODICOMAR":"26",
+    "codi_comarca":"26",
     "mean_emissions":54.0723948909,
     "total_emissions":11151472.4231000002,
     "mean_energy_qual":4.9324108568,
     "mean_emissions_qual":4.3855024712
   },
   {
-    "CODICOMAR":"27",
+    "codi_comarca":"27",
     "mean_emissions":51.8300225023,
     "total_emissions":33296995.1290000007,
     "mean_energy_qual":4.8078307831,
     "mean_emissions_qual":4.6734502924
   },
   {
-    "CODICOMAR":"28",
+    "codi_comarca":"28",
     "mean_emissions":45.4600164512,
     "total_emissions":23691274.2265999988,
     "mean_energy_qual":5.0980023502,
     "mean_emissions_qual":4.8296662546
   },
   {
-    "CODICOMAR":"29",
+    "codi_comarca":"29",
     "mean_emissions":42.1318602762,
     "total_emissions":6789254.6102,
     "mean_energy_qual":4.9463850528,
     "mean_emissions_qual":4.6647058824
   },
   {
-    "CODICOMAR":"30",
+    "codi_comarca":"30",
     "mean_emissions":37.7396339501,
     "total_emissions":13394157.4491000008,
     "mean_energy_qual":5.0486725664,
     "mean_emissions_qual":4.6020025031
   },
   {
-    "CODICOMAR":"31",
+    "codi_comarca":"31",
     "mean_emissions":56.6725400041,
     "total_emissions":33204487.5384999998,
     "mean_energy_qual":5.1484707312,
     "mean_emissions_qual":4.7821533305
   },
   {
-    "CODICOMAR":"32",
+    "codi_comarca":"32",
     "mean_emissions":52.9221530698,
     "total_emissions":19251802.625,
     "mean_energy_qual":4.8486122792,
     "mean_emissions_qual":4.6728850325
   },
   {
-    "CODICOMAR":"33",
+    "codi_comarca":"33",
     "mean_emissions":51.958221191,
     "total_emissions":211719040.0038999915,
     "mean_energy_qual":5.0711523589,
     "mean_emissions_qual":4.7528625954
   },
   {
-    "CODICOMAR":"34",
+    "codi_comarca":"34",
     "mean_emissions":46.1167096663,
     "total_emissions":189814880.7924999893,
     "mean_energy_qual":5.3798589611,
     "mean_emissions_qual":4.9381346994
   },
   {
-    "CODICOMAR":"35",
+    "codi_comarca":"35",
     "mean_emissions":55.7897110676,
     "total_emissions":14878589.7311000004,
     "mean_energy_qual":4.902546523,
     "mean_emissions_qual":4.5490498202
   },
   {
-    "CODICOMAR":"36",
+    "codi_comarca":"36",
     "mean_emissions":35.2714045614,
     "total_emissions":228710113.1326000094,
     "mean_energy_qual":5.2908291345,
     "mean_emissions_qual":4.5885398304
   },
   {
-    "CODICOMAR":"37",
+    "codi_comarca":"37",
     "mean_emissions":43.7130126582,
     "total_emissions":5469593.6761999996,
     "mean_energy_qual":4.9329113924,
     "mean_emissions_qual":4.5472440945
   },
   {
-    "CODICOMAR":"38",
+    "codi_comarca":"38",
     "mean_emissions":54.6474101416,
     "total_emissions":63024647.7721000016,
     "mean_energy_qual":4.9685344306,
     "mean_emissions_qual":4.6574015847
   },
   {
-    "CODICOMAR":"40",
+    "codi_comarca":"40",
     "mean_emissions":42.3865207376,
     "total_emissions":806316314.7618999481,
     "mean_energy_qual":5.1167292971,
     "mean_emissions_qual":4.8058085356
   },
   {
-    "CODICOMAR":"41",
+    "codi_comarca":"41",
     "mean_emissions":43.1774256117,
     "total_emissions":351719649.3118000031,
     "mean_energy_qual":5.1434433788,
     "mean_emissions_qual":4.867395147
   },
   {
-    "CODICOMAR":"42",
+    "codi_comarca":"42",
     "mean_emissions":53.075137931,
     "total_emissions":16977873.7289000005,
     "mean_energy_qual":5.2383141762,
     "mean_emissions_qual":4.8666401274
   },
   {
-    "CODICOMAR":"43",
+    "codi_comarca":"43",
     "mean_emissions":47.3391393939,
     "total_emissions":5840160.7182999998,
     "mean_energy_qual":4.8581818182,
