@@ -344,8 +344,8 @@ def get_aggregated_datasets(certificates, rendes_datasets):
     certificates_by_section = aggregateByLevel(certificates, 'MUNDISSEC')
     certificates_by_mun = aggregateByLevel(certificates, 'codi_poblacio')
 
-    certificates_by_section = certificates_by_section.merge(rendes_datasets[0], left_on="MUNDISSEC", right_on='codi', how="outer")
-    certificates_by_mun = certificates_by_mun.merge(rendes_datasets[1], left_on="codi_poblacio", right_on='codi', how="outer")
+    certificates_by_section = certificates_by_section.merge(rendes_datasets[0], left_on="MUNDISSEC", right_on='codi', how="outer").drop(columns=['codi'])
+    certificates_by_mun = certificates_by_mun.merge(rendes_datasets[1], left_on="codi_poblacio", right_on='codi', how="outer").drop(columns=['codi'])
 
     certificates_by_com = aggregateByLevel(certificates, 'codi_comarca')
 
