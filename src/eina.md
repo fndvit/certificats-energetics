@@ -71,8 +71,19 @@ const currentDatasetIndex = Mutable(1);
 const setCurrentDatasetIndex = (x) => (currentDatasetIndex.value = x);
 ```
 
-<!-- Update Emissions Indicator -->
 ```js
+const incomeRange = Mutable([0, 0])
+const setIncomeRange = (x) => (incomeRange.value = x);
+```
+
+```js
+const mapLoaded = Mutable(false)
+const setMapLoaded = (x) => (mapLoaded.value = x);
+```
+
+
+```js
+// Update Emissions Indicator
 function getEmissionsIndicatorData(indicator) {
   const data = [];
   datasets.forEach((dataset, i) => {
@@ -96,18 +107,8 @@ function getEmissionsIndicatorData(indicator) {
 
   return data;
 }
-```
 
-```js
-const emissionsIndicatorData = getEmissionsIndicatorData(emissionsIndicator);
-```
-
-```js
-display(emissionsIndicatorData)
-```
-
-<!-- Update income indicator -->
-```js
+// Update income indicator
 function getIncomeIndicatorData(indicator) {
   const data = [];
   datasets.forEach((dataset, i) => {
@@ -138,11 +139,7 @@ function getIncomeIndicatorData(indicator) {
 ```
 
 ```js
-{
-  const { min, max, q1, q3 } = incomeIndicatorData[currentDatasetIndex];
-  console.log('Before entering', incomeIndicatorData[currentDatasetIndex])
-  updateSliderBounds(min, max, q1, q3);
-}
+const emissionsIndicatorData = getEmissionsIndicatorData(emissionsIndicator);
 ```
 
 ```js
@@ -150,6 +147,7 @@ const incomeIndicatorData = getIncomeIndicatorData(incomeIndicator)
 ```
 
 ```js
+display(emissionsIndicatorData)
 display(incomeIndicatorData)
 ```
 
@@ -171,29 +169,20 @@ const slider = rangeSlider(sliderElement, {
   ],
   onInput: (v, user) => {
     sliderElement.value = v;
-    if (user) sliderElement.dispatchEvent(new Event("input", {bubbles: true}));
+    if (user) {
+      sliderElement.dispatchEvent(new Event("input", {bubbles: true}));
+      setIncomeRange(v);
+    }
   }
 });
 
-// Event listener: lloc on posar events no reactius, escoltant només del slider
-sliderElement.addEventListener('input', () => {
-  console.log('Slider changed, new value:', slider.value());
-  map.updateMapOpacity([slider.value()[0], slider.value()[1]], currentDatasetIndex)
-});
-
 function updateSliderBounds(newMin, newMax, q1, q3) {
-  console.log('Enter update slider bounds function', {newMin, newMax, q1, q3})
   slider.min(newMin);
   slider.max(newMax);
   slider.value([q1, q3]);
+  setIncomeRange([q1, q3]);
 }
 
-// document.addEventListener('income-values-updated', (event) => {
-//   // console.log('Recieved income values update Event', event);
-//   updateSliderBounds(event.detail.min, event.detail.max, event.detail.q1, event.detail.q3);
-// });
-
-const incomeRange = Generators.input(sliderElement)
 
 // Indicators -----------
 const emissionsIndicatorInput = Inputs.select(emissionsIndicators, {
@@ -201,35 +190,30 @@ const emissionsIndicatorInput = Inputs.select(emissionsIndicators, {
     format: (d) => d.name,
     value: emissionsIndicators[0]
   })
-const emissionsIndicator = Generators.input(emissionsIndicatorInput);
-```
-```js
+
+
 const incomeIndicatorInput = Inputs.select(incomeIndicators, {
     label: "Selecciona un indicador de renda",
     format: (d) => d.name,
     value: incomeIndicators[0]
   })
-const incomeIndicator = Generators.input(incomeIndicatorInput);
 ```
 
 ```js
-const mapLoaded = Mutable(false)
-const setMapLoaded = (x) => (mapLoaded.value = x);
+const emissionsIndicator = Generators.input(emissionsIndicatorInput);
+const incomeIndicator = Generators.input(incomeIndicatorInput);
 ```
 
 <!-- Data Initializing -->
 ```js
 document.addEventListener('map-loaded', () => {
-  console.log('Map loaded event recieved')
-  map.updateEmissionsData2(emissionsIndicator.value, emissionsIndicatorData);
-  map.updateIncomeData2(incomeIndicator, incomeIndicatorData);
+  map.initializeData(emissionsIndicator, emissionsIndicatorData, incomeIndicator, incomeIndicatorData);
   updateSliderBounds(
     incomeIndicatorData[1].min, 
     incomeIndicatorData[1].max, 
     incomeIndicatorData[1].q1, 
     incomeIndicatorData[1].q3
-  );
-  sliderElement.dispatchEvent(new Event("input", { bubbles: true }));
+  );  
   setMapLoaded(true)
 });
 
@@ -237,35 +221,38 @@ document.addEventListener('map-loaded', () => {
 
 ```js
 document.addEventListener('zoom-level-changed', (event) => {
-  console.log('Zoom level changed', event.detail)
-  setCurrentDatasetIndex(event.detail.zoomLevel)
-})
+  const datasetIndex = event.detail.zoomLevel;
+  setCurrentDatasetIndex(datasetIndex);
+  updateSliderBounds(
+    incomeIndicatorData[datasetIndex].min, 
+    incomeIndicatorData[datasetIndex].max, 
+    incomeIndicatorData[datasetIndex].q1, 
+    incomeIndicatorData[datasetIndex].q3
+  );
+});
 ```
 
 ```js
 if(mapLoaded) {
-  map.updateEmissionsData2(emissionsIndicator.value, emissionsIndicatorData)
+  map.updateEmissionsData(emissionsIndicator.value, emissionsIndicatorData);
 }
 ```
 
 ```js
 if(mapLoaded) {
-  map.updateIncomeData2(incomeIndicator, incomeIndicatorData)
+  map.updateIncomeData(incomeIndicator, incomeIndicatorData);
 }
 ```
 
 ```js
-datasets
-```
-
-```js
-incomeRange
-```
-
-```js
+display(datasets)
 display(emissionsIndicatorInput)
 display(incomeIndicatorInput)
-// display(sliderElement)
+display(incomeRange)
+```
+
+```js
+map.updateMapOpacity([incomeRange[0], incomeRange[1]], currentDatasetIndex);
 ```
 
 ```js
@@ -306,35 +293,38 @@ invalidation.then(() => map.destroy());
 
 <!-- Histogram cells -->
 ```js
-function getHistogramData(datasetIndex) {
+function getEmissionsData(datasetIndex) {
+  const index = datasetIndex;
   if(emissionsIndicator.type == 'threshold') {
-
     const getEntryClass = (value) =>
-      emissionsIndicatorData[currentDatasetIndex].ckMeans.findIndex((d) => value >= d.x0 && value <= d.x1).toString();
+      emissionsIndicatorData[index].ckMeans.findIndex((d) => value >= d.x0 && value <= d.x1).toString();
     
-    const valuesByClass = datasets[currentDatasetIndex].map((d) => {
+    const valuesByClass = datasets[index].map((d) => {
       const emissionsValue = d[emissionsIndicator.value];
       const incomeValue = d[incomeIndicator.value];
       return { class: getEntryClass(emissionsValue), emissionsValue, incomeValue };
     });
     
-    const mostFrequentClass = d3.greatest(
-      d3.rollup(valuesByClass, v => v.length, d => d.class),
-      ([, count]) => count
-    );
+    // const mostFrequentClass = d3.greatest(
+    //   d3.rollup(valuesByClass, v => v.length, d => d.class),
+    //   ([, count]) => count
+    // );
     
-    return valuesByClass.filter(
-      d => d.incomeValue >= incomeRange[0] && d.incomeValue <= incomeRange[1]
-    );
+    return valuesByClass;
   }
-  else {
-    return null
-  }
+   
+  return null
 }
 ```
 
 ```js
-const histogramData = getHistogramData(currentDatasetIndex)
+const emissionsData = getEmissionsData(currentDatasetIndex);
+```
+
+```js
+const histogramData = emissionsData.filter(
+      d => d.incomeValue >= incomeRange[0] && d.incomeValue <= incomeRange[1]
+    );
 ```
 
 ```js
