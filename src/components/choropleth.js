@@ -35,6 +35,14 @@ class DataManager {
       value: d[indicator]
     }));
   }
+
+  getIndicatorsData(level, emissionsIndicator, demoIndicator) {
+    return this.datasets[level].map((d) => ({
+      id: d[DataManager.DatasetKeys[level].dfId],
+      emissionsValue: d[emissionsIndicator],
+      demoValue: d[demoIndicator]
+    }));
+  }
 }
 
 export class ChoroplethMap {
@@ -134,6 +142,8 @@ export class ChoroplethMap {
     }
   ];
 
+  noDataColor = '#d4d4d4';
+
   emissionsIndicator = '';
   incomeIndicator = '';
 
@@ -142,6 +152,7 @@ export class ChoroplethMap {
   layerOpacity = [];
   zoomLevels = [];
   zoomLevel;
+  visibleIndices = [];
 
   constructor(container, datasets) {
     this.accessToken =
@@ -151,6 +162,7 @@ export class ChoroplethMap {
 
     this.zoomLevels = ChoroplethMap.SourceLayerZooms;
     this.zoomLevel = 2; // Starts at 1
+    this.visibleIndices = [0, 1];
 
     this.map = new mapboxgl.Map({
       container,
@@ -163,7 +175,7 @@ export class ChoroplethMap {
       style: 'mapbox://styles/fndvit/clvnpq95k01jg01qz1px52jzf'
     });
 
-    this.map.on('load', () => this.onMapLoad2());
+    this.map.on('load', () => this.onMapLoad());
     this.map.on('zoom', () => this.onMapZoom());
   }
 
@@ -176,24 +188,6 @@ export class ChoroplethMap {
   }
 
   async onMapLoad() {
-    this.map
-      .addSource(ChoroplethMap.Metadata[0].source.id, ChoroplethMap.Metadata[0].source)
-      .addLayer(ChoroplethMap.Metadata[0].layers.fill, 'tunnel-simple')
-      .addControl(
-        new mapboxgl.NavigationControl({ showCompass: false, showZoom: true }),
-        'top-right'
-      );
-
-    // ////console.log(
-    //   'Layers:',
-    //   this.map.getStyle().layers.map((l) => l.id)
-    // );
-    // ////console.log('Sources:', this.map.getStyle().sources);
-
-    document.dispatchEvent(new Event('map-loaded', { bubbles: true }));
-  }
-
-  async onMapLoad2() {
     this.map
       .addSource(ChoroplethMap.Metadata[0].source.id, ChoroplethMap.Metadata[0].source)
       .addSource(ChoroplethMap.Metadata[1].source.id, ChoroplethMap.Metadata[1].source)
@@ -245,8 +239,13 @@ export class ChoroplethMap {
     if (newZoomLevel !== this.map.zoomLevel) {
       this.map.zoomLevel = newZoomLevel;
 
+      // console.log('Visible indices', this.visibleIndices);
+      const datasetIndex = this.visibleIndices[newZoomLevel];
+
+      console.log('TRIGGERING EVENT');
+
       const event = new CustomEvent('zoom-level-changed', {
-        detail: { zoomLevel: newZoomLevel },
+        detail: { zoomLevel: datasetIndex },
         bubbles: true
       });
 
@@ -256,27 +255,31 @@ export class ChoroplethMap {
 
   /**
    * Creates a color step expression.
-   * @param {{id: string, value: number}[]} data
+   * @param {{id: string, valueA: number, valueB: number}[]} data
    * @param {string} tilesetId
    * @param {{domain: number[], range: string[]}} scheme
    */
   createColorExpression(data, tilesetId, scheme) {
-    //console.log('Create color args', { data, tilesetId, scheme });
     const { domain, range } = scheme;
     const colors = range.flatMap((color, index) => {
       return index < domain.length ? [color, domain[index]] : [color];
     });
 
-    const colorExpression = ['step', ...colors];
     const matchExpression = ['match', ['get', tilesetId]];
     data.forEach((entry) => {
-      matchExpression.push(entry.id, entry.value);
+      if (entry.emissionsValue && entry.demoValue) {
+        matchExpression.push(entry.id, entry.emissionsValue);
+      }
     });
     matchExpression.push(0);
 
-    colorExpression.splice(1, 0, matchExpression);
-
-    ////console.log(colorExpression);
+    const colorExpression = [
+      'step',
+      matchExpression, // input: numeric value from match
+      this.noDataColor, // color for 0 (unmatched)
+      1,
+      ...colors // [stop1, color1, stop2, color2, ...]
+    ];
 
     return colorExpression;
   }
@@ -306,27 +309,18 @@ export class ChoroplethMap {
       [
         'case',
         [
-          'all',
-          ['>=', ['var', 'indicatorValue'], range[0]],
-          ['<=', ['var', 'indicatorValue'], range[1]]
+          'any',
+          [
+            'all',
+            ['>=', ['var', 'indicatorValue'], range[0]],
+            ['<=', ['var', 'indicatorValue'], range[1]]
+          ],
+          ['==', 0, ['var', 'indicatorValue']]
         ],
         1,
         0
       ]
     ];
-  }
-
-  /**
-   * Updates the map colors based on the emissions indicator data
-   */
-  updateMapPalette() {
-    this.layerColor = this.createColorExpression(
-      this.dataManager.getIndicatorData(0, this.emissionsIndicator),
-      DataManager.DatasetKeys[0].tilesetId,
-      { domain: this.dataManager.ckMeansThresholds, range: mapThresholdScheme }
-    );
-
-    this.map.setPaintProperty('seccen-fill', 'fill-color', this.layerColor);
   }
 
   /**
@@ -348,26 +342,17 @@ export class ChoroplethMap {
     );
   }
 
-  updateEmissionsData(emissionsIndicator, ckmeansThresholds) {
-    //console.log('Init update emissions data', ckmeansThresholds);
-    if (this.emissionsIndicator != emissionsIndicator) {
-      //console.log('Entered if');
-      this.dataManager.ckMeansThresholds = ckmeansThresholds;
-      this.emissionsIndicator = emissionsIndicator;
-      this.updateMapPalette();
-    }
-  }
-
-  updateMapPalette2() {
+  updateMapPalette() {
     ChoroplethMap.Metadata.forEach((meta, i) => {
-      this.updateLayerPalette(meta.layers.fill, i);
-      // this.map.setLayerZoomRange(meta.layers.fill.id, ChoroplethMap.SourceLayerZooms[i][0], ChoroplethMap.SourceLayerZooms[i][1]);
+      if (this.visibleIndices.includes(i)) {
+        this.updateLayerPalette(meta.layers.fill, i);
+      }
     });
   }
 
   updateLayerPalette(fillLayer, level) {
     const layerColor = this.createColorExpression(
-      this.dataManager.getIndicatorData(level, this.emissionsIndicator),
+      this.dataManager.getIndicatorsData(level, this.emissionsIndicator, this.incomeIndicator),
       DataManager.DatasetKeys[level].tilesetId,
       {
         domain: this.dataManager.emissionsIndicatorData[level].domain,
@@ -375,50 +360,38 @@ export class ChoroplethMap {
       }
     );
 
-    //console.log('Color expression', layerColor);
-
     this.map.setPaintProperty(fillLayer.id, 'fill-color', layerColor);
   }
 
-  updateEmissionsData2(emissionsIndicator, indicatorData) {
-    //console.log('Update emissions data 2 entered');
-    if (this.emissionsIndicator != emissionsIndicator) {
-      this.dataManager.emissionsIndicatorData = indicatorData;
-      this.emissionsIndicator = emissionsIndicator;
-      this.updateMapPalette2();
-    }
+  initializeData(emissionsIndicator, emissionsIndicatorData, incomeIndicator, incomeIndicatorData) {
+    console.log('Initialize data', arguments);
+    this.emissionsIndicator = emissionsIndicator.value;
+    this.incomeIndicator = incomeIndicator.value;
+    this.updateEmissionsData(emissionsIndicator.value, emissionsIndicatorData);
+    this.updateIncomeData(incomeIndicator, incomeIndicatorData);
   }
 
-  updateIncomeData(incomeIndicator, incomeIndicatorStats) {
-    //console.log('Initi update income data', { incomeIndicator, incomeIndicatorStats });
-    if (this.incomeIndicator != incomeIndicator) {
-      // this.dataManager.updateIncomeData(incomeIndicator);
-      this.incomeIndicator = incomeIndicator;
-      this.updateMapOpacity([incomeIndicatorStats.q1, incomeIndicatorStats.q3]);
-    }
+  updateEmissionsData(emissionsIndicator, indicatorData) {
+    this.dataManager.emissionsIndicatorData = indicatorData;
+    this.emissionsIndicator = emissionsIndicator;
+    this.updateMapPalette();
   }
 
-  updateIncomeData2(incomeIndicator, indicatorData) {
-    console.log('Initi update income data', { incomeIndicator, indicatorData });
-    if (this.incomeIndicator != incomeIndicator.value) {
-      // this.dataManager.updateIncomeData(incomeIndicator);
-      this.dataManager.incomeIndicatorData = indicatorData;
-      this.incomeIndicator = incomeIndicator.value;
-
-      // if (indicatorData.levels)
-      //     ...
-      this.updateLayerVisibilityAndZoom(incomeIndicator.levels);
-      // this.updateMapOpacity([incomeIndicatorStats.q1, incomeIndicatorStats.q3]);
-    }
+  updateIncomeData(incomeIndicator, indicatorData) {
+    this.dataManager.incomeIndicatorData = indicatorData;
+    this.incomeIndicator = incomeIndicator.value;
+    this.updateLayerVisibilityAndZoom(incomeIndicator.levels);
   }
 
   updateLayerVisibilityAndZoom(availableLevels) {
-    console.log('Available levels', availableLevels);
+    // console.log('Available levels', availableLevels);
     const visibleIndices = availableLevels
       .map((hasData, i) => (hasData ? i : null))
       .filter((i) => i !== null);
 
-    console.log('Visible indices', visibleIndices);
+    this.visibleIndices = visibleIndices;
+
+    // console.log('Visible indices', visibleIndices);
 
     let zoomLevels;
 
@@ -446,7 +419,7 @@ export class ChoroplethMap {
 
     this.zoomLevels = visibleIndices.map((_, i) => zoomLevels[i]);
 
-    console.log('Map zoom levels', this.zoomLevels);
+    // console.log('Map zoom levels', this.zoomLevels);
 
     visibleIndices.forEach((layerIdx, i) => {
       const layerMeta = ChoroplethMap.Metadata[layerIdx];
@@ -463,7 +436,7 @@ export class ChoroplethMap {
           'tunnel-simple'
         );
       } else {
-        this.map.setLayerZoomRange(layerId, minzoom, maxzoom); // use fallback if needed
+        this.map.setLayerZoomRange(layerId, minzoom, maxzoom);
       }
     });
 
@@ -474,12 +447,5 @@ export class ChoroplethMap {
         }
       }
     });
-  }
-
-  /**
-   * Indicator mean value getter
-   */
-  get incomeIndicatorMeanValue() {
-    return this.dataManager.incomeIndicatorMean;
   }
 }
