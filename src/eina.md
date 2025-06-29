@@ -43,60 +43,114 @@ const datasets = [
 <!-- Dictionaries -->
 ```js
 const emissionsIndicators = [
-    {name: 'Mitjana d\'emissions', value: 'mean_emissions'},
-    {name: 'Emissions totals', value: 'total_emissions'},
+    {
+      name: 'Mitjana d\'emissions',
+      value: 'mean_emissions',
+      type: 'threshold',
+      colors: mapThresholdScheme,
+    },
+    {
+      name: 'Emissions totals',
+      value: 'total_emissions',
+      type: 'threshold',
+      colors: mapThresholdScheme,
+    },
 ];
 
 const incomeIndicators = [
   {
     name: 'Mitjana de la renda per unitat de consum (2022)', 
-    value: 'Mediana de la renta por unidad de consumo_2022'
+    value: 'Mediana de la renta por unidad de consumo_2022',
+    levels: [true, true, false]
   }
 ];
 ```
 
 ```js
-const currentDatasetIndex = Mutable(0);
+const currentDatasetIndex = Mutable(1);
 const setCurrentDatasetIndex = (x) => (currentDatasetIndex.value = x);
 ```
 
 <!-- Update Emissions Indicator -->
 ```js
-const emissionsIndicatorArray = datasets[currentDatasetIndex].map((d) => d[emissionsIndicator.value]);
+function getEmissionsIndicatorData(indicator) {
+  const data = [];
+  datasets.forEach((dataset, i) => {
+    const emissionsIndicatorArray = dataset.map((d) => d[indicator.value]);
+  
+    let domain = [];
+    let ckMeans = [];
+  
+    if(indicator.type == 'threshold') {
+      ckMeans = d3.bin()
+        .thresholds(ckmeans(emissionsIndicatorArray, 7).map((d) => d3.min(d)))
+        .value((d) => d)(emissionsIndicatorArray);
+  
+      domain = ckMeans
+        .map((d) => d.x1)
+        .slice(0, ckMeans.length - 1);
+    }
+  
+    data.push({layerId: i, domain, range: indicator.colors, ckMeans});
+  })
 
-const emissionsCKMeans = d3.bin()
-  .thresholds(ckmeans(emissionsIndicatorArray, 7).map((d) => d3.min(d)))
-  .value((d) => d)(emissionsIndicatorArray);
+  return data;
+}
+```
 
-const ckMeansThresholds = emissionsCKMeans
-  .map((d) => d.x1)
-  .slice(0, emissionsCKMeans.length - 1);
+```js
+const emissionsIndicatorData = getEmissionsIndicatorData(emissionsIndicator);
+```
+
+```js
+display(emissionsIndicatorData)
 ```
 
 <!-- Update income indicator -->
 ```js
-const incomeValues = datasets[currentDatasetIndex]
-  .map((d) => d[incomeIndicator.value])
-  .filter((v) => v != null && !isNaN(v))
-  .sort((a, b) => a - b);
+function getIncomeIndicatorData(indicator) {
+  const data = [];
+  datasets.forEach((dataset, i) => {
+    if(indicator.levels[i]) {
+      const incomeValues = dataset
+        .map((d) => d[incomeIndicator.value])
+        .filter((v) => v != null && !isNaN(v))
+        .sort((a, b) => a - b);
 
-const sum = incomeValues.reduce((a, b) => a + b, 0);
-const count = incomeValues.length;
+      const sum = incomeValues.reduce((a, b) => a + b, 0);
+      const count = incomeValues.length;
 
-const incomeIndicatorStats = { 
-  mean: sum / count, 
-  min: incomeValues[0], 
-  max: incomeValues[incomeValues.length - 1], 
-  q1: d3.quantile(incomeValues, 0.25), 
-  q3: d3.quantile(incomeValues, 0.75) 
-};
+      data.push({ 
+        mean: sum / count, 
+        min: incomeValues[0], 
+        max: incomeValues[incomeValues.length - 1], 
+        q1: d3.quantile(incomeValues, 0.25), 
+        q3: d3.quantile(incomeValues, 0.75) 
+      });
+    }
+    else {
+      data.push(null)
+    }
+  })
 
-updateSliderBounds(
-  incomeIndicatorStats.min, 
-  incomeIndicatorStats.max, 
-  incomeIndicatorStats.q1, 
-  incomeIndicatorStats.q3
-);
+  return data;
+}
+```
+
+```js
+{
+  const { min, max, q1, q3 } = incomeIndicatorData[currentDatasetIndex];
+  console.log('Before entering', incomeIndicatorData[currentDatasetIndex])
+  updateSliderBounds(min, max, q1, q3);
+}
+```
+
+```js
+const incomeIndicatorData = getIncomeIndicatorData(incomeIndicator)
+```
+
+```js
+display(incomeIndicatorData)
 ```
 
 <!-- Inputs -->
@@ -123,8 +177,8 @@ const slider = rangeSlider(sliderElement, {
 
 // Event listener: lloc on posar events no reactius, escoltant només del slider
 sliderElement.addEventListener('input', () => {
-  // console.log('Slider changed, new value:', slider.value());
-  map.updateMapOpacity([slider.value()[0], slider.value()[1]])
+  console.log('Slider changed, new value:', slider.value());
+  map.updateMapOpacity([slider.value()[0], slider.value()[1]], currentDatasetIndex)
 });
 
 function updateSliderBounds(newMin, newMax, q1, q3) {
@@ -163,17 +217,17 @@ const mapLoaded = Mutable(false)
 const setMapLoaded = (x) => (mapLoaded.value = x);
 ```
 
-<!-- Pass the data to the map once loaded to avoid map reloading -->
+<!-- Data Initializing -->
 ```js
 document.addEventListener('map-loaded', () => {
   console.log('Map loaded event recieved')
-  map.updateEmissionsData(emissionsIndicator.value, ckMeansThresholds);
-  map.updateIncomeData(incomeIndicator.value, incomeIndicatorStats);
+  map.updateEmissionsData2(emissionsIndicator.value, emissionsIndicatorData);
+  map.updateIncomeData2(incomeIndicator, incomeIndicatorData);
   updateSliderBounds(
-    incomeIndicatorStats.min, 
-    incomeIndicatorStats.max, 
-    incomeIndicatorStats.q1, 
-    incomeIndicatorStats.q3
+    incomeIndicatorData[1].min, 
+    incomeIndicatorData[1].max, 
+    incomeIndicatorData[1].q1, 
+    incomeIndicatorData[1].q3
   );
   sliderElement.dispatchEvent(new Event("input", { bubbles: true }));
   setMapLoaded(true)
@@ -184,19 +238,19 @@ document.addEventListener('map-loaded', () => {
 ```js
 document.addEventListener('zoom-level-changed', (event) => {
   console.log('Zoom level changed', event.detail)
-  // setCurrentDatasetIndex(event.detail.zoomLevel)
+  setCurrentDatasetIndex(event.detail.zoomLevel)
 })
 ```
 
 ```js
 if(mapLoaded) {
-  map.updateEmissionsData(emissionsIndicator.value, ckMeansThresholds)
+  map.updateEmissionsData2(emissionsIndicator.value, emissionsIndicatorData)
 }
 ```
 
 ```js
 if(mapLoaded) {
-  map.updateIncomeData(incomeIndicator.value, incomeIndicatorStats)
+  map.updateIncomeData2(incomeIndicator, incomeIndicatorData)
 }
 ```
 
@@ -224,56 +278,65 @@ invalidation.then(() => map.destroy());
 
 <div class="grid grid-cols-4">
   <div class="card grid-colspan-2">
-    ${mapContainer}
+    ${resize((width) => mapContainer)}
   </div>
   <div class="card grid-colspan-2">
-    ${sliderElement}
-    ${resize((width) => 
-      Plot.plot({
-        color: {
-          type: "threshold",
-          domain: Array.from({ length: 7 }, (_, i) => i.toString()),
-          range: mapThresholdScheme
-        },
-        y: { grid: true}, // Per mantenir escala -> domain: [0, mostFrequentClass[1]] 
-        x: { domain: Array.from({ length: 7 }, (_, i) => i.toString()) },
-        marks: [
-          Plot.barY(
-            histogramData,
-            Plot.groupX({ y: "count" }, { x: "class", fill: "class", tip:true })
-          ),
-          Plot.ruleY([0])
-        ]
-      })
-    )}
+     ${sliderElement}
+     ${resize((width) => 
+       Plot.plot({
+         color: {
+           type: "threshold",
+           domain: Array.from({ length: 7 }, (_, i) => i.toString()),
+           range: mapThresholdScheme
+         },
+         y: { grid: true}, // Per mantenir escala -> domain: [0, mostFrequentClass[1]] 
+         x: { domain: Array.from({ length: 7 }, (_, i) => i.toString()) },
+         marks: [
+           Plot.barY(
+             histogramData,
+             Plot.groupX({ y: "count" }, { x: "class", fill: "class", tip:true })
+           ),
+           Plot.ruleY([0])
+         ]
+       })
+     )}
   </div>
 </div>
 
 
 <!-- Histogram cells -->
 ```js
-const getEntryClass = (value) =>
-  emissionsCKMeans.findIndex((d) => value >= d.x0 && value <= d.x1).toString();
+function getHistogramData(datasetIndex) {
+  if(emissionsIndicator.type == 'threshold') {
 
-const valuesByClass = datasets[currentDatasetIndex].map((d) => {
-  const emissionsValue = d[emissionsIndicator.value];
-  const incomeValue = d[incomeIndicator.value];
-  return { class: getEntryClass(emissionsValue), emissionsValue, incomeValue };
-});
-
-const mostFrequentClass = d3.greatest(
-  d3.rollup(valuesByClass, v => v.length, d => d.class),
-  ([, count]) => count
-);
-
-const histogramData = valuesByClass.filter(
-  d => d.incomeValue >= incomeRange[0] && d.incomeValue <= incomeRange[1]
-);
+    const getEntryClass = (value) =>
+      emissionsIndicatorData[currentDatasetIndex].ckMeans.findIndex((d) => value >= d.x0 && value <= d.x1).toString();
+    
+    const valuesByClass = datasets[currentDatasetIndex].map((d) => {
+      const emissionsValue = d[emissionsIndicator.value];
+      const incomeValue = d[incomeIndicator.value];
+      return { class: getEntryClass(emissionsValue), emissionsValue, incomeValue };
+    });
+    
+    const mostFrequentClass = d3.greatest(
+      d3.rollup(valuesByClass, v => v.length, d => d.class),
+      ([, count]) => count
+    );
+    
+    return valuesByClass.filter(
+      d => d.incomeValue >= incomeRange[0] && d.incomeValue <= incomeRange[1]
+    );
+  }
+  else {
+    return null
+  }
+}
 ```
 
 ```js
-display(ckMeansThresholds)
-display(incomeIndicatorStats)
-display(valuesByClass)
+const histogramData = getHistogramData(currentDatasetIndex)
+```
+
+```js
 display(histogramData)
 ```
