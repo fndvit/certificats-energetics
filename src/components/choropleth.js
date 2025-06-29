@@ -1,6 +1,4 @@
-import { bin, mean, min, quantile, range } from 'd3-array';
 import mapboxgl from 'npm:mapbox-gl';
-import { ckmeans } from 'simple-statistics';
 import { mapThresholdScheme } from './colors.js';
 
 class DataManager {
@@ -9,9 +7,15 @@ class DataManager {
    [seccen, mun, com] 
    ------------------
   */
-  static DatasetKeys = ['MUNDISSEC', 'CODIMUNI', 'CODICOMAR'];
+  static DatasetKeys = [
+    { dfId: 'MUNDISSEC', tilesetId: 'MUNDISSEC' },
+    { dfId: 'codi_poblacio', tilesetId: 'CODIMUNI' },
+    { dfId: 'codi_comarca', tilesetId: 'CODICOMAR' }
+  ];
 
   ckMeansThresholds = [];
+  emissionsIndicatorData = {};
+  incomeIndicatorData = {};
 
   incomeIndicatorValue = {
     min: 0,
@@ -27,7 +31,7 @@ class DataManager {
 
   getIndicatorData(level, indicator) {
     return this.datasets[level].map((d) => ({
-      id: d[DataManager.DatasetKeys[level]],
+      id: d[DataManager.DatasetKeys[level].dfId],
       value: d[indicator]
     }));
   }
@@ -92,8 +96,15 @@ export class ChoroplethMap {
       },
 
       layers: {
-        borders: {},
-        fill: {}
+        fill: {
+          id: 'mun-fill',
+          type: 'fill',
+          source: 'municipis',
+          'source-layer': ChoroplethMap.SourceLayerIds[1],
+          paint: {
+            'fill-opacity': ['case', ['boolean', ['feature-state', 'visible'], false], 0, 1]
+          }
+        }
       }
     },
 
@@ -110,8 +121,15 @@ export class ChoroplethMap {
       },
 
       layers: {
-        borders: {},
-        fill: {}
+        fill: {
+          id: 'com-fill',
+          type: 'fill',
+          source: 'comarques',
+          'source-layer': ChoroplethMap.SourceLayerIds[2],
+          paint: {
+            'fill-opacity': ['case', ['boolean', ['feature-state', 'visible'], false], 0, 1]
+          }
+        }
       }
     }
   ];
@@ -120,9 +138,10 @@ export class ChoroplethMap {
   incomeIndicator = '';
 
   layerColor = [];
+  layerColors = [];
   layerOpacity = [];
   zoomLevels = [];
-  zoomLevel = 2;
+  zoomLevel;
 
   constructor(container, datasets) {
     this.accessToken =
@@ -130,13 +149,8 @@ export class ChoroplethMap {
 
     this.dataManager = new DataManager(datasets);
 
-    this.zoomLevels = [
-      { zoomExtent: [11, 22] },
-      { zoomExtent: [8.5, 11] },
-      { zoomExtent: [0, 8.5] }
-    ];
-
-    this.zoomLevel = 2;
+    this.zoomLevels = ChoroplethMap.SourceLayerZooms;
+    this.zoomLevel = 2; // Starts at 1
 
     this.map = new mapboxgl.Map({
       container,
@@ -149,7 +163,7 @@ export class ChoroplethMap {
       style: 'mapbox://styles/fndvit/clvnpq95k01jg01qz1px52jzf'
     });
 
-    this.map.on('load', () => this.onMapLoad());
+    this.map.on('load', () => this.onMapLoad2());
     this.map.on('zoom', () => this.onMapZoom());
   }
 
@@ -170,11 +184,54 @@ export class ChoroplethMap {
         'top-right'
       );
 
-    // //console.log(
+    // ////console.log(
     //   'Layers:',
     //   this.map.getStyle().layers.map((l) => l.id)
     // );
-    // //console.log('Sources:', this.map.getStyle().sources);
+    // ////console.log('Sources:', this.map.getStyle().sources);
+
+    document.dispatchEvent(new Event('map-loaded', { bubbles: true }));
+  }
+
+  async onMapLoad2() {
+    this.map
+      .addSource(ChoroplethMap.Metadata[0].source.id, ChoroplethMap.Metadata[0].source)
+      .addSource(ChoroplethMap.Metadata[1].source.id, ChoroplethMap.Metadata[1].source)
+      .addSource(ChoroplethMap.Metadata[2].source.id, ChoroplethMap.Metadata[2].source)
+      .addLayer(
+        {
+          ...ChoroplethMap.Metadata[0].layers.fill,
+          minzoom: this.zoomLevels[0][0],
+          maxzoom: this.zoomLevels[0][1]
+        },
+        'tunnel-simple'
+      )
+      .addLayer(
+        {
+          ...ChoroplethMap.Metadata[1].layers.fill,
+          minzoom: this.zoomLevels[1][0],
+          maxzoom: this.zoomLevels[1][1]
+        },
+        'tunnel-simple'
+      )
+      .addLayer(
+        {
+          ...ChoroplethMap.Metadata[2].layers.fill,
+          minzoom: this.zoomLevels[2][0],
+          maxzoom: this.zoomLevels[2][1]
+        },
+        'tunnel-simple'
+      )
+      .addControl(
+        new mapboxgl.NavigationControl({ showCompass: false, showZoom: true }),
+        'top-right'
+      );
+
+    // ////console.log(
+    //   'Layers:',
+    //   this.map.getStyle().layers.map((l) => l.id)
+    // );
+    // ////console.log('Sources:', this.map.getStyle().sources);
 
     document.dispatchEvent(new Event('map-loaded', { bubbles: true }));
   }
@@ -182,7 +239,7 @@ export class ChoroplethMap {
   async onMapZoom() {
     const currentZoom = this.map.getZoom();
     const newZoomLevel = this.zoomLevels.findIndex(
-      ({ zoomExtent: [min, max] }) => currentZoom >= min && currentZoom < max
+      ([min, max]) => currentZoom >= min && currentZoom < max
     );
 
     if (newZoomLevel !== this.map.zoomLevel) {
@@ -204,7 +261,7 @@ export class ChoroplethMap {
    * @param {{domain: number[], range: string[]}} scheme
    */
   createColorExpression(data, tilesetId, scheme) {
-    console.log('Create color args', { data, tilesetId, scheme });
+    //console.log('Create color args', { data, tilesetId, scheme });
     const { domain, range } = scheme;
     const colors = range.flatMap((color, index) => {
       return index < domain.length ? [color, domain[index]] : [color];
@@ -219,7 +276,7 @@ export class ChoroplethMap {
 
     colorExpression.splice(1, 0, matchExpression);
 
-    //console.log(colorExpression);
+    ////console.log(colorExpression);
 
     return colorExpression;
   }
@@ -232,9 +289,9 @@ export class ChoroplethMap {
    * @param {number[]} range
    */
   createOpacityExpression(data, tilesetId, range) {
-    // console.log('Range', range);
+    // //console.log('Range', range);
     const matchExpression = ['match', ['get', tilesetId]];
-    // console.log(data);
+    // //console.log(data);
     data.forEach((entry) => {
       if (entry.value) {
         matchExpression.push(entry.id, entry.value);
@@ -265,7 +322,7 @@ export class ChoroplethMap {
   updateMapPalette() {
     this.layerColor = this.createColorExpression(
       this.dataManager.getIndicatorData(0, this.emissionsIndicator),
-      DataManager.DatasetKeys[0],
+      DataManager.DatasetKeys[0].tilesetId,
       { domain: this.dataManager.ckMeansThresholds, range: mapThresholdScheme }
     );
 
@@ -276,34 +333,147 @@ export class ChoroplethMap {
    * Update map opacity based on an income value range.
    * @param {number[]} range - An array of two integers: [min, max]
    */
-  updateMapOpacity(range) {
-    // console.log('Entered updateMapOpacity function', range);
-    this.layerOpacity = this.createOpacityExpression(
-      this.dataManager.getIndicatorData(0, this.incomeIndicator),
-      DataManager.DatasetKeys[0],
+  updateMapOpacity(range, datasetIndex) {
+    console.log('Entered updateMapOpacity function', range, datasetIndex);
+    const layerOpacity = this.createOpacityExpression(
+      this.dataManager.getIndicatorData(datasetIndex, this.incomeIndicator),
+      DataManager.DatasetKeys[datasetIndex].tilesetId,
       range
     );
 
-    this.map.setPaintProperty('seccen-fill', 'fill-opacity', this.layerOpacity);
+    this.map.setPaintProperty(
+      ChoroplethMap.Metadata[datasetIndex].layers.fill.id,
+      'fill-opacity',
+      layerOpacity
+    );
   }
 
   updateEmissionsData(emissionsIndicator, ckmeansThresholds) {
-    console.log('Init update emissions data', ckmeansThresholds);
+    //console.log('Init update emissions data', ckmeansThresholds);
     if (this.emissionsIndicator != emissionsIndicator) {
-      console.log('Entered if');
+      //console.log('Entered if');
       this.dataManager.ckMeansThresholds = ckmeansThresholds;
       this.emissionsIndicator = emissionsIndicator;
       this.updateMapPalette();
     }
   }
 
+  updateMapPalette2() {
+    ChoroplethMap.Metadata.forEach((meta, i) => {
+      this.updateLayerPalette(meta.layers.fill, i);
+      // this.map.setLayerZoomRange(meta.layers.fill.id, ChoroplethMap.SourceLayerZooms[i][0], ChoroplethMap.SourceLayerZooms[i][1]);
+    });
+  }
+
+  updateLayerPalette(fillLayer, level) {
+    const layerColor = this.createColorExpression(
+      this.dataManager.getIndicatorData(level, this.emissionsIndicator),
+      DataManager.DatasetKeys[level].tilesetId,
+      {
+        domain: this.dataManager.emissionsIndicatorData[level].domain,
+        range: this.dataManager.emissionsIndicatorData[level].range
+      }
+    );
+
+    //console.log('Color expression', layerColor);
+
+    this.map.setPaintProperty(fillLayer.id, 'fill-color', layerColor);
+  }
+
+  updateEmissionsData2(emissionsIndicator, indicatorData) {
+    //console.log('Update emissions data 2 entered');
+    if (this.emissionsIndicator != emissionsIndicator) {
+      this.dataManager.emissionsIndicatorData = indicatorData;
+      this.emissionsIndicator = emissionsIndicator;
+      this.updateMapPalette2();
+    }
+  }
+
   updateIncomeData(incomeIndicator, incomeIndicatorStats) {
-    console.log('Initi update income data', { incomeIndicator, incomeIndicatorStats });
+    //console.log('Initi update income data', { incomeIndicator, incomeIndicatorStats });
     if (this.incomeIndicator != incomeIndicator) {
       // this.dataManager.updateIncomeData(incomeIndicator);
       this.incomeIndicator = incomeIndicator;
       this.updateMapOpacity([incomeIndicatorStats.q1, incomeIndicatorStats.q3]);
     }
+  }
+
+  updateIncomeData2(incomeIndicator, indicatorData) {
+    console.log('Initi update income data', { incomeIndicator, indicatorData });
+    if (this.incomeIndicator != incomeIndicator.value) {
+      // this.dataManager.updateIncomeData(incomeIndicator);
+      this.dataManager.incomeIndicatorData = indicatorData;
+      this.incomeIndicator = incomeIndicator.value;
+
+      // if (indicatorData.levels)
+      //     ...
+      this.updateLayerVisibilityAndZoom(incomeIndicator.levels);
+      // this.updateMapOpacity([incomeIndicatorStats.q1, incomeIndicatorStats.q3]);
+    }
+  }
+
+  updateLayerVisibilityAndZoom(availableLevels) {
+    console.log('Available levels', availableLevels);
+    const visibleIndices = availableLevels
+      .map((hasData, i) => (hasData ? i : null))
+      .filter((i) => i !== null);
+
+    console.log('Visible indices', visibleIndices);
+
+    let zoomLevels;
+
+    switch (visibleIndices.length) {
+      case 3:
+        zoomLevels = [
+          [11.5, 22],
+          [8, 11.5],
+          [0, 8]
+        ];
+        break;
+      case 2:
+        zoomLevels = [
+          [9.5, 22],
+          [0, 9.5]
+        ];
+        break;
+      case 1:
+        zoomLevels = [[0, 22]];
+        break;
+      default:
+        console.warn('No visible layers!');
+        zoomLevels = [];
+    }
+
+    this.zoomLevels = visibleIndices.map((_, i) => zoomLevels[i]);
+
+    console.log('Map zoom levels', this.zoomLevels);
+
+    visibleIndices.forEach((layerIdx, i) => {
+      const layerMeta = ChoroplethMap.Metadata[layerIdx];
+      const layerId = layerMeta.layers.fill?.id;
+      const [minzoom, maxzoom] = zoomLevels[i];
+
+      if (!this.map.getLayer(layerId)) {
+        this.map.addLayer(
+          {
+            ...layerMeta.layers.fill,
+            minzoom,
+            maxzoom
+          },
+          'tunnel-simple'
+        );
+      } else {
+        this.map.setLayerZoomRange(layerId, minzoom, maxzoom); // use fallback if needed
+      }
+    });
+
+    ChoroplethMap.Metadata.forEach((meta, i) => {
+      if (!visibleIndices.includes(i)) {
+        if (this.map.getLayer(meta.layers.fill.id)) {
+          this.map.removeLayer(meta.layers.fill.id);
+        }
+      }
+    });
   }
 
   /**
