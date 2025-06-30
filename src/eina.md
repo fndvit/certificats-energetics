@@ -60,6 +60,11 @@ const emissionsIndicators = [
 const incomeIndicators = [
   {
     name: 'Mitjana de la renda per unitat de consum (2022)', 
+    value: 'Media de la renta por unidad de consumo_2022',
+    levels: [true, true, false]
+  },
+  {
+    name: 'Mediana de la renda per unitat de consum (2022)', 
     value: 'Mediana de la renta por unidad de consumo_2022',
     levels: [true, true, false]
   }
@@ -126,7 +131,8 @@ function getIncomeIndicatorData(indicator) {
         min: incomeValues[0], 
         max: incomeValues[incomeValues.length - 1], 
         q1: d3.quantile(incomeValues, 0.25), 
-        q3: d3.quantile(incomeValues, 0.75) 
+        q3: d3.quantile(incomeValues, 0.75),
+        values: incomeValues
       });
     }
     else {
@@ -223,13 +229,17 @@ document.addEventListener('map-loaded', () => {
 document.addEventListener('zoom-level-changed', (event) => {
   const datasetIndex = event.detail.zoomLevel;
   setCurrentDatasetIndex(datasetIndex);
-  updateSliderBounds(
-    incomeIndicatorData[datasetIndex].min, 
-    incomeIndicatorData[datasetIndex].max, 
-    incomeIndicatorData[datasetIndex].q1, 
-    incomeIndicatorData[datasetIndex].q3
-  );
 });
+```
+
+```js
+updateSliderBounds(
+    incomeIndicatorData[currentDatasetIndex].min, 
+    incomeIndicatorData[currentDatasetIndex].max, 
+    incomeIndicatorData[currentDatasetIndex].q1, 
+    incomeIndicatorData[currentDatasetIndex].q3,
+    incomeIndicatorData[currentDatasetIndex].values
+  );
 ```
 
 ```js
@@ -252,7 +262,8 @@ display(incomeRange)
 ```
 
 ```js
-map.updateMapOpacity([incomeRange[0], incomeRange[1]], currentDatasetIndex);
+incomeIndicator
+map.updateMapOpacity([incomeRange[0], incomeRange[1]]);
 ```
 
 ```js
@@ -294,6 +305,7 @@ invalidation.then(() => map.destroy());
 <!-- Histogram cells -->
 ```js
 function getEmissionsData(datasetIndex) {
+  console.log('GET EMISSIONS DATA FUNCTION RUN')
   const index = datasetIndex;
   if(emissionsIndicator.type == 'threshold') {
     const getEntryClass = (value) =>
