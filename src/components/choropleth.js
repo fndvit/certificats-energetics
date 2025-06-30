@@ -163,6 +163,7 @@ export class ChoroplethMap {
     this.zoomLevels = ChoroplethMap.SourceLayerZooms;
     this.zoomLevel = 2; // Starts at 1
     this.visibleIndices = [0, 1];
+    this.currentDatasetIndex = 1;
 
     this.map = new mapboxgl.Map({
       container,
@@ -241,14 +242,14 @@ export class ChoroplethMap {
 
       // console.log('Visible indices', this.visibleIndices);
       const datasetIndex = this.visibleIndices[newZoomLevel];
-
-      console.log('TRIGGERING EVENT');
+      this.currentDatasetIndex = datasetIndex;
 
       const event = new CustomEvent('zoom-level-changed', {
         detail: { zoomLevel: datasetIndex },
         bubbles: true
       });
 
+      console.log('DISPATCHING MAP ZOOM EVENT');
       document.dispatchEvent(event);
     }
   }
@@ -327,16 +328,16 @@ export class ChoroplethMap {
    * Update map opacity based on an income value range.
    * @param {number[]} range - An array of two integers: [min, max]
    */
-  updateMapOpacity(range, datasetIndex) {
-    console.log('Entered updateMapOpacity function', range, datasetIndex);
+  updateMapOpacity(range) {
+    console.log('Entered updateMapOpacity function', [range, this.currentDatasetIndex]);
     const layerOpacity = this.createOpacityExpression(
-      this.dataManager.getIndicatorData(datasetIndex, this.incomeIndicator),
-      DataManager.DatasetKeys[datasetIndex].tilesetId,
+      this.dataManager.getIndicatorData(this.currentDatasetIndex, this.incomeIndicator),
+      DataManager.DatasetKeys[this.currentDatasetIndex].tilesetId,
       range
     );
 
     this.map.setPaintProperty(
-      ChoroplethMap.Metadata[datasetIndex].layers.fill.id,
+      ChoroplethMap.Metadata[this.currentDatasetIndex].layers.fill.id,
       'fill-opacity',
       layerOpacity
     );
@@ -378,6 +379,7 @@ export class ChoroplethMap {
   }
 
   updateIncomeData(incomeIndicator, indicatorData) {
+    console.log('Update income data');
     this.dataManager.incomeIndicatorData = indicatorData;
     this.incomeIndicator = incomeIndicator.value;
     this.updateLayerVisibilityAndZoom(incomeIndicator.levels);
