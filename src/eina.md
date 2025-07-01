@@ -73,6 +73,25 @@ const incomeIndicators = [
 ```
 
 ```js
+const textLabels = [
+  {
+    censusLevel: 'seccions censals'
+  },
+  {
+    censusLevel: 'municipis'
+  },
+  {
+    censusLevel: 'comarques'
+  }
+]
+```
+
+<!-- Helpers -->
+```js
+const lowercaseFirstLetter = str => str.charAt(0).toLowerCase() + str.slice(1);
+```
+
+```js
 const currentDatasetIndex = Mutable(1);
 const setCurrentDatasetIndex = (x) => (currentDatasetIndex.value = x);
 ```
@@ -85,6 +104,11 @@ const setIncomeRange = (x) => (incomeRange.value = x);
 ```js
 const mapLoaded = Mutable(false)
 const setMapLoaded = (x) => (mapLoaded.value = x);
+```
+
+```js
+const hoveredPolygonId = Mutable(null)
+const setHoveredPolygonId = (x) => (hoveredPolygonId.value = x);
 ```
 
 
@@ -226,6 +250,17 @@ const emissionsIndicator = Generators.input(emissionsIndicatorInput);
 const incomeIndicator = Generators.input(incomeIndicatorInput);
 ```
 
+```js
+document.addEventListener('polygon-change', (e) => {
+  setHoveredPolygonId(e.detail.polygonId)
+});
+```
+
+```js
+display('Hovered polygon id')
+display(hoveredPolygonId)
+```
+
 <!-- Data Initializing -->
 ```js
 document.addEventListener('map-loaded', () => {
@@ -241,7 +276,6 @@ document.addEventListener('map-loaded', () => {
   setMapLoaded(true);
   stores.percentileRange = [0.25, 0.75];
 });
-
 ```
 
 ```js
@@ -299,6 +333,7 @@ invalidation.then(() => map.destroy());
     ${resize((width) => mapContainer)}
   </div>
   <div class="card grid-colspan-2">
+    ${informationPhrase}
     ${resize((width) =>
       Plot.plot({
         marks: [
@@ -341,6 +376,7 @@ function getTickColor(val) {
   return d3.scaleThreshold(Array.from({ length: 7 }, (_, i) => i), mapThresholdScheme)(val);
 }
 ```
+
 ```js
 function getEmissionsData(datasetIndex) {
   console.log('GET EMISSIONS DATA FUNCTION RUN')
@@ -375,6 +411,24 @@ const emissionsData = getEmissionsData(currentDatasetIndex);
 const histogramData = emissionsData.filter(
       d => d.incomeValue >= incomeRange[0] && d.incomeValue <= incomeRange[1]
     );
+```
+
+```js
+const informationPhrase = 
+  html`
+    <h3>
+      <span style="background-color: #ffcccc; color: #222; padding: 1px 3px; font-weight: bold;">${emissionsIndicator.name}</span>
+      de
+      </span>
+      <span style=" font-weight: bold;">${textLabels[currentDatasetIndex].censusLevel}</span>
+      amb
+      <span style="background-color: #ffff99; color: #222; padding: 1px 3px; font-weight: bold;">${lowercaseFirstLetter(incomeIndicator.name)}</span>
+      entre 
+      <span style="font-weight: bold;">${incomeRange[0]}</span>
+      i
+      <span style="font-weight: bold;">${incomeRange[1]}</span>
+    </h3>
+  `
 ```
 
 ```js
