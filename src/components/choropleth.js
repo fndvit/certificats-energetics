@@ -79,6 +79,17 @@ export class ChoroplethMap {
       },
 
       layers: {
+        border: {
+          id: 'seccen-line',
+          type: 'line',
+          source: 'seccen',
+          'source-layer': ChoroplethMap.SourceLayerIds[0],
+          paint: {
+            'line-color': '#000000',
+            'line-width': ['case', ['boolean', ['feature-state', 'hover'], false], 1, 0]
+          }
+        },
+
         fill: {
           id: 'seccen-fill',
           type: 'fill',
@@ -104,6 +115,17 @@ export class ChoroplethMap {
       },
 
       layers: {
+        border: {
+          id: 'mun-line',
+          type: 'line',
+          source: 'municipis',
+          'source-layer': ChoroplethMap.SourceLayerIds[1],
+          paint: {
+            'line-color': '#000000',
+            'line-width': ['case', ['boolean', ['feature-state', 'hover'], false], 1, 0]
+          }
+        },
+
         fill: {
           id: 'mun-fill',
           type: 'fill',
@@ -129,6 +151,17 @@ export class ChoroplethMap {
       },
 
       layers: {
+        border: {
+          id: 'com-line',
+          type: 'line',
+          source: 'comarques',
+          'source-layer': ChoroplethMap.SourceLayerIds[2],
+          paint: {
+            'line-color': '#000000',
+            'line-width': ['case', ['boolean', ['feature-state', 'hover'], false], 1, 0]
+          }
+        },
+
         fill: {
           id: 'com-fill',
           type: 'fill',
@@ -154,6 +187,8 @@ export class ChoroplethMap {
   zoomLevel;
   visibleIndices = [];
 
+  hoveredPolygonId = null;
+
   constructor(container, datasets) {
     this.accessToken =
       'pk.eyJ1IjoiZm5kdml0IiwiYSI6ImNrYzBzYjhkMDBicG4yc2xrbnMzNXVoeDIifQ.mrdvw_7AIeOwa5IgHLaHJg';
@@ -178,6 +213,10 @@ export class ChoroplethMap {
 
     this.map.on('load', () => this.onMapLoad());
     this.map.on('zoom', () => this.onMapZoom());
+    ChoroplethMap.Metadata.forEach((meta, i) => {
+      this.map.on('mousemove', meta.layers.fill.id, (e) => this.onMouseMove(e, i));
+      this.map.on('mouseleave', meta.layers.fill.id, () => this.onMouseLeave(i));
+    });
   }
 
   static create(container, datasets) {
@@ -193,6 +232,30 @@ export class ChoroplethMap {
       .addSource(ChoroplethMap.Metadata[0].source.id, ChoroplethMap.Metadata[0].source)
       .addSource(ChoroplethMap.Metadata[1].source.id, ChoroplethMap.Metadata[1].source)
       .addSource(ChoroplethMap.Metadata[2].source.id, ChoroplethMap.Metadata[2].source)
+      .addLayer(
+        {
+          ...ChoroplethMap.Metadata[0].layers.border,
+          minzoom: this.zoomLevels[0][0],
+          maxzoom: this.zoomLevels[0][1]
+        },
+        'settlement-subdivision-label'
+      )
+      .addLayer(
+        {
+          ...ChoroplethMap.Metadata[1].layers.border,
+          minzoom: this.zoomLevels[1][0],
+          maxzoom: this.zoomLevels[1][1]
+        },
+        'settlement-subdivision-label'
+      )
+      .addLayer(
+        {
+          ...ChoroplethMap.Metadata[2].layers.border,
+          minzoom: this.zoomLevels[2][0],
+          maxzoom: this.zoomLevels[2][1]
+        },
+        'settlement-subdivision-label'
+      )
       .addLayer(
         {
           ...ChoroplethMap.Metadata[0].layers.fill,
@@ -238,6 +301,23 @@ export class ChoroplethMap {
     );
 
     if (newZoomLevel !== this.map.zoomLevel) {
+      // Clear highlighted polygons
+      if (this.hoveredPolygonId !== null) {
+        const prevIndex = this.visibleIndices[this.map.zoomLevel]; // old index
+        const prevMeta = ChoroplethMap.Metadata[prevIndex];
+
+        this.map.setFeatureState(
+          {
+            source: prevMeta.source.id,
+            sourceLayer: prevMeta.source.layer,
+            id: this.hoveredPolygonId
+          },
+          { hover: false }
+        );
+
+        this.hoveredPolygonId = null;
+      }
+
       this.map.zoomLevel = newZoomLevel;
 
       // console.log('Visible indices', this.visibleIndices);
@@ -252,6 +332,51 @@ export class ChoroplethMap {
       console.log('DISPATCHING MAP ZOOM EVENT');
       document.dispatchEvent(event);
     }
+  }
+
+  async onMouseMove(e, i) {
+    console.log('MOUSE MOVED', i);
+    console.log(this.map.getStyle().layers);
+    if (e.features.length > 0) {
+      if (this.hoveredPolygonId !== null) {
+        this.map.setFeatureState(
+          {
+            source: ChoroplethMap.Metadata[i].source.id,
+            sourceLayer: ChoroplethMap.SourceLayerIds[i],
+            id: this.hoveredPolygonId
+          },
+          { hover: false }
+        );
+      }
+      this.hoveredPolygonId = e.features[0].id;
+      // mutable hoveredPolygonId = hoveredPolygonId;
+
+      console.log('Hovered polygon', this.hoveredPolygonId);
+
+      this.map.setFeatureState(
+        {
+          source: ChoroplethMap.Metadata[i].source.id,
+          sourceLayer: ChoroplethMap.SourceLayerIds[i],
+          id: this.hoveredPolygonId
+        },
+        { hover: true }
+      );
+    }
+  }
+
+  async onMouseLeave(i) {
+    if (this.hoveredPolygonId !== null) {
+      this.map.setFeatureState(
+        {
+          source: ChoroplethMap.Metadata[i].source.id,
+          sourceLayer: ChoroplethMap.SourceLayerIds[i],
+          id: this.hoveredPolygonId
+        },
+        { hover: false }
+      );
+    }
+    this.hoveredPolygonId = null;
+    // mutable hoveredPolygonId = hoveredPolygonId;
   }
 
   /**
@@ -425,21 +550,24 @@ export class ChoroplethMap {
 
     visibleIndices.forEach((layerIdx, i) => {
       const layerMeta = ChoroplethMap.Metadata[layerIdx];
-      const layerId = layerMeta.layers.fill?.id;
+      const fillLayerId = layerMeta.layers.fill?.id;
+      const borderLayerId = layerMeta.layers.border?.id;
       const [minzoom, maxzoom] = zoomLevels[i];
 
-      if (!this.map.getLayer(layerId)) {
-        this.map.addLayer(
-          {
-            ...layerMeta.layers.fill,
-            minzoom,
-            maxzoom
-          },
-          'tunnel-simple'
-        );
-      } else {
-        this.map.setLayerZoomRange(layerId, minzoom, maxzoom);
-      }
+      [fillLayerId, borderLayerId].forEach((layerId, i) => {
+        if (!this.map.getLayer(layerId)) {
+          this.map.addLayer(
+            {
+              ...layerMeta.layers.fill,
+              minzoom,
+              maxzoom
+            },
+            i == 0 ? 'tunnel-simple' : 'settlement-subdivision-label'
+          );
+        } else {
+          this.map.setLayerZoomRange(layerId, minzoom, maxzoom);
+        }
+      });
     });
 
     ChoroplethMap.Metadata.forEach((meta, i) => {

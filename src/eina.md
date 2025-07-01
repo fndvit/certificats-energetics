@@ -338,7 +338,6 @@ invalidation.then(() => map.destroy());
 <!-- Histogram cells -->
 ```js
 function getTickColor(val) {
-  console.log(val)
   return d3.scaleThreshold(Array.from({ length: 7 }, (_, i) => i), mapThresholdScheme)(val);
 }
 ```
