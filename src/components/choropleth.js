@@ -335,8 +335,6 @@ export class ChoroplethMap {
   }
 
   async onMouseMove(e, i) {
-    console.log('MOUSE MOVED', i);
-    console.log(this.map.getStyle().layers);
     if (e.features.length > 0) {
       if (this.hoveredPolygonId !== null) {
         this.map.setFeatureState(
@@ -349,6 +347,13 @@ export class ChoroplethMap {
         );
       }
       this.hoveredPolygonId = e.features[0].id;
+      const event = new CustomEvent('polygon-change', {
+        detail: { polygonId: this.hoveredPolygonId },
+        bubbles: true
+      });
+
+      console.log('DISPATCHING POLYGON CHANGE EVENT', e.features[0]);
+      document.dispatchEvent(event);
       // mutable hoveredPolygonId = hoveredPolygonId;
 
       console.log('Hovered polygon', this.hoveredPolygonId);
