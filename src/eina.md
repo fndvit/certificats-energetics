@@ -17,6 +17,7 @@ import rangeSlider from "npm:range-slider-input";
 import { ckmeans } from 'simple-statistics';
 import { qualifColorDomain, qualifColorRange, categoricalScheme5, mapThresholdScheme } from './components/colors.js';
 import { ChoroplethMap } from './components/choropleth.js';
+import stores from './components/stores.js';
 
 const labels = FileAttachment('./data/labels.json').json();
 const municipis = FileAttachment('./data/municipis.json').json();
@@ -119,7 +120,7 @@ function getIncomeIndicatorData(indicator) {
   datasets.forEach((dataset, i) => {
     if(indicator.levels[i]) {
       const incomeValues = dataset
-        .map((d) => d[incomeIndicator.value])
+        .map((d) => d[indicator.value])
         .filter((v) => v != null && !isNaN(v))
         .sort((a, b) => a - b);
 
@@ -176,17 +177,32 @@ const slider = rangeSlider(sliderElement, {
   onInput: (v, user) => {
     sliderElement.value = v;
     if (user) {
+      // // Get new percentiles values
+      const values = stores.indicatorValues;
+      const n = values.length;
+
+      const pLow = d3.bisectLeft(values, v[0]) / n;
+      const pHigh = d3.bisectLeft(values, v[1]) / n;
+      
+      // console.log('SETTING NEW PERCENTILES', {pLow, pHigh});
+      stores.percentileRange = [pLow, pHigh];
+
       sliderElement.dispatchEvent(new Event("input", {bubbles: true}));
       setIncomeRange(v);
     }
   }
 });
 
-function updateSliderBounds(newMin, newMax, q1, q3) {
+function updateSliderBounds(newMin, newMax, q1, q3, currentValues) {
+  // console.log('Updating slider bounds according to percentiles', stores.percentileRange)
+  const [pLow, pHigh] = stores.percentileRange;
+  const newLow = d3.quantileSorted(currentValues, pLow);
+  const newHigh = d3.quantileSorted(currentValues, pHigh);
+
   slider.min(newMin);
   slider.max(newMax);
-  slider.value([q1, q3]);
-  setIncomeRange([q1, q3]);
+  slider.value([newLow, newHigh]);
+  setIncomeRange([newLow, newHigh]);
 }
 
 
@@ -218,9 +234,12 @@ document.addEventListener('map-loaded', () => {
     incomeIndicatorData[1].min, 
     incomeIndicatorData[1].max, 
     incomeIndicatorData[1].q1, 
-    incomeIndicatorData[1].q3
+    incomeIndicatorData[1].q3,
+    incomeIndicatorData[1].values,
+
   );  
-  setMapLoaded(true)
+  setMapLoaded(true);
+  stores.percentileRange = [0.25, 0.75];
 });
 
 ```
@@ -229,6 +248,7 @@ document.addEventListener('map-loaded', () => {
 document.addEventListener('zoom-level-changed', (event) => {
   const datasetIndex = event.detail.zoomLevel;
   setCurrentDatasetIndex(datasetIndex);
+  stores.indicatorValues = incomeIndicatorData[datasetIndex].values;
 });
 ```
 
