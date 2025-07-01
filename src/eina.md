@@ -299,6 +299,19 @@ invalidation.then(() => map.destroy());
     ${resize((width) => mapContainer)}
   </div>
   <div class="card grid-colspan-2">
+    ${resize((width) =>
+      Plot.plot({
+        marks: [
+          Plot.tickX(emissionsData, {
+            x: "incomeValue",
+            strokeOpacity: 0.5,
+            tip: true,
+            stroke: (d) =>
+              d.incomeValue >= incomeRange[0] && d.incomeValue <= incomeRange[1] ? getTickColor(d.class) : "#d9d9d9"
+          })
+        ]
+      })
+    )}
      ${sliderElement}
      ${resize((width) => 
        Plot.plot({
@@ -323,6 +336,12 @@ invalidation.then(() => map.destroy());
 
 
 <!-- Histogram cells -->
+```js
+function getTickColor(val) {
+  console.log(val)
+  return d3.scaleThreshold(Array.from({ length: 7 }, (_, i) => i), mapThresholdScheme)(val);
+}
+```
 ```js
 function getEmissionsData(datasetIndex) {
   console.log('GET EMISSIONS DATA FUNCTION RUN')
