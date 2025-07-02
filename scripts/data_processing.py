@@ -10,12 +10,14 @@ from sklearn.preprocessing import LabelEncoder
 
 #region **** Dictionaries ****
 # Municipis dictionary
-comarques_file = pd.read_csv("static/comarques.csv")
+url = "https://www.idescat.cat/codis/?id=50&n=10&lang=es&f=ssv"
+
+df_comarques = pd.read_csv(url, sep=';', skiprows=3)
 
 municipi_dict = {}
 current_comarca = {}
 
-for _, row in comarques_file.iterrows():
+for _, row in df_comarques.iterrows():
     if row["Nivell"] == "Comarca":
         # Store comarca info
         current_comarca = {"codi": str(row["Codi"]).zfill(2), "nom": row["Nom"]}
@@ -352,19 +354,24 @@ def get_aggregated_datasets(certificates, rendes_datasets):
     return [certificates_by_section, certificates_by_mun, certificates_by_com]
 
 
-def save_data(certificates, label_mapping, aggregated_datasets):
+def save_data(certificates, label_mapping, aggregated_datasets, municipi_dict):
     data_dir = "src/data"
     parquet_path = os.path.join(data_dir, "certificats.parquet")
-    json_path = os.path.join(data_dir, "labels.json")
+    labels_json_path = os.path.join(data_dir, "labels.json")
+    municipi_dict_path = os.path.join(data_dir, "municipisDict.json")
     
     os.makedirs(data_dir, exist_ok=True)
 
     certificates.to_parquet(parquet_path, engine="fastparquet", compression="GZIP")
     print("✅ Data cleaned and saved to", parquet_path)
     
-    with open(json_path, "w") as f:
+    with open(labels_json_path, "w") as f:
         json.dump(label_mapping, f)
-    print("✅ Label mapping saved to", json_path)
+    print("✅ Label mapping saved to", labels_json_path)
+
+    with open(municipi_dict_path, "w") as f:
+        json.dump(municipi_dict, f)
+    print("✅ Municipis dictionary saved to", municipi_dict_path)
 
     aggregateFiles = ["seccen.json", "mun.json", "com.json"]
     
@@ -379,4 +386,4 @@ certificates, label_mapping = process_certificates_dataset(df, municipi_dict)
 sections = get_sections_dataset()
 rendes_datasets = get_rendes_dataset(sections)
 aggregated_datasets = get_aggregated_datasets(certificates, rendes_datasets)
-save_data(certificates, label_mapping, aggregated_datasets)
+save_data(certificates, label_mapping, aggregated_datasets, municipi_dict)
