@@ -4,10 +4,10 @@ class Stores {
   indicatorValues;
 
   constructor() {
-    if (Stores.#instance) return Stores.#instance;
-    this.percentileRange = [0, 0];
+    this.percentileRange = [0.25, 0.75];
     this.indicatorValues = [];
     Stores.#instance = this;
+    if (Stores.#instance) return Stores.#instance;
   }
 }
 

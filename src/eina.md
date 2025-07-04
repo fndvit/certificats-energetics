@@ -20,7 +20,7 @@ import { ChoroplethMap } from './components/choropleth.js';
 import stores from './components/stores.js';
 
 const labels = FileAttachment('./data/labels.json').json();
-const municipis = FileAttachment('./data/municipis.json').json();
+const municipisDict = FileAttachment('./data/municipisDict.json').json();
 
 const datasets = [
   await FileAttachment('./data/seccen.json')
@@ -41,6 +41,10 @@ const datasets = [
 ];
 ```
 
+```js
+display(datasets)
+```
+
 <!-- Dictionaries -->
 ```js
 const emissionsIndicators = [
@@ -49,12 +53,14 @@ const emissionsIndicators = [
       value: 'mean_emissions',
       type: 'threshold',
       colors: mapThresholdScheme,
+      units: 'Kg C02'
     },
     {
       name: 'Emissions totals',
       value: 'total_emissions',
       type: 'threshold',
       colors: mapThresholdScheme,
+      units: 'Kg C02'
     },
 ];
 
@@ -62,25 +68,30 @@ const incomeIndicators = [
   {
     name: 'Mitjana de la renda per unitat de consum (2022)', 
     value: 'Media de la renta por unidad de consumo_2022',
+    units: '€',
     levels: [true, true, false]
   },
   {
     name: 'Mediana de la renda per unitat de consum (2022)', 
     value: 'Mediana de la renta por unidad de consumo_2022',
+    units: '€',
     levels: [true, true, false]
   }
 ];
 ```
 
 ```js
-const textLabels = [
+const valuesByLevel = [
   {
+    id: 'MUNDISSEC',
     censusLevel: 'seccions censals'
   },
   {
+    id: 'codi_poblacio',
     censusLevel: 'municipis'
   },
   {
+    id: 'codi_comarca',
     censusLevel: 'comarques'
   }
 ]
@@ -143,10 +154,12 @@ function getIncomeIndicatorData(indicator) {
   const data = [];
   datasets.forEach((dataset, i) => {
     if(indicator.levels[i]) {
-      const incomeValues = dataset
-        .map((d) => d[indicator.value])
-        .filter((v) => v != null && !isNaN(v))
-        .sort((a, b) => a - b);
+      const incomeEntries = dataset
+        .map((d) => ({id: d[valuesByLevel[i].id] ,value: d[indicator.value]}))
+        .filter((v) => v.value != null && !isNaN(v.value))
+        .sort((a, b) => a.value - b.value);
+
+      const incomeValues = incomeEntries.map((d) => d.value);
 
       const sum = incomeValues.reduce((a, b) => a + b, 0);
       const count = incomeValues.length;
@@ -157,7 +170,7 @@ function getIncomeIndicatorData(indicator) {
         max: incomeValues[incomeValues.length - 1], 
         q1: d3.quantile(incomeValues, 0.25), 
         q3: d3.quantile(incomeValues, 0.75),
-        values: incomeValues
+        values: incomeEntries
       });
     }
     else {
@@ -175,11 +188,6 @@ const emissionsIndicatorData = getEmissionsIndicatorData(emissionsIndicator);
 
 ```js
 const incomeIndicatorData = getIncomeIndicatorData(incomeIndicator)
-```
-
-```js
-display(emissionsIndicatorData)
-display(incomeIndicatorData)
 ```
 
 <!-- Inputs -->
@@ -218,7 +226,7 @@ const slider = rangeSlider(sliderElement, {
 });
 
 function updateSliderBounds(newMin, newMax, q1, q3, currentValues) {
-  // console.log('Updating slider bounds according to percentiles', stores.percentileRange)
+  console.log('Updating slider bounds according to percentiles', stores.percentileRange)
   const [pLow, pHigh] = stores.percentileRange;
   const newLow = d3.quantileSorted(currentValues, pLow);
   const newHigh = d3.quantileSorted(currentValues, pHigh);
@@ -232,14 +240,14 @@ function updateSliderBounds(newMin, newMax, q1, q3, currentValues) {
 
 // Indicators -----------
 const emissionsIndicatorInput = Inputs.select(emissionsIndicators, {
-    label: "Selecciona un indicador d'emissions",
+    label: "Indicador d'emissions",
     format: (d) => d.name,
     value: emissionsIndicators[0]
   })
 
 
 const incomeIndicatorInput = Inputs.select(incomeIndicators, {
-    label: "Selecciona un indicador de renda",
+    label: "Indicador demogràfic",
     format: (d) => d.name,
     value: incomeIndicators[0]
   })
@@ -256,11 +264,6 @@ document.addEventListener('polygon-change', (e) => {
 });
 ```
 
-```js
-display('Hovered polygon id')
-display(hoveredPolygonId)
-```
-
 <!-- Data Initializing -->
 ```js
 document.addEventListener('map-loaded', () => {
@@ -270,7 +273,7 @@ document.addEventListener('map-loaded', () => {
     incomeIndicatorData[1].max, 
     incomeIndicatorData[1].q1, 
     incomeIndicatorData[1].q3,
-    incomeIndicatorData[1].values,
+    incomeIndicatorData[1].values.map((d) => d.value),
 
   );  
   setMapLoaded(true);
@@ -282,7 +285,7 @@ document.addEventListener('map-loaded', () => {
 document.addEventListener('zoom-level-changed', (event) => {
   const datasetIndex = event.detail.zoomLevel;
   setCurrentDatasetIndex(datasetIndex);
-  stores.indicatorValues = incomeIndicatorData[datasetIndex].values;
+  stores.indicatorValues = incomeIndicatorData[datasetIndex].values.map(d => d.value);
 });
 ```
 
@@ -292,7 +295,7 @@ updateSliderBounds(
     incomeIndicatorData[currentDatasetIndex].max, 
     incomeIndicatorData[currentDatasetIndex].q1, 
     incomeIndicatorData[currentDatasetIndex].q3,
-    incomeIndicatorData[currentDatasetIndex].values
+    incomeIndicatorData[currentDatasetIndex].values.map(d => d.value)
   );
 ```
 
@@ -309,66 +312,212 @@ if(mapLoaded) {
 ```
 
 ```js
-display(datasets)
-display(emissionsIndicatorInput)
-display(incomeIndicatorInput)
-display(incomeRange)
-```
-
-```js
 incomeIndicator
+if(mapLoaded) {
 map.updateMapOpacity([incomeRange[0], incomeRange[1]]);
+}
 ```
 
 ```js
 const mapContainer = display(document.createElement('div'));
-mapContainer.style = 'height:720px;';
+mapContainer.style = 'position:relative; height:540px; border-radius: 12px;';
 
 const map = ChoroplethMap.create(mapContainer, datasets);
 invalidation.then(() => map.destroy());
 ```
 
-<div class="grid grid-cols-4">
-  <div class="card grid-colspan-2">
+```js
+// const legend = document.createElement('div');
+// legend.style.position = 'absolute';
+// legend.style.bottom = '1rem';
+// legend.style.right = '1rem';
+// legend.style.background = 'white';
+// legend.style.padding = '0.5rem 0.75rem';
+// legend.style.border = '1px solid #ccc';
+// legend.style.borderRadius = '0.5rem';
+// legend.style.boxShadow = '0 2px 4px rgba(0,0,0,0.15)';
+// legend.style.fontSize = '0.8rem';
+// legend.style.lineHeight = '1.2rem';
+// legend.style.zIndex = '10';
+
+// // Append to map container
+// mapContainer.appendChild(legend);
+```
+
+<!-- ```js
+// Remove existing container if it exists
+let existing = mapContainer.querySelector('.bottom-right-cards');
+if (existing) existing.remove();
+
+// Create outer card container
+const outerCard = document.createElement('div');
+outerCard.className = 'card bottom-right-cards'; // add card class and marker class
+outerCard.style.position = 'absolute';
+outerCard.style.bottom = '1rem';
+outerCard.style.right = '1rem';
+outerCard.style.padding = '0.75rem'; // smaller padding
+outerCard.style.fontSize = '0.85rem'; // compact font
+outerCard.style.display = 'flex';
+outerCard.style.flexDirection = 'column';
+outerCard.style.gap = '10px';
+outerCard.style.zIndex = '10';
+outerCard.style.maxWidth = '300px'; // optional constraint
+
+// Optional header
+const header = document.createElement('div');
+header.innerHTML = hoveredInfo.names.filter(n => n !== '').join(' / ');
+header.style.fontWeight = '600';
+outerCard.appendChild(header);
+
+// Inner horizontal flex container
+const innerContainer = document.createElement('div');
+innerContainer.style.display = 'flex';
+innerContainer.style.flexDirection = 'row';
+innerContainer.style.gap = '10px';
+
+// Create and append the cards
+const incomeCard = document.createElement('div');
+incomeCard.className = 'card';
+incomeCard.style.flex = '1';
+incomeCard.style.fontSize = '0.75rem'; // shrink inner text
+incomeCard.style.padding = '0.5rem';
+incomeCard.appendChild(hoveredItemCard(hoveredInfo.incomeData, incomeIndicator, 'emissions'));
+
+const emissionsCard = document.createElement('div');
+emissionsCard.className = 'card';
+emissionsCard.style.flex = '1';
+emissionsCard.style.fontSize = '0.75rem';
+emissionsCard.style.padding = '0.5rem';
+emissionsCard.appendChild(hoveredItemCard(hoveredInfo.emissionsData, emissionsIndicator, 'demografic'));
+
+innerContainer.appendChild(incomeCard);
+innerContainer.appendChild(emissionsCard);
+
+// Final assembly
+outerCard.appendChild(innerContainer);
+mapContainer.appendChild(outerCard);
+``` -->
+
+<div class="grid grid-cols-3" style="grid-auto-rows: min-content;">
+  <div class="card" style="display:flex; flex-direction: column; gap: 25px;">
+    <div stye="display: inline-block;">
+      ${emissionsIndicatorInput}
+      ${incomeIndicatorInput}
+    </div>
+    <div style="display:flex; flex-direction:column; gap:15px;">
+      ${
+        Plot.legend(
+          {color: 
+            {
+              type: "threshold",
+              domain: emissionsIndicatorData[currentDatasetIndex].domain,
+              range: emissionsIndicatorData[currentDatasetIndex].range,
+              tickFormat: (d) => d.toFixed(2),
+              width: 900,
+              label: `${emissionsIndicator.name} (${emissionsIndicator.units})`,
+            }
+          }
+        )
+      }
+      ${sliderElement}
+      ${resize((width) =>
+        Plot.plot({
+          height: 80,
+          marks: [
+            Plot.tickX(emissionsData, {
+              x: "incomeValue",
+              strokeOpacity: 0.5,
+              tip: true,
+              stroke: (d) =>
+                d.incomeValue >= incomeRange[0] && d.incomeValue <= incomeRange[1] ? getTickColor(d.class) : "#d9d9d9"
+            })
+          ]
+        })
+      )}
+      ${resize((width) => 
+        Plot.plot({
+          height: 200,
+          color: {
+            type: "categorical",
+            domain: Array.from({ length: 7 }, (_, i) => i.toString()),
+            range: mapThresholdScheme
+          },
+          y: { grid: true}, // Per mantenir escala -> domain: [0, mostFrequentClass[1]] 
+          x: { domain: Array.from({ length: 7 }, (_, i) => i.toString()) },
+          marks: [
+            Plot.barY(
+              histogramData,
+              Plot.groupX({ y: "count" }, { x: "class", fill: "class", tip:true })
+            ),
+            Plot.ruleY([0])
+          ]
+        })
+      )}
+    </div>
+  </div>
+  <div class="grid-colspan-2  grid-rowspan-3 card" style="display:flex; flex-direction: column;  gap: 15px;">
+    ${informationPhrase}
     ${resize((width) => mapContainer)}
   </div>
-  <div class="card grid-colspan-2">
-    ${informationPhrase}
-    ${resize((width) =>
-      Plot.plot({
-        marks: [
-          Plot.tickX(emissionsData, {
-            x: "incomeValue",
-            strokeOpacity: 0.5,
-            tip: true,
-            stroke: (d) =>
-              d.incomeValue >= incomeRange[0] && d.incomeValue <= incomeRange[1] ? getTickColor(d.class) : "#d9d9d9"
-          })
-        ]
-      })
-    )}
-     ${sliderElement}
-     ${resize((width) => 
-       Plot.plot({
-         color: {
-           type: "threshold",
-           domain: Array.from({ length: 7 }, (_, i) => i.toString()),
-           range: mapThresholdScheme
-         },
-         y: { grid: true}, // Per mantenir escala -> domain: [0, mostFrequentClass[1]] 
-         x: { domain: Array.from({ length: 7 }, (_, i) => i.toString()) },
-         marks: [
-           Plot.barY(
-             histogramData,
-             Plot.groupX({ y: "count" }, { x: "class", fill: "class", tip:true })
-           ),
-           Plot.ruleY([0])
-         ]
-       })
-     )}
+  <div class="card">
+    <div>
+      ${hoverItemHeader}
+    </div>
+    <div style="display: flex; flex-direction: row; gap: 15px;">
+      <div class="card" style="flex: 1;">
+        ${hoveredItemCard(hoveredInfo.incomeData, incomeIndicator, 'emissions')}
+      </div>
+      <div class="card" style="flex: 1;">
+        ${hoveredItemCard(hoveredInfo.emissionsData, emissionsIndicator, 'demografic')}
+      </div>
+    </div>
   </div>
 </div>
 
+```js
+const informationPhrase = 
+  html`
+    <h2>
+      <span class="indicador-emissions">${emissionsIndicator.name}</span>
+      de
+      </span>
+      <span>${valuesByLevel[currentDatasetIndex].censusLevel}</span>
+      amb
+      <span class="indicador-demografic" ">${lowercaseFirstLetter(incomeIndicator.name)}</span>
+      entre 
+      <span>${incomeRange[0].toFixed(2)}</span>
+      i
+      <span>${incomeRange[1].toFixed(2)}</span>
+    </h2>
+  `
+```
+
+```js
+const hoverItemHeader = 
+  html `
+  <h3>
+      ${hoveredInfo.names.filter(n => n !== '').join(' / ')}
+  </h3>` 
+```
+
+<!-- { value: emissionsDataValue, pos: emissionsDataPos, totalValues: incomeValues.length } -->
+```js
+const hoveredItemCard = (data, indicator, type) => {
+  return html `
+    <div style="display: flex; gap: 20px; justify-content: space-between; height: 100%;">
+      <div style="flex: 1; display: flex; flex-direction: column;">
+        <h5>${indicator.name}</h5>
+        <div style="display: flex; flex-direction: row; gap:4px; align-items: end">
+          <h1 class="${type == 'emissions' ? 'indicador-emissions' : 'indicador-demografic'}">${data.value.toFixed(2)}</h1>
+          <h3 class="${type == 'emissions' ? 'indicador-emissions' : 'indicador-demografic'}">${indicator.units}</h3>
+        </div>
+        <div style="display: flex; flex-direction: row; gap:4px; align-items: end">
+          <h3>Posició</h3> <h2> ${data.pos} </h2>  <h3> de  </h3> <h2>${data.totalValues}</h2>
+        </div>
+      </div>
+    </div>`
+}
+```
 
 <!-- Histogram cells -->
 ```js
@@ -388,8 +537,9 @@ function getEmissionsData(datasetIndex) {
     const valuesByClass = datasets[index].map((d) => {
       const emissionsValue = d[emissionsIndicator.value];
       const incomeValue = d[incomeIndicator.value];
-      return { class: getEntryClass(emissionsValue), emissionsValue, incomeValue };
-    });
+      const id = d[valuesByLevel[datasetIndex].id];
+      return { id, class: getEntryClass(emissionsValue), emissionsValue, incomeValue };
+    }).sort((a,b) => a.emissionsValue - b.emissionsValue);
     
     // const mostFrequentClass = d3.greatest(
     //   d3.rollup(valuesByClass, v => v.length, d => d.class),
@@ -413,24 +563,90 @@ const histogramData = emissionsData.filter(
     );
 ```
 
+
+
+<!-- ```js
+html `
+    <div style="display: flex; margin-top: 10px; gap: 20px; align-items: stretch;">
+      <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
+        <h2>${emissionsIndicator.name}</h2>
+        <h2 class="indicador-emissions">${hoveredInfo.emissionsData.value.toFixed(2)} ${emissionsIndicator.units}</h2>
+        <h2>Posició ${hoveredInfo.emissionsData.pos} de ${emissionsData.length}</h2>
+      </div>
+
+      <div style="width: 1px; background: repeating-linear-gradient(
+        to bottom,
+        #999,
+        #999 4px,
+        transparent 4px,
+        transparent 8px
+      );"></div>
+
+      <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; ">
+        <h2>${incomeIndicator.name}</h2>
+        <h2 class="indicador-demografic">${hoveredInfo.incomeData.value} ${incomeIndicator.units}</h2>
+        <h2>Posició ${hoveredInfo.incomeData.pos} de ${incomeIndicatorData[currentDatasetIndex].values.length}</h2>
+      </div>
+    </div>`
+``` -->
+
+<!-- Hovered cards cells -->
+
 ```js
-const informationPhrase = 
-  html`
-    <h3>
-      <span style="background-color: #ffcccc; color: #222; padding: 1px 3px; font-weight: bold;">${emissionsIndicator.name}</span>
-      de
-      </span>
-      <span style=" font-weight: bold;">${textLabels[currentDatasetIndex].censusLevel}</span>
-      amb
-      <span style="background-color: #ffff99; color: #222; padding: 1px 3px; font-weight: bold;">${lowercaseFirstLetter(incomeIndicator.name)}</span>
-      entre 
-      <span style="font-weight: bold;">${incomeRange[0]}</span>
-      i
-      <span style="font-weight: bold;">${incomeRange[1]}</span>
-    </h3>
-  `
+function getHoveredNames(hoveredPolygon, currentDatasetIndex) {
+  if(hoveredPolygon) {
+    const sectionCode = currentDatasetIndex == 0 ? hoveredPolygon.slice(-3) : '';
+    const districtCode = currentDatasetIndex == 0 ? hoveredPolygon.slice(6, 8) : '';
+    const municipiCode = currentDatasetIndex == 0 ? hoveredPolygon.slice(0, -5) : currentDatasetIndex == 1 ? hoveredPolygon : '';
+    
+    if(municipisDict[municipiCode]) {
+      const municipiName = (currentDatasetIndex == 0 || currentDatasetIndex == 1) ? municipisDict[municipiCode].municipi :  '';
+      const comarcaName = currentDatasetIndex == 2 ? municipisDict.find(d => d.codi_comarca == hoveredPolygon).comarca : municipisDict[municipiCode].comarca;
+  
+      return [districtCode, sectionCode, municipiName, comarcaName];
+    }
+  }
+  return ['']
+}
 ```
 
 ```js
+function getHoveredInfo(hoveredPolygonId, currentDatasetIndex) {
+  const names = getHoveredNames(hoveredPolygonId, currentDatasetIndex);
+  
+  const incomeValues = incomeIndicatorData[currentDatasetIndex].values;
+  const incomeDataPos = incomeValues.findIndex(obj => obj.id === hoveredPolygonId);
+  const incomeValue = incomeDataPos !== -1 ? incomeValues[incomeDataPos].value : null;
+
+  const emissionsDataPos = emissionsData.findIndex(obj => obj.id === hoveredPolygonId);
+  const emissionsDataValue = emissionsDataPos !== -1 ? emissionsData[emissionsDataPos].emissionsValue : null;
+
+  return {
+    names,
+    incomeData: { value: incomeValue, pos: incomeDataPos, totalValues: emissionsData.length },
+    emissionsData: { value: emissionsDataValue, pos: emissionsDataPos, totalValues: incomeValues.length }
+  };
+}
+```
+
+```js
+const hoveredInfo = getHoveredInfo(hoveredPolygonId, currentDatasetIndex);
+```
+
+```js
+display(incomeRange)
+```
+
+```js
+display('HISTOGRAM DATA')
 display(histogramData)
+
+display('EMISSIONS DATA')
+display(emissionsData)
+```
+
+```js
+display('INDICATORS DATA')
+display(emissionsIndicatorData)
+display(incomeIndicatorData)
 ```
