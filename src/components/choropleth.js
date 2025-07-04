@@ -329,7 +329,7 @@ export class ChoroplethMap {
         bubbles: true
       });
 
-      console.log('DISPATCHING MAP ZOOM EVENT');
+      // console.log('DISPATCHING MAP ZOOM EVENT');
       document.dispatchEvent(event);
     }
   }
@@ -352,7 +352,7 @@ export class ChoroplethMap {
         bubbles: true
       });
 
-      console.log('DISPATCHING POLYGON CHANGE EVENT', e.features[0]);
+      // console.log('DISPATCHING POLYGON CHANGE EVENT', e.features[0]);
       document.dispatchEvent(event);
       // mutable hoveredPolygonId = hoveredPolygonId;
 
@@ -390,7 +390,7 @@ export class ChoroplethMap {
    * @param {string} tilesetId
    * @param {{domain: number[], range: string[]}} scheme
    */
-  createColorExpression(data, tilesetId, scheme) {
+  createCategoricalColorExpression(data, tilesetId, scheme) {
     const { domain, range } = scheme;
     const colors = range.flatMap((color, index) => {
       return index < domain.length ? [color, domain[index]] : [color];
@@ -482,7 +482,8 @@ export class ChoroplethMap {
   }
 
   updateLayerPalette(fillLayer, level) {
-    const layerColor = this.createColorExpression(
+    // Choose between kind of transforms (stored in emissions indicator data)
+    const layerColor = this.createCategoricalColorExpression(
       this.dataManager.getIndicatorsData(level, this.emissionsIndicator, this.incomeIndicator),
       DataManager.DatasetKeys[level].tilesetId,
       {

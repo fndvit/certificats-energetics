@@ -4,12 +4,8 @@
 :root {
   --sans-serif: 'neue-haas-grotesk-display', sans-serif;
   --serif: merriweather, serif;
-  --semafor-blau: #577af7;
-  --semafor-verd: #7aa047;
-  --semafor-groc: #f7d05d;
-  --semafor-taronja: #ef8733;
-  --semafor-rosa: #f09793;
-  --semafor-vermell: #b02418;
+  --indicadorEmissions: #f75757;
+  --indicadorDemografic: #577ff7;
   --dashboard-foreground: #000;
   --dashboard-foreground-muted: #606060;
   --dashboard-background: #f2f2f2;
@@ -86,6 +82,14 @@ label {
 #observablehq-header,
 #observablehq-footer {
   max-width: none;
+}
+
+.indicador-emissions {
+  color: var(--indicadorEmissions) !important;
+}
+
+.indicador-demografic {
+  color: var(--indicadorDemografic) !important;
 }
 
 .notes {
