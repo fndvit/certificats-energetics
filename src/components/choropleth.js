@@ -177,7 +177,7 @@ export class ChoroplethMap {
 
   noDataColor = '#d4d4d4';
 
-  emissionsIndicator = '';
+  emissionsIndicator = {};
   incomeIndicator = '';
 
   layerColor = [];
@@ -391,6 +391,7 @@ export class ChoroplethMap {
    * @param {{domain: number[], range: string[]}} scheme
    */
   createCategoricalColorExpression(data, tilesetId, scheme) {
+    // console.log('CREATE CATEGORICAL', arguments);
     const { domain, range } = scheme;
     const colors = range.flatMap((color, index) => {
       return index < domain.length ? [color, domain[index]] : [color];
@@ -411,6 +412,53 @@ export class ChoroplethMap {
       1,
       ...colors // [stop1, color1, stop2, color2, ...]
     ];
+
+    console.log('CATEGORICAL COLOR EXPRESSION', colorExpression);
+
+    return colorExpression;
+  }
+
+  normalizeDomain(domain, epsilon = 1e-6) {
+    const normalized = [...domain];
+    for (let i = 1; i < normalized.length - 1; i++) {
+      if (normalized[i] >= normalized[i + 1]) {
+        normalized[i] = normalized[i] - epsilon;
+      }
+    }
+    return normalized;
+  }
+
+  createSequentialColorExpression(data, tilesetId, scheme) {
+    console.log('CREATE sequential', arguments);
+
+    const { domain, range } = scheme;
+
+    // Modify insignifically repeated values to not raise Mapbox
+    const cleanDomain = this.normalizeDomain(domain);
+
+    const matchExpression = ['match', ['get', tilesetId]];
+    data.forEach((entry) => {
+      if (entry.emissionsValue && entry.demoValue) {
+        matchExpression.push(entry.id, entry.emissionsValue);
+      }
+    });
+    matchExpression.push(0);
+
+    const interpolateExpression = ['interpolate', ['linear'], matchExpression];
+
+    // TODO: Fix single value in domain
+    for (let i = 0; i < cleanDomain.length; i++) {
+      interpolateExpression.push(cleanDomain[i], range[i]);
+    }
+
+    const colorExpression = [
+      'case',
+      ['==', matchExpression, 0],
+      this.noDataColor,
+      interpolateExpression
+    ];
+
+    console.log('SEQUENTIAL COLOR EXPRESSION', colorExpression);
 
     return colorExpression;
   }
@@ -483,21 +531,43 @@ export class ChoroplethMap {
 
   updateLayerPalette(fillLayer, level) {
     // Choose between kind of transforms (stored in emissions indicator data)
-    const layerColor = this.createCategoricalColorExpression(
-      this.dataManager.getIndicatorsData(level, this.emissionsIndicator, this.incomeIndicator),
-      DataManager.DatasetKeys[level].tilesetId,
-      {
-        domain: this.dataManager.emissionsIndicatorData[level].domain,
-        range: this.dataManager.emissionsIndicatorData[level].range
-      }
-    );
+    let layerColor;
+    if (this.emissionsIndicator.type == 'categoric') {
+      layerColor = this.createCategoricalColorExpression(
+        this.dataManager.getIndicatorsData(
+          level,
+          this.emissionsIndicator.value,
+          this.incomeIndicator
+        ),
+        DataManager.DatasetKeys[level].tilesetId,
+        {
+          domain: this.dataManager.emissionsIndicatorData[level].thresholds,
+          range: this.dataManager.emissionsIndicatorData[level].range
+        }
+      );
+    } else if (this.emissionsIndicator.type == 'sequential') {
+      layerColor = this.createSequentialColorExpression(
+        this.dataManager.getIndicatorsData(
+          level,
+          this.emissionsIndicator.value,
+          this.incomeIndicator
+        ),
+        DataManager.DatasetKeys[level].tilesetId,
+        {
+          domain: this.dataManager.emissionsIndicatorData[level].fullDomain,
+          range: this.dataManager.emissionsIndicatorData[level].sequentialRange
+        }
+      );
+    }
 
     this.map.setPaintProperty(fillLayer.id, 'fill-color', layerColor);
   }
 
   initializeData(emissionsIndicator, emissionsIndicatorData, incomeIndicator, incomeIndicatorData) {
-    console.log('Initialize data', arguments);
-    this.emissionsIndicator = emissionsIndicator.value;
+    this.emissionsIndicator = {
+      value: emissionsIndicator.value,
+      type: emissionsIndicator.colorScaleType
+    };
     this.incomeIndicator = incomeIndicator.value;
     this.updateEmissionsData(emissionsIndicator.value, emissionsIndicatorData);
     this.updateIncomeData(incomeIndicator, incomeIndicatorData);
@@ -505,7 +575,10 @@ export class ChoroplethMap {
 
   updateEmissionsData(emissionsIndicator, indicatorData) {
     this.dataManager.emissionsIndicatorData = indicatorData;
-    this.emissionsIndicator = emissionsIndicator;
+    this.emissionsIndicator = {
+      value: emissionsIndicator.value,
+      type: emissionsIndicator.colorScaleType
+    };
     this.updateMapPalette();
   }
 

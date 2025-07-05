@@ -51,15 +51,19 @@ const emissionsIndicators = [
     {
       name: 'Mitjana d\'emissions',
       value: 'mean_emissions',
-      type: 'threshold',
+      binOperation: 'threshold',
       colors: mapThresholdScheme,
+      sequentialColors: d3.quantize(d3.interpolateYlOrRd, 8).map((d) => d3.color(d).formatHex()),
+      colorScaleType: 'sequential',
       units: 'Kg C02'
     },
     {
       name: 'Emissions totals',
       value: 'total_emissions',
-      type: 'threshold',
+      binOperation: 'logarithmic',
       colors: mapThresholdScheme,
+      sequentialColors: ["#ffffcc", "#ffea9a", "#fecd6a", "#fea246", "#fc6932", "#e92a21", "#c00624", "#800026"],
+      colorScaleType: 'sequential',
       units: 'Kg C02'
     },
 ];
@@ -129,21 +133,62 @@ function getEmissionsIndicatorData(indicator) {
   const data = [];
   datasets.forEach((dataset, i) => {
     const emissionsIndicatorArray = dataset.map((d) => d[indicator.value]);
+
+    const nClasses = indicator.colors.length;
+    let bins;
+    let fullDomain;
+    let thresholds;
   
-    let domain = [];
-    let ckMeans = [];
-  
-    if(indicator.type == 'threshold') {
-      ckMeans = d3.bin()
-        .thresholds(ckmeans(emissionsIndicatorArray, 7).map((d) => d3.min(d)))
+    if(indicator.binOperation == 'threshold') {
+      const ckMeans = ckmeans(emissionsIndicatorArray, nClasses);
+      const ckThresholds = ckMeans.map((d) => d3.min(d));
+
+      bins = d3
+        .bin()
+        .thresholds(ckThresholds)
         .value((d) => d)(emissionsIndicatorArray);
-  
-      domain = ckMeans
-        .map((d) => d.x1)
-        .slice(0, ckMeans.length - 1);
+
+      const stops = bins.map((d) => d.x0);
+      stops.push(bins[bins.length - 1].x1);
+
+      thresholds = [...bins.map((d) => d.x1).slice(0, bins.length - 1)];
+      fullDomain = [...stops]; // color stop1 color stop2 color finalStop color
+    }
+
+    else if (indicator.binOperation === 'logarithmic') {
+      const min = d3.min(emissionsIndicatorArray);
+      const max = d3.max(emissionsIndicatorArray);
+      const nClasses = indicator.colors.length;
+
+      const logMin = Math.log10(min);
+      const logMax = Math.log10(max);
+
+      // Create full domain: min + intermediate stops + max (length = nClasses)
+      const logStops = Array.from({ length: nClasses }, (_, i) =>
+        Math.pow(10, logMin + i * (logMax - logMin) / (nClasses - 1))
+      );
+
+      // Ensure exact min and max (no floating error)
+      logStops[0] = min;
+      logStops[logStops.length - 1] = max;
+
+      // Thresholds: internal boundaries only (length = nClasses - 1)
+      thresholds = logStops.slice(1); // same as ckmeans: [stop1, stop2, ..., stopN-1]
+
+      // Bin the data based on internal thresholds (produces n bins)
+      bins = d3
+        .bin()
+        .thresholds(thresholds)
+        .value((d) => d)(emissionsIndicatorArray);
+
+      // Full domain includes the left edge of each bin and the right edge of the last
+      const stops = bins.map((d) => d.x0);
+      stops.push(bins[bins.length - 1].x1);
+
+      fullDomain = stops;
     }
   
-    data.push({layerId: i, domain, range: indicator.colors, ckMeans});
+    data.push({layerId: i, fullDomain, thresholds, range: indicator.colors, sequentialRange: indicator.sequentialColors, bins});
   })
 
   return data;
@@ -267,6 +312,7 @@ document.addEventListener('polygon-change', (e) => {
 <!-- Data Initializing -->
 ```js
 document.addEventListener('map-loaded', () => {
+  console.log('Map loaded', emissionsIndicator)
   map.initializeData(emissionsIndicator, emissionsIndicatorData, incomeIndicator, incomeIndicatorData);
   updateSliderBounds(
     incomeIndicatorData[1].min, 
@@ -301,7 +347,7 @@ updateSliderBounds(
 
 ```js
 if(mapLoaded) {
-  map.updateEmissionsData(emissionsIndicator.value, emissionsIndicatorData);
+  map.updateEmissionsData(emissionsIndicator, emissionsIndicatorData);
 }
 ```
 
@@ -410,7 +456,7 @@ mapContainer.appendChild(outerCard);
           {color: 
             {
               type: "threshold",
-              domain: emissionsIndicatorData[currentDatasetIndex].domain,
+              domain: emissionsIndicatorData[currentDatasetIndex].thresholds,
               range: emissionsIndicatorData[currentDatasetIndex].range,
               tickFormat: (d) => d.toFixed(2),
               width: 900,
@@ -465,10 +511,10 @@ mapContainer.appendChild(outerCard);
     </div>
     <div style="display: flex; flex-direction: row; gap: 15px;">
       <div class="card" style="flex: 1;">
-        ${hoveredItemCard(hoveredInfo.incomeData, incomeIndicator, 'emissions')}
+        ${hoveredItemCard(hoveredInfo.emissionsData, emissionsIndicator, 'emissions')}
       </div>
       <div class="card" style="flex: 1;">
-        ${hoveredItemCard(hoveredInfo.emissionsData, emissionsIndicator, 'demografic')}
+        ${hoveredItemCard(hoveredInfo.incomeData, incomeIndicator, 'demografic')}
       </div>
     </div>
   </div>
@@ -530,9 +576,8 @@ function getTickColor(val) {
 function getEmissionsData(datasetIndex) {
   console.log('GET EMISSIONS DATA FUNCTION RUN')
   const index = datasetIndex;
-  if(emissionsIndicator.type == 'threshold') {
     const getEntryClass = (value) =>
-      emissionsIndicatorData[index].ckMeans.findIndex((d) => value >= d.x0 && value <= d.x1).toString();
+      emissionsIndicatorData[index].bins.findIndex((d) => { return d.x0 != d.x1 ? (value >= d.x0 && value < d.x1) : value >= d.x0}).toString();
     
     const valuesByClass = datasets[index].map((d) => {
       const emissionsValue = d[emissionsIndicator.value];
@@ -547,7 +592,6 @@ function getEmissionsData(datasetIndex) {
     // );
     
     return valuesByClass;
-  }
    
   return null
 }
@@ -642,10 +686,11 @@ display('HISTOGRAM DATA')
 display(histogramData)
 
 display('EMISSIONS DATA')
-display(emissionsData)
+// display(emissionsData)
 ```
 
 ```js
+display(emissionsIndicatorData[0].bins.map((d) => {return [d.x0, d.x1]}))
 display('INDICATORS DATA')
 display(emissionsIndicatorData)
 display(incomeIndicatorData)
