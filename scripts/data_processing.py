@@ -127,10 +127,10 @@ def generateMundissec(df):
     geometry = [Point(xy) for xy in zip(df["utm_x"], df["utm_y"])]
     mundissec_gdf = gpd.GeoDataFrame(df, geometry=geometry, crs="EPSG:25831")
 
-    # Perform spatial join
+    # Spatial join
     full_df_mundissec = gpd.sjoin(mundissec_gdf, ceccsen, how="left", predicate="within")
 
-    # Drop index column from the join
+    # Delete index column
     full_df_mundissec = full_df_mundissec.drop(columns=["index_right"])
 
     return full_df_mundissec
