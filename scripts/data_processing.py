@@ -360,6 +360,10 @@ def aggregateByLevel(df, level):
       total_cost=pd.NamedAgg(column='cost_energia', aggfunc='sum'),
       mean_cost=pd.NamedAgg(column='cost_energia', aggfunc='mean'),
       ).reset_index()
+  
+  # Reduir nombre de decimals
+  numeric_cols = [col for col in aggDf.select_dtypes(include='number').columns if col != 'count']
+  aggDf[numeric_cols] = aggDf[numeric_cols].round(3)
 
   return aggDf
 
