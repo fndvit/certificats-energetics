@@ -14,6 +14,13 @@ url = "https://www.idescat.cat/codis/?id=50&n=10&lang=es&f=ssv"
 
 df_comarques = pd.read_csv(url, sep=';', skiprows=3)
 
+provincies_dict = {
+    '08': 'Barcelona',
+    '17': 'Girona',
+    '25': 'Lleida',
+    '43': 'Tarragona',
+}
+
 municipi_dict = {}
 current_comarca = {}
 
@@ -36,9 +43,12 @@ RENAMINGS = {
       'qualificaci_de_consum_d': 'qual_energia',
       'qualificaci_emissions': 'qual_emissions',
       'motiu_de_la_certificacio': 'motiu',
-      'eina_de_certificacio':'eina'
+      'eina_de_certificacio':'eina',
+      'energia_prim_ria_no_renovable':'energia_primaria',
+      'cost_anual_aproximat_d_energia':'cost_energia',
+      'normativa_construcci': 'normativa'
       };
-COLUMNS_IN_USE = ['codi_poblacio', 'codi_comarca', 'codi_provincia', 'MUNDISSEC', 'metres_cadastre', 'emissions_de_co2', 'qual_energia', 'qual_emissions', 'data_entrada', 'motiu', 'us_edifici', 'zona_climatica']
+COLUMNS_IN_USE = ['codi_poblacio', 'codi_comarca', 'codi_provincia', 'MUNDISSEC', 'metres_cadastre', 'emissions_de_co2', 'qual_energia', 'qual_emissions', 'data_entrada', 'motiu', 'us_edifici', 'zona_climatica', 'eina', 'normativa', 'energia_primaria', 'cost_energia']
 SAME_MEANING_VALUES = [
   ['us_edifici', "Terciari", ['Terciario']],
   ['us_edifici', "Bloc d'habitatges", ['Bloque de viviendas']],
@@ -86,7 +96,7 @@ SAME_MEANING_VALUES = [
     ]
   ],
 ]
-CATEGORICAL_COLUMNS_TO_ENCODE = ['eina', 'motiu', 'us_edifici']
+CATEGORICAL_COLUMNS_TO_ENCODE = ['eina', 'motiu', 'us_edifici', 'normativa']
 QUALIFICATIONS_NUMERICAL_EQUIVALENCE = {
    'A': 1,
    'B': 2,
@@ -135,6 +145,7 @@ def renameColumns(df, renamings):
 
 def reduceColumns(df, columns):
     print("Reducing columns...")
+    print(df.columns)
     reduced_dataset = df[columns]
     return reduced_dataset
 
@@ -151,6 +162,9 @@ def castColumns(df):
 
     df['qual_emissions'] = df['qual_emissions'].map(QUALIFICATIONS_NUMERICAL_EQUIVALENCE)
     df['qual_energia'] = df['qual_energia'].map(QUALIFICATIONS_NUMERICAL_EQUIVALENCE)
+
+    # Tractem com a NA els valors de cost_energia que siguin 0 i on energia_primària sigui > 0
+    df.loc[(df['cost_energia'] == 0) & (df['energia_primaria'] > 0) & df['energia_primaria'].notna(), 'cost_energia'] = pd.NA
     
     return df
 
@@ -177,7 +191,7 @@ def removeOutliers(df):
     return df
 
 
-def regenerateCodes(df, municipi_dict):
+def regenerateCodes(df, municipi_dict, provincies_dict):
     print("Regenerating codes...")
 
     df['codi_poblacio'] = df['MUNDISSEC'].str[:6]
@@ -196,6 +210,10 @@ def regenerateCodes(df, municipi_dict):
     df['zona_climatica'] = df['codi_poblacio'].map(most_common_zona)
 
     df['codi_provincia'] = df['MUNDISSEC'].str[:2]
+
+    df['poblacio'] = df['codi_poblacio'].map(lambda x: municipi_dict[x]['municipi'])
+    df['comarca'] = df['codi_poblacio'].map(lambda x: municipi_dict[x]['comarca'])
+    df['provincia'] = df['codi_provincia'].map(provincies_dict)
 
     return df
 
@@ -224,7 +242,7 @@ def process_certificates_dataset(df, municipi_dict):
           .pipe(renameColumns, RENAMINGS)
           .pipe(reduceColumns, COLUMNS_IN_USE)
           .pipe(castColumns)
-          .pipe(regenerateCodes, municipi_dict)
+          .pipe(regenerateCodes, municipi_dict, provincies_dict)
           .pipe(groupSameMeaningValues, SAME_MEANING_VALUES)
           .pipe(removeOutliers)
     )
@@ -255,7 +273,7 @@ def remove_sixth_digit_from_right(number_str):
         return number_str
   
 
-def fetch_and_flatten(code, mundissec_map, municipis_map):
+def fetch_rendes_data(code, mundissec_map, municipis_map):
     url = f"https://servicios.ine.es/wstempus/js/ES/DATOS_TABLA/{code}"
     params = {"tip": "AM"}
     response = requests.get(url, params=params)
@@ -305,7 +323,7 @@ def get_rendes_dataset(sections_dataset):
     sections_dataset['Codi municipi_truncated'] = sections_dataset['Codi municipi'].astype(str).str.slice(0, -1)
     municipis_map = sections_dataset.drop_duplicates('Codi municipi_truncated').set_index('Codi municipi_truncated')['Codi municipi'].to_dict()
 
-    df_all = [fetch_and_flatten(code, mundissec_map, municipis_map) for code in codes]
+    df_all = [fetch_rendes_data(code, mundissec_map, municipis_map) for code in codes]
 
     seccions_all = pd.concat([df[0] for df in df_all], ignore_index=True)
     municipis_all = pd.concat([df[1] for df in df_all], ignore_index=True)
@@ -330,10 +348,17 @@ def get_rendes_dataset(sections_dataset):
 
 def aggregateByLevel(df, level):
   aggDf = df.groupby(level).agg(
+      count=pd.NamedAgg(column='emissions_de_co2', aggfunc='count'),
       mean_emissions=pd.NamedAgg(column='emissions_de_co2', aggfunc='mean'),
       total_emissions=pd.NamedAgg(column='emissions_totals', aggfunc='sum'),
       mean_energy_qual=pd.NamedAgg(column='qual_energia', aggfunc='mean'),
       mean_emissions_qual=pd.NamedAgg(column='qual_emissions', aggfunc='mean'),
+      total_primary_energy=pd.NamedAgg(column='energia_primaria', aggfunc='sum'),
+      mean_primary_energy=pd.NamedAgg(column='energia_primaria', aggfunc='mean'),
+      total_surface=pd.NamedAgg(column='metres_cadastre', aggfunc='sum'),
+      mean_surface=pd.NamedAgg(column='metres_cadastre', aggfunc='mean'),
+      total_cost=pd.NamedAgg(column='cost_energia', aggfunc='sum'),
+      mean_cost=pd.NamedAgg(column='cost_energia', aggfunc='mean'),
       ).reset_index()
 
   return aggDf
@@ -382,6 +407,8 @@ def save_data(certificates, label_mapping, aggregated_datasets, municipi_dict):
 
 
 df = pd.read_json("static/raw_data.json")
+print('Starting data processing...')
+print(df.columns)
 certificates, label_mapping = process_certificates_dataset(df, municipi_dict)
 sections = get_sections_dataset()
 rendes_datasets = get_rendes_dataset(sections)
