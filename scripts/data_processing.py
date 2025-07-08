@@ -227,9 +227,12 @@ def encode_categorical_columns(df, categorical_columns):
 
     for column in categorical_columns:
         if column in df_columns:
+            df[column] = df[column].fillna("No definit")
             encoders[column] = LabelEncoder()
             df[column] = encoders[column].fit_transform(df[column])
-            label_mapping[column] = dict(zip(range(len(encoders[column].classes_)), encoders[column].classes_))
+            label_mapping[column] = {
+                str(i): cls for i, cls in enumerate(encoders[column].classes_)
+            }
 
     return df, label_mapping
 #endregion ****
