@@ -55,26 +55,37 @@ const db = await DuckDBClient.of({
 });
 const sql = db.sql.bind(db);
 
-// await db.sql`
-//   CREATE VIEW certificats_grouped AS
-//   SELECT
-//     zona_climatica,
-//     codi_poblacio,
-//     COUNT(*) AS n_certificats,
-//     AVG(emissions_de_co2) AS avg_emissions,
-//     AVG(qual_emissions) AS avg_qual_emissions,
-//     SUM(emissions_de_co2) AS sum_emissions
-//   FROM certificats
-//   WHERE emissions_de_co2 IS NOT NULL
-//     AND zona_climatica IS NOT NULL
-//     AND codi_poblacio IS NOT NULL
-//   GROUP BY zona_climatica, codi_poblacio
-// `;
+await db.sql`
+  CREATE TABLE IF NOT EXISTS emissions_vs_size AS
+  SELECT
+    emissions_de_co2::DOUBLE AS emissions,
+    metres_cadastre::DOUBLE AS size,
+    qual_energia,
+    qual_emissions,
+    poblacio,
+    comarca,
+    provincia,
+    data_entrada,
+    us_edifici,
+    normativa,
+    motiu
+  FROM certificats
+  WHERE emissions_de_co2 IS NOT NULL 
+  AND metres_cadastre IS NOT NULL 
+  AND size < 200
+  AND size > 15
+  AND emissions < 80
+  AND emissions > 5
+`;
 
 // VG Client
 const coordinator = new vgplot.Coordinator();
 const vg = vgplot.createAPIContext({ coordinator });
 coordinator.databaseConnector(vgplot.wasmConnector({ duckdb: db._db }));
+```
+
+```js
+vg.coordinator().exec([,]);
 ```
 
 ```js
@@ -516,232 +527,359 @@ display(radiusLegendData);
 <!-- Multi view ------------------------------------------------------- -->
 
 ```js
+const $provincia = vg.Selection.single();
+const $comarca = vg.Selection.single();
+const $poblacio = vg.Selection.single();
 const $us = vg.Selection.single();
 const $motiu = vg.Selection.single();
-const $qual = vg.Selection.single();
+const $normativa = vg.Selection.single();
+const $qualEmissions = vg.Selection.single();
+const $qualEnergia = vg.Selection.single();
 const $date = vg.Selection.crossfilter();
-const $all = vg.Selection.intersect({
-  include: [$us, $motiu, $qual, $date],
+const $raster = vg.Selection.crossfilter();
+const $mainFilter = vg.Selection.intersect({
+  include: [
+    $provincia,
+    $comarca,
+    $poblacio,
+    $us,
+    $motiu,
+    $normativa,
+    $qualEmissions,
+    $qualEnergia,
+    $date,
+    $raster,
+  ],
   cross: true,
 });
 ```
 
 <h2 style="margin-bottom: 20px; font-weight: 600"> Multivista interactiva </h2>
-<div class="grid grid-cols-3" style="grid-auto-rows: min-content;">
-  <div class="card grid-colspan-3 grid-rowspan-1">
-    ${vg.plot(
-        vg.width(1200),
-        vg.height(150),
-        vg.rectY(
-          vg.from("certificats", {
-            filterBy: $all
-          }), {
-            x: vg.bin("data_entrada", {
-              interval: 'month',
-              as: "data_entrada_binned",
-              insetLeft: 5
-            }),
-            y: vg.count(),
-            fillOpacity: 1
-          }
-        ),
-        vg.intervalX({
-          as: $date
-        }),
-        // vg.panZoom({y: $ys}),
-        vg.highlight({
-          by: $date,
-          fill: "#ccc",
-          fillOpacity: 0.2
-        }),
-        vg.xTickSize(0),
-        vg.xLabel(null),
-        vg.yTickSize(0),
-    )}
-  </div>
-  <div class="card grid-colspan-2">
-    ${vg.vconcat(
-      vg.hconcat(
-        vg.vconcat(
-          // --------------- Energy Qualifications --------------- 
-          vg.plot(
-            vgTextMark("qual_emissions"),
-            vg.barX(
-              vg.from("certificats", {
-                filterBy: $all
-              }), {
-                y: "qual_emissions",
-                x: vg.count(),
-                fill: "qual_emissions",
-                inset: 0.5
-              }
-            ),
-            vg.marginRight(50),
-            vg.yScale("band"),
-            vg.colorDomain(qualifColorDomain),
-            vg.colorRange(qualifColorRange),
-            vg.yTickFormat((d) => qualifLabelsLookup[d]),
-            vg.yLabel("Qualificació emissions →"),
-            vg.highlight({
-              by: $qual
-            }),
-            vg.toggleY({
-              as: $qual
-            }),
-          ),
-          // --------------- Us edificis --------------- 
-          vg.plot(
-            vgTextMark("us_edifici"),
-            vg.barX(
-              vg.from("certificats", {
-                filterBy: $all
-              }), {
-                x: vg.count(),
-                y: "us_edifici",
-                inset: 0.5,
-                fill: "us_edifici",
-                sort: {
-                  y: "-x"
-                }
-              }
-            ),
-            vg.toggleY({
-              as: $us
-            }),
-            vg.highlight({
-              by: $us
-            }),
-            vg.marginRight(50),
-            vg.marginLeft(200),
-            vg.colorDomain(Object.keys(labels.us_edifici).map(Number)),
-            vg.colorRange(categoricalScheme5),
-            vg.yLabel("Ús edifici →"),
-            vg.yTickFormat((d) => labels.us_edifici[d]),
-          ),
-          // --------------- Motiu certificació --------------- 
-          vg.plot(
-            vgTextMark("motiu"),
-            vg.barX(
-              vg.from("certificats", {
-                filterBy: $all
-              }), {
-                x: vg.count(),
-                y: "motiu",
-                inset: 0.5,
-                fill: "motiu",
-                sort: {
-                  y: "-x"
-                }
-              }
-            ),
-            vg.toggleY({
-              as: $motiu
-            }),
-            vg.highlight({
-              by: $motiu
-            }),
-            vg.marginRight(50),
-            vg.marginLeft(200),
-            vg.colorRange(categoricalScheme5),
-            vg.yLabel("Motiu →"),
-            vg.yTickFormat((d) => labels.motiu[d]),
-            vg.colorDomain(Object.keys(labels.motiu).map(Number)),
-          ),
-        )
-      )
-    )}
-  </div>
-  <div class="card">
-    <div style="display:flex; flex-direction:row;">
-      <h3> Nombre de certificats </h3>
+<div id="multiview" class="grid grid-cols-3" style="grid-auto-rows: min-content;">
+  <div class="card grid-colspan-1">
+    <div style="display:flex; flex-direction:column;">
+      <div>
+        <h4> Nombre de certificats </h4>
+      </div>
       ${vg.plot(
         vg.text(
-          vg.from("certificats", {
-            filterBy: $all
+          vg.from("emissions_vs_size", {
+            filterBy: $mainFilter
           }), 
           {
             x: 0,
             text: vg.count(),
             fontSize: 60,
-            fontWeight: "bold"
+            fontWeight: "bold",
           }
         ),
         vg.xAxis(null),
       )}
+      <div style="display:flex; flex-direction:column; ">
+        <h3> Filtrar per: </h3>
+        <hr style="height: 0px; margin-top: -20px; margin-bottom:0"></hr>
+      </div>
     </div>
-    </br>
     ${
       vg.vconcat(
-        vg.menu({
-            from: "certificats",
-            column: "qual_emissions",
-            filterBy: $all,
-            as: $all,
-            label: "Qualificació emissions ",
-            format: (d) =>  qualifLabelsLookup[d] ?? 'Sense dades'
+        vg.search({
+            from: "emissions_vs_size",
+            column: "provincia",
+            as: $provincia,
+            label: "Provincia ",
         }),
         vg.vspace(30),
-        vg.menu({
-            from: "certificats",
-            column: "qual_energia",
-            filterBy: $all,
-            as: $all,
-            label: "Qualificació energia ",
-            format: (d) =>  qualifLabelsLookup[d]
+        vg.search({
+            from: "emissions_vs_size",
+            column: "comarca",
+            filterBy: $provincia,
+            as: $comarca,
+            label: "Comarca ",
         }),
         vg.vspace(30),
-        vg.menu({
-            from: "certificats",
-            column: "motiu",
-            filterBy: $all,
-            as: $all,
-            label: "Motiu",
-            format: (d) =>  labels.motiu[d]
-        }),
-        vg.vspace(30),
-        vg.menu({
-            from: "certificats",
-            column: "us_edifici",
-            filterBy: $all,
-            as: $all,
-            label: "Ús edifici",
-            format: (d) =>  labels.us_edifici[d]
-        }),
-        vg.vspace(30),
-        vg.menu({
-            from: "certificats",
-            column: "codi_poblacio",
-            filterBy: $all,
-            as: $all,
-            label: "Municipi",
-            format: (d) =>  municipisDict[d].municipi
-        }),
+        vg.search({
+            from: "emissions_vs_size",
+            column: "poblacio",
+            filterBy: $comarca,
+            as: $poblacio,
+            label: "Municipi ",
+        })
+      )
+    }
+  </div>
+  <div class="card grid-colspan-2">
+    <div style="display:flex; flex-direction:row;">
+      <div style="display:flex; flex-direction:column;">
+        <h4> Qualificació emissions </h4>
+        <div class="barplot-xs">
+          ${ 
+            vg.plot(
+              ...exploratoryCommonBarplot("qual_emissions", 350),
+              vg.barX(
+                vg.from("emissions_vs_size", {
+                  filterBy: $mainFilter
+                }), {
+                  y: "qual_emissions",
+                  x: vg.count(),
+                  fill: "qual_emissions",
+                  inset: 0.5
+                }
+              ),
+              vg.marginRight(50),
+              vg.yScale("band"),
+              vg.colorDomain(qualifColorDomain),
+              vg.colorRange(qualifColorRange),
+              vg.yTickFormat((d) => qualifLabelsLookup[d]),
+              vg.highlight({
+                by: $qualEmissions
+              }),
+              vg.toggleY({
+                as: $qualEmissions
+              }),
+            )
+          }
+        </div>
+      </div>
+      <div style="display:flex; flex-direction:column;">
+        <h4> Qualificació energia </h4>
+        <div class="barplot-xs">
+          ${ 
+            vg.plot(
+              ...exploratoryCommonBarplot("qual_energia", 350),
+              vg.barX(
+                vg.from("emissions_vs_size", {
+                  filterBy: $mainFilter
+                }), {
+                  y: "qual_energia",
+                  x: vg.count(),
+                  fill: "qual_energia",
+                  inset: 0.5
+                }
+              ),
+              vg.marginRight(50),
+              vg.yScale("band"),
+              vg.colorDomain(qualifColorDomain),
+              vg.colorRange(qualifColorRange),
+              vg.yTickFormat((d) => qualifLabelsLookup[d]),
+              vg.highlight({
+                by: $qualEnergia
+              }),
+              vg.toggleY({
+                as: $qualEnergia
+              }),
+            )
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card grid-colspan-3">
+    <div style="display:flex; flex-direction:row;">
+      <div style="display:flex; flex-direction:column;">
+        <h4> Ús edifici </h4>
+        <div class="barplot-xs">
+          ${ 
+            vg.plot(
+              ...exploratoryCommonBarplot("us_edifici", 250),
+              vg.barX(
+                vg.from("emissions_vs_size", {
+                  filterBy: $mainFilter
+                }), {
+                  x: vg.count(),
+                  y: "us_edifici",
+                  inset: 0.5,
+                  fill: "us_edifici",
+                  sort: {
+                    y: "-x"
+                  }
+                }
+              ),
+              vg.toggleY({
+                as: $us
+              }),
+              vg.highlight({
+                by: $us
+              }),
+              vg.marginRight(50),
+              vg.marginLeft(200),
+              vg.colorDomain(Object.keys(labels.us_edifici).map(Number)),
+              vg.colorRange(categoricalScheme5),
+              vg.yTickFormat((d) => truncateLabel(labels.us_edifici[d], 25)),
+            )
+          }
+        </div>
+      </div>
+      <div style="display:flex; flex-direction:column;">
+        <h4> Motiu certificació </h4>
+        <div class="barplot-xs">
+          ${ 
+            vg.plot(
+              ...exploratoryCommonBarplot("motiu", 250),
+              vg.barX(
+                vg.from("emissions_vs_size", {
+                  filterBy: $mainFilter
+                }), {
+                  x: vg.count(),
+                  y: "motiu",
+                  inset: 0.5,
+                  fill: "motiu",
+                  sort: {
+                    y: "-x"
+                  }
+                }
+              ),
+              vg.toggleY({
+                as: $motiu
+              }),
+              vg.highlight({
+                by: $motiu
+              }),
+              vg.marginRight(50),
+              vg.marginLeft(200),
+              vg.colorRange(categoricalScheme5),
+              vg.yTickFormat((d) => truncateLabel(labels.motiu[d], 25)),
+              vg.colorDomain(Object.keys(labels.motiu).map(Number)),
+            )
+          }
+        </div>
+      </div>
+      <div style="display:flex; flex-direction:column;">
+        <h4> Normativa de certificació </h4>
+        <div class="barplot-xs">
+          ${ 
+            vg.plot(
+              ...exploratoryCommonBarplot("normativa", 250),
+              vg.barX(
+                vg.from("emissions_vs_size", {
+                  filterBy: $mainFilter
+                }), {
+                  x: vg.count(),
+                  y: "normativa",
+                  inset: 0.5,
+                  fill: "normativa",
+                  sort: {
+                    y: "-x"
+                  }
+                }
+              ),
+              vg.toggleY({
+                as: $normativa
+              }),
+              vg.highlight({
+                by: $normativa
+              }),
+              vg.marginRight(50),
+              vg.marginLeft(200),
+              vg.colorRange(categoricalScheme5),
+              vg.yTickFormat((d) => truncateLabel(labels.normativa[d], 25)),
+              vg.colorDomain(Object.keys(labels.normativa).map(Number)),
+            )
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card grid-colspan-3">
+    ${
+      resize((width) => vg.plot(
+        vg.width(1500),
+          vg.height(170),
+          vg.gridY({stroke: "black", strokeWidth: 0.5, strokeOpacity: 0.8, strokeDasharray: 2}),
+          vg.rectY(
+            vg.from("emissions_vs_size", {
+              filterBy: $mainFilter
+            }), {
+              x: vg.bin("data_entrada", {
+                interval: 'month',
+              }),
+              tip: true,
+              y: vg.count(),
+              fill: "#6e6e6e",
+              fillOpacity: 1,
+            }
+          ),
+          vg.intervalX({as: $date}),
+          vg.xTickSize(0),
+          vg.xLabel(null),
+          vg.yTickSize(0),
+        )
       )
     }
   </div>
 </div>
 
-<div>
-
-</div>
-
 ```js
 function vgTextMark(column) {
   return vg.text(
-    vg.from("certificats", {
-      filterBy: $all,
+    vg.from("emissions_vs_size", {
+      filterBy: $mainFilter,
     }),
     {
       x: vg.count(),
       y: column,
       inset: 0.5,
       text: vg.count(),
-      dx: 20,
+      dx: 30,
+      fontSize: 14,
     }
   );
 }
 ```
 
 ```js
+function exploratoryCommonBarplot(column, height) {
+  return [
+    vg.height(height),
+    vgTextMark(column),
+    vg.xGrid(true),
+    vg.yLabel(null),
+    vg.xLabel(null),
+    vg.xTicks(4),
+    vg.yTickSize(0),
+    vg.yTickFormat((value) =>
+      value.length > 10 ? value.slice(0, 10) + "..." : value
+    ),
+  ];
+}
+```
+
+<div class="card">
+${vg.plot(
+  vg.frame({fill: "black"}),
+  vg.width(1500),
+  vg.height(250),
+  vg.raster(
+    vg.from("emissions_vs_size", {filterBy: $mainFilter}),
+    {
+      x: "emissions",
+      y: "size",
+      fill: "qual_energia",
+      pixelSize: 5,
+      imageRendering: "pixelated"
+    }
+  ),
+  vg.intervalXY({as: $raster}),
+  vg.colorDomain(qualifColorDomain),
+  vg.colorRange(qualifColorRange),
+)}
+</div>
+
+```js
+function truncateLabel(label, maxChars) {
+  return label.length > maxChars ? label.slice(0, maxChars) + "..." : label;
+}
+```
+
+```js
+display(exploratoryCommonBarplot());
+```
+
+```js
 display([...(await sql`SELECT * FROM CERTIFICATS LIMIT 10`)]);
 ```
+
+<style>
+.barplot-xs text {
+  font-size: 15px;
+}
+</style>
