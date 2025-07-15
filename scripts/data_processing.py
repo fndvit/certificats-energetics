@@ -127,10 +127,10 @@ def generateMundissec(df):
     geometry = [Point(xy) for xy in zip(df["utm_x"], df["utm_y"])]
     mundissec_gdf = gpd.GeoDataFrame(df, geometry=geometry, crs="EPSG:25831")
 
-    # Perform spatial join
+    # Spatial join
     full_df_mundissec = gpd.sjoin(mundissec_gdf, ceccsen, how="left", predicate="within")
 
-    # Drop index column from the join
+    # Delete index column
     full_df_mundissec = full_df_mundissec.drop(columns=["index_right"])
 
     return full_df_mundissec
@@ -181,7 +181,7 @@ def groupSameMeaningValues(df, same_meaning_values):
 def removeOutliers(df):
     print("Removing outliers...")
     df = df[df['emissions_de_co2'] >= 0]
-    upper_bound = df['emissions_de_co2'].quantile(0.995)
+    upper_bound = df['emissions_de_co2'].quantile(0.975)
     df = df[df['emissions_de_co2'] <= upper_bound]
 
     return df
