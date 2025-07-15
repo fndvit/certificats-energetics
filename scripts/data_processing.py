@@ -180,13 +180,9 @@ def groupSameMeaningValues(df, same_meaning_values):
 
 def removeOutliers(df):
     print("Removing outliers...")
-    Q1 = df['emissions_de_co2'].quantile(0.10)
-    Q3 = df['emissions_de_co2'].quantile(0.90)
-    IQR = Q3 - Q1
-
-    upper_bound = Q3 + 1.5 * IQR
-
-    df = df.loc[df['emissions_de_co2'] < upper_bound]
+    df = df[df['emissions_de_co2'] >= 0]
+    upper_bound = df['emissions_de_co2'].quantile(0.975)
+    df = df[df['emissions_de_co2'] <= upper_bound]
 
     return df
 

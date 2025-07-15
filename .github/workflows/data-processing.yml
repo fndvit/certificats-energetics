@@ -20,10 +20,10 @@ jobs:
           pip install pandas pyarrow fastparquet geopandas shapely scikit-learn requests
 
       - name: Fetch raw data
-        run: python scripts/data_fetching.py
+        run: python scripts/fetch_certificates.py
 
       - name: Fetch municipis data
-        run: python scripts/data_fetching_municipis.py
+        run: python scripts/fetch_municipis.py
 
       - name: Run data cleaning script
         run: python scripts/data_processing.py
