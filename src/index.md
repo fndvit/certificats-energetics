@@ -81,14 +81,10 @@ iframe {
   <h2>És una iniciativa per <b>reimaginar la visualització de dades obertes de l'administració catalana</b> fent servir l'<em>Observable Framework</em>.</h2>
 </div>
 
-<div class="grid grid-cols-3">
+<div class="grid grid-cols-2">
   <div class="card">
     <h2><a href="/observatori.html" >Dashboard</a></h2>
     <p>Remake del dashboard de l'ICAEN.</p>
-  </div>
-  <div class="card">
-    <h2>Mapa interactiu</h2>
-    <p>Ubiquem geogràficament les dades al mapa.</p>
   </div>
   <div class="card">
     <h2><a href="/eina.html" >Eina de presa de decisions</a></h2>

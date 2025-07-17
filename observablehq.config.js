@@ -8,8 +8,7 @@ export default {
   // lets you organize them into sections and have unlisted pages.
   pages: [
     { name: 'Observatori', path: 'observatori.html' },
-    { name: 'Mosaic test', path: 'mosaic.html' },
-    { name: 'Eina', path: 'eina.html' }
+    { name: 'Eina de decisions', path: 'eina.html' }
   ],
 
   // Content to add to the head of the page, e.g. for a favicon:

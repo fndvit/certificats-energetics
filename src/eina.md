@@ -542,26 +542,50 @@ const informationPhrase =
 const hoverItemHeader = 
   html `
   <h3>
-      ${hoveredInfo.names.filter(n => n !== '').join(' / ')}
+      ${hoveredInfo.names ? hoveredInfo.names.filter(n => n !== '').join(' / ') : ""}
   </h3>` 
 ```
 
 <!-- { value: emissionsDataValue, pos: emissionsDataPos, totalValues: incomeValues.length } -->
 ```js
 const hoveredItemCard = (data, indicator, type) => {
-  return html `
+  console.log("Hovered item card data", data);
+  if (!hoveredPolygonId) {
+    return html `
     <div style="display: flex; gap: 20px; justify-content: space-between; height: 100%;">
       <div style="flex: 1; display: flex; flex-direction: column;">
         <h5>${indicator.name}</h5>
         <div style="display: flex; flex-direction: row; gap:4px; align-items: end">
-          <h1 class="${type == 'emissions' ? 'indicador-emissions' : 'indicador-demografic'}">${data.value.toFixed(2)}</h1>
-          <h3 class="${type == 'emissions' ? 'indicador-emissions' : 'indicador-demografic'}">${indicator.units}</h3>
-        </div>
-        <div style="display: flex; flex-direction: row; gap:4px; align-items: end">
-          <h3>Posició</h3> <h2> ${data.pos} </h2>  <h3> de  </h3> <h2>${data.totalValues}</h2>
+          
         </div>
       </div>
     </div>`
+  }
+  else if (!data.value) {
+    return html `
+    <div style="display: flex; gap: 20px; justify-content: space-between; height: 100%;">
+      <div style="flex: 1; display: flex; flex-direction: column;">
+        <h5>${indicator.name}</h5>
+        <div style="display: flex; flex-direction: row; gap:4px; align-items: end">
+          <h1 class="${type == 'emissions' ? 'indicador-emissions' : 'indicador-demografic'}">${'Sense dades'}</h1>
+        </div>
+      </div>
+    </div>`
+  }
+
+  return html `
+  <div style="display: flex; gap: 20px; justify-content: space-between; height: 100%;">
+    <div style="flex: 1; display: flex; flex-direction: column;">
+      <h5>${indicator.name}</h5>
+      <div style="display: flex; flex-direction: row; gap:4px; align-items: end">
+        <h1 class="${type == 'emissions' ? 'indicador-emissions' : 'indicador-demografic'}">${data.value.toFixed(2)}</h1>
+        <h3 class="${type == 'emissions' ? 'indicador-emissions' : 'indicador-demografic'}">${indicator.units}</h3>
+      </div>
+      <div style="display: flex; flex-direction: row; gap:4px; align-items: end">
+        <h3>Posició</h3> <h2> ${data.pos} </h2>  <h3> de  </h3> <h2>${data.totalValues}</h2>
+      </div>
+    </div>
+  </div>`
 }
 ```
 
