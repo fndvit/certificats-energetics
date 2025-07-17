@@ -7,8 +7,8 @@ export default {
   // all pages will be listed in alphabetical order. Listing pages explicitly
   // lets you organize them into sections and have unlisted pages.
   pages: [
-    {name: "Observatori", path: "observatori.html"},
-    {name: "Mosaic test", path: "mosaic.html"}
+    { name: "Observatori", path: "observatori.html" },
+    { name: "Mosaic test", path: "mosaic.html" },
   ],
 
   // Content to add to the head of the page, e.g. for a favicon:
@@ -18,7 +18,7 @@ export default {
   root: "src",
 
   // Some additional configuration options and their defaults:
-  // theme: "default", // try "light", "dark", "slate", etc.
+  theme: "default", // try "light", "dark", "slate", etc.
   // header: "", // what to show in the header (HTML)
   // footer: "Built with Observable.", // what to show in the footer (HTML)
   sidebar: true, // whether to show the sidebar
