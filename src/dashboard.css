@@ -1,8 +1,8 @@
-@import url("observablehq:default.css");
-@import url("observablehq:theme-air.css");
+@import url('observablehq:default.css');
+@import url('observablehq:theme-air.css');
 
 :root {
-  --sans-serif: "neue-haas-grotesk-display", sans-serif;
+  --sans-serif: 'neue-haas-grotesk-display', sans-serif;
   --serif: merriweather, serif;
   --indicadorEmissions: #f75757;
   --indicadorDemografic: #577ff7;

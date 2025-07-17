@@ -91,7 +91,7 @@ iframe {
     <p>Ubiquem geogràficament les dades al mapa.</p>
   </div>
   <div class="card">
-    <h2>Eina de presa de decisions</h2>
+    <h2><a href="/eina.html" >Eina de presa de decisions</a></h2>
     <p>Presentació de diferents escenaris per tal de facilitar la presa de decisions.</p>
   </div>
 </div>
