@@ -55,7 +55,7 @@ const db = await DuckDBClient.of({
 });
 const sql = db.sql.bind(db);
 
-await db.sql`
+await sql`
   CREATE TABLE IF NOT EXISTS emissions_vs_size AS
   SELECT
     emissions_de_co2::DOUBLE AS emissions,
@@ -72,20 +72,12 @@ await db.sql`
   FROM certificats
   WHERE emissions_de_co2 IS NOT NULL 
   AND metres_cadastre IS NOT NULL 
-  AND size < 200
-  AND size > 15
-  AND emissions < 80
-  AND emissions > 5
 `;
 
 // VG Client
 const coordinator = new vgplot.Coordinator();
 const vg = vgplot.createAPIContext({ coordinator });
 coordinator.databaseConnector(vgplot.wasmConnector({ duckdb: db._db }));
-```
-
-```js
-vg.coordinator().exec([,]);
 ```
 
 ```js
@@ -130,39 +122,26 @@ INNER JOIN municipis
 WHERE emissions_de_co2 IS NOT NULL
   AND zona_climatica IS NOT NULL
   AND codi_poblacio IS NOT NULL
-  AND municipis.poblacio > ${populationThreshold}
 GROUP BY zona_climatica, codi_poblacio, municipis.poblacio
 ORDER BY avg_emissions ASC;
 ```
 
-```sql id=grouped_municipis
-SELECT
-  zona_climatica,
-  codi_poblacio,
-  COUNT(*) AS n_certificats,
-  AVG(emissions_de_co2) AS avg_emissions,
-  AVG(qual_emissions) AS avg_qual_emissions,
-  SUM(emissions_de_co2) AS sum_emissions,
-FROM certificats
-WHERE emissions_de_co2 IS NOT NULL
-  AND zona_climatica IS NOT NULL
-  AND codi_poblacio IS NOT NULL
-GROUP BY codi_poblacio, zona_climatica
-ORDER BY avg_emissions ASC;
-```
-
-```sql id=grouped_zona_climatica
-SELECT
-  zona_climatica,
-  AVG(emissions_de_co2) AS avg_emissions
-FROM certificats
-INNER JOIN municipis
-  ON certificats.codi_poblacio = municipis.codi
-WHERE emissions_de_co2 IS NOT NULL
-  AND zona_climatica IS NOT NULL
-  AND municipis.poblacio > ${populationThreshold}
-GROUP BY zona_climatica
-ORDER BY avg_emissions ASC;
+```js
+const avg_climate_zone = Array.from(
+  [...grouped_poblacio]
+    .filter((d) => d.poblacio >= populationThreshold && d.zona_climatica)
+    .reduce((acc, curr) => {
+      const zona = curr.zona_climatica;
+      const item = acc.get(zona) || { totalSum: 0, totalCount: 0 };
+      item.totalSum += curr.sum_emissions || 0;
+      item.totalCount += curr.n_certificats || 0;
+      acc.set(zona, item);
+      return acc;
+    }, new Map())
+).map(([zona, { totalSum, totalCount }]) => ({
+  zona_climatica: zona,
+  avg_emissions: totalSum / totalCount,
+}));
 ```
 
 <!-- FIRST: QUALIFICATIONS HISTOGRAMS -------------------------------------------------------------------------- -->
@@ -291,43 +270,13 @@ ORDER BY avg_emissions ASC;
 
 <!-- THIRD: CLIMATE ZONES -------------------------------------------------------------------------- -->
 
-<!-- <div class="card">
-<p> Color/ Dins una població hi han múltiples zones climàtiques </p>
-  <h2 style="font-weight: 600"> Certificacions per zona climàtica </h2>
-    ${Plot.plot({
-      width: 900,
-      height: 400,
-      x: {
-        label: "Nombre d'edificis certificats",
-        nice: true
-      },
-      y: {
-        label: "Zona climàtica",
-      },
-      color: {
-        legend: true,
-        scheme: "turbo",
-        label: "Mitjana d’emissions de Kg CO₂/m2 * any"
-      },
-      marks: [
-        Plot.barX(grouped_poblacio, {
-          x: "n_certificats",
-          y: "zona_climatica",
-          fill: "avg_emissions",
-          tip: true,
-          title: d =>`Població: ${municipisByCode[d.codi_poblacio]} \nNombre d'edificis certificats: ${d.n_certificats}\nMitjana d’emissions: ${d.avg_emissions.toFixed(2)}`
-        })
-      ]
-    })}
-</div> -->
-
-<!-- <div class="card">
-  <h2 style="font-weight: 600"> Certificacions per zona climàtica </h2>
-    ${['B3', 'C2', 'C3', 'D2', 'D3'].map(
-      (zona) => resize((width) => zonaClimaticaBeeswarm([...grouped_zona_climatica].filter(d => d.zona_climatica == zona), zona, beeswarmRDomain, [10, 100]))
-      )
-    }
-</div> -->
+```js
+const threshold_poblacio = [...grouped_poblacio].filter(
+  (d) =>
+    municipis.find((m) => m.codi == d.codi_poblacio).poblacio >=
+    populationThreshold
+);
+```
 
 <div class="card">
   ${populationRangeInput}
@@ -412,7 +361,7 @@ ORDER BY avg_emissions ASC;
       r: { range: [1, 20] },
       marks: [
         Plot.dot(
-          grouped_poblacio,
+          threshold_poblacio,
           Plot.dodgeY("middle", {
             x: "avg_emissions",
             r: "sum_emissions",
@@ -455,13 +404,13 @@ ORDER BY avg_emissions ASC;
           })
         ),
         Plot.ruleY(
-          grouped_zona_climatica, {x1: beeswarmXDomain[0], x2: "avg_emissions", y:0, fy: "zona_climatica", strokeWidth: 2, stroke: "#758292", opacity: 0.5}
+          avg_climate_zone, {x1: beeswarmXDomain[0], x2: "avg_emissions", y:0, fy: "zona_climatica", strokeWidth: 2, stroke: "#758292", opacity: 0.5}
         ),
         Plot.dotX(
-          grouped_zona_climatica, {x: "avg_emissions", fy: "zona_climatica", stroke: "#750000", fill:"white", r:4}
+          avg_climate_zone, {x: "avg_emissions", fy: "zona_climatica", stroke: "#750000", fill:"white", r:4}
         ),
         Plot.text(
-          grouped_zona_climatica, {x: beeswarmXDomain[0], text: (d) => d.zona_climatica, fy: "zona_climatica", dx: -30, fontSize: 14, fontWeight: "bold"  }
+          avg_climate_zone, {x: beeswarmXDomain[0], text: (d) => d.zona_climatica, fy: "zona_climatica", dx: -30, fontSize: 14, fontWeight: "bold"  }
         )
       ]
     })}
@@ -469,10 +418,10 @@ ORDER BY avg_emissions ASC;
 
 ```js
 const beeswarmRDomain = d3.extent([
-  ...new Set([...grouped_poblacio].map((d) => d.sum_emissions)),
+  ...new Set(threshold_poblacio.map((d) => d.sum_emissions)),
 ]);
 const beeswarmXDomain = d3.extent([
-  ...new Set([...grouped_poblacio].map((d) => d.avg_emissions)),
+  ...new Set(threshold_poblacio.map((d) => d.avg_emissions)),
 ]);
 ```
 
@@ -535,8 +484,9 @@ const $motiu = vg.Selection.single();
 const $normativa = vg.Selection.single();
 const $qualEmissions = vg.Selection.single();
 const $qualEnergia = vg.Selection.single();
-const $date = vg.Selection.crossfilter();
-const $raster = vg.Selection.crossfilter();
+const $date = vg.Selection.intersect();
+const $raster = vg.Selection.intersect();
+
 const $mainFilter = vg.Selection.intersect({
   include: [
     $provincia,
@@ -868,10 +818,6 @@ ${vg.plot(
 function truncateLabel(label, maxChars) {
   return label.length > maxChars ? label.slice(0, maxChars) + "..." : label;
 }
-```
-
-```js
-display(exploratoryCommonBarplot());
 ```
 
 ```js
