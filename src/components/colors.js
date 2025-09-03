@@ -5,12 +5,23 @@ export const qualifColorRange = [
   '#a2cf2a',
   '#f7df1b',
   '#f18f20',
-  '#eb422bff',
+  '#eb422b',
   '#ea2038'
 ];
-export const categoricalScheme5 = ['#f6de19', '#3f6f94', '#daa4f9', '#bf3e05', '#35c8ef'];
+export const categoricalScheme5 = [
+  '#4269d0',
+  '#efb118',
+  '#ff725c',
+  '#6cc5b0',
+  '#3ca951',
+  '#ff8ab7',
+  '#a463f2',
+  '#97bbf5',
+  '#9c6b4e',
+  '#9498a0'
+];
 
-export const mapThresholdScheme = [
+export const mapColorScheme = [
   '#ffeda0',
   '#fed976',
   '#feb24c',

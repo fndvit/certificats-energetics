@@ -1,5 +1,4 @@
 import mapboxgl from 'npm:mapbox-gl';
-import { mapThresholdScheme } from './colors.js';
 
 class DataManager {
   /* ------------------
@@ -228,68 +227,27 @@ export class ChoroplethMap {
   }
 
   async onMapLoad() {
-    this.map
-      .addSource(ChoroplethMap.Metadata[0].source.id, ChoroplethMap.Metadata[0].source)
-      .addSource(ChoroplethMap.Metadata[1].source.id, ChoroplethMap.Metadata[1].source)
-      .addSource(ChoroplethMap.Metadata[2].source.id, ChoroplethMap.Metadata[2].source)
-      .addLayer(
-        {
-          ...ChoroplethMap.Metadata[0].layers.border,
-          minzoom: this.zoomLevels[0][0],
-          maxzoom: this.zoomLevels[0][1]
-        },
-        'settlement-subdivision-label'
-      )
-      .addLayer(
-        {
-          ...ChoroplethMap.Metadata[1].layers.border,
-          minzoom: this.zoomLevels[1][0],
-          maxzoom: this.zoomLevels[1][1]
-        },
-        'settlement-subdivision-label'
-      )
-      .addLayer(
-        {
-          ...ChoroplethMap.Metadata[2].layers.border,
-          minzoom: this.zoomLevels[2][0],
-          maxzoom: this.zoomLevels[2][1]
-        },
-        'settlement-subdivision-label'
-      )
-      .addLayer(
-        {
-          ...ChoroplethMap.Metadata[0].layers.fill,
-          minzoom: this.zoomLevels[0][0],
-          maxzoom: this.zoomLevels[0][1]
-        },
-        'tunnel-simple'
-      )
-      .addLayer(
-        {
-          ...ChoroplethMap.Metadata[1].layers.fill,
-          minzoom: this.zoomLevels[1][0],
-          maxzoom: this.zoomLevels[1][1]
-        },
-        'tunnel-simple'
-      )
-      .addLayer(
-        {
-          ...ChoroplethMap.Metadata[2].layers.fill,
-          minzoom: this.zoomLevels[2][0],
-          maxzoom: this.zoomLevels[2][1]
-        },
-        'tunnel-simple'
-      )
-      .addControl(
-        new mapboxgl.NavigationControl({ showCompass: false, showZoom: true }),
-        'top-right'
-      );
+    ChoroplethMap.Metadata.forEach((meta) => {
+      this.map.addSource(meta.source.id, meta.source);
+    });
 
-    // ////console.log(
-    //   'Layers:',
-    //   this.map.getStyle().layers.map((l) => l.id)
-    // );
-    // ////console.log('Sources:', this.map.getStyle().sources);
+    ['border', 'fill'].forEach((type) => {
+      this.zoomLevels.forEach((zoomLevel, i) => {
+        this.map.addLayer(
+          {
+            ...ChoroplethMap.Metadata[i].layers[type],
+            minzoom: zoomLevel[0],
+            maxzoom: zoomLevel[1]
+          },
+          type == 'border' ? 'settlement-subdivision-label' : 'tunnel-simple'
+        );
+      });
+    });
+
+    this.map.addControl(
+      new mapboxgl.NavigationControl({ showCompass: false, showZoom: true }),
+      'top-right'
+    );
 
     document.dispatchEvent(new Event('map-loaded', { bubbles: true }));
   }
@@ -407,10 +365,10 @@ export class ChoroplethMap {
 
     const colorExpression = [
       'step',
-      matchExpression, // input: numeric value from match
+      matchExpression,
       this.noDataColor, // color for 0 (unmatched)
       1,
-      ...colors // [stop1, color1, stop2, color2, ...]
+      ...colors
     ];
 
     console.log('CATEGORICAL COLOR EXPRESSION', colorExpression);
@@ -433,7 +391,7 @@ export class ChoroplethMap {
 
     const { domain, range } = scheme;
 
-    // Modify insignifically repeated values to not raise Mapbox
+    // Modify insignifically repeated values to not raise Mapbox error
     const cleanDomain = this.normalizeDomain(domain);
 
     const matchExpression = ['match', ['get', tilesetId]];
@@ -446,7 +404,6 @@ export class ChoroplethMap {
 
     const interpolateExpression = ['interpolate', ['linear'], matchExpression];
 
-    // TODO: Fix single value in domain
     for (let i = 0; i < cleanDomain.length; i++) {
       interpolateExpression.push(cleanDomain[i], range[i]);
     }
@@ -502,10 +459,6 @@ export class ChoroplethMap {
     ];
   }
 
-  /**
-   * Update map opacity based on an income value range.
-   * @param {number[]} range - An array of two integers: [min, max]
-   */
   updateMapOpacity(range) {
     console.log('Entered updateMapOpacity function', [range, this.currentDatasetIndex]);
     const layerOpacity = this.createOpacityExpression(
@@ -590,14 +543,11 @@ export class ChoroplethMap {
   }
 
   updateLayerVisibilityAndZoom(availableLevels) {
-    // console.log('Available levels', availableLevels);
     const visibleIndices = availableLevels
       .map((hasData, i) => (hasData ? i : null))
       .filter((i) => i !== null);
 
     this.visibleIndices = visibleIndices;
-
-    // console.log('Visible indices', visibleIndices);
 
     let zoomLevels;
 
@@ -624,8 +574,6 @@ export class ChoroplethMap {
     }
 
     this.zoomLevels = visibleIndices.map((_, i) => zoomLevels[i]);
-
-    // console.log('Map zoom levels', this.zoomLevels);
 
     visibleIndices.forEach((layerIdx, i) => {
       const layerMeta = ChoroplethMap.Metadata[layerIdx];

@@ -1,5 +1,5 @@
 ---
-title: Mosaic test
+title: Observatori
 toc: false
 style: ./dashboard.css
 ---
@@ -682,6 +682,7 @@ const $mainFilter = vg.Selection.intersect({
           vg.xTickSize(0),
           vg.xLabel(null),
           vg.yTickSize(0),
+          vg.yLabel('Nombre de certificats')
         )
       )
     }
@@ -701,7 +702,7 @@ function vgTextMark(column) {
       text: vg.count(),
       dx: 30,
       fontSize: 14,
-    }
+    },
   );
 }
 ```
@@ -741,6 +742,8 @@ ${vg.plot(
   vg.intervalXY({as: $raster}),
   vg.colorDomain(qualifColorDomain),
   vg.colorRange(qualifColorRange),
+  vg.yLabel('Superfície (m2)'),
+  vg.xLabel('Emissions (Kg/CO2 * any)'),
 )}
 </div>
 

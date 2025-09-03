@@ -15,7 +15,7 @@ import mapboxgl from 'npm:mapbox-gl';
 import * as vgplot from 'npm:@uwdata/vgplot';
 import rangeSlider from "npm:range-slider-input";
 import { ckmeans } from 'simple-statistics';
-import { qualifColorDomain, qualifColorRange, categoricalScheme5, mapThresholdScheme } from './components/colors.js';
+import { qualifColorDomain, qualifColorRange, categoricalScheme5, mapColorScheme } from './components/colors.js';
 import { ChoroplethMap } from './components/choropleth.js';
 import stores from './components/stores.js';
 
@@ -41,30 +41,59 @@ const datasets = [
 ];
 ```
 
-```js
+<!-- ```js
 display(datasets)
-```
+``` -->
 
 <!-- Dictionaries -->
 ```js
+const binningTypes = [
+  {
+    name: "CKMeans",
+    value: "ckmeans"
+  },
+  {
+    name: "Logarítmica",
+    value: "logarithmic"
+  },
+]
+
 const emissionsIndicators = [
     {
       name: 'Mitjana d\'emissions',
       value: 'mean_emissions',
-      binOperation: 'threshold',
-      colors: mapThresholdScheme,
+      binOperation: 'ckmeans',
+      colors: mapColorScheme,
       sequentialColors: d3.quantize(d3.interpolateYlOrRd, 8).map((d) => d3.color(d).formatHex()),
-      colorScaleType: 'sequential',
+      colorScaleType: 'categoric',
       units: 'Kg C02'
     },
     {
       name: 'Emissions totals',
       value: 'total_emissions',
       binOperation: 'logarithmic',
-      colors: mapThresholdScheme,
-      sequentialColors: ["#ffffcc", "#ffea9a", "#fecd6a", "#fea246", "#fc6932", "#e92a21", "#c00624", "#800026"],
-      colorScaleType: 'sequential',
-      units: 'Kg C02'
+      colors: mapColorScheme,
+      sequentialColors: ["#ffffcc", "#ffea9a", "#fecd6a", "#fea246", "#fc6932", "#e92a21", "#c00624", "#2b2627ff"],
+      colorScaleType: 'categoric',
+      units: 'Gg C02'
+    },
+    {
+      name: "Qualificació mitjana d'energia",
+      value: 'mean_energy_qual',
+      binOperation: 'ckmeans',
+      colors: qualifColorRange,
+      sequentialColors: ["#ffffcc", "#ffea9a", "#fecd6a", "#fea246", "#fc6932", "#e92a21", "#c00624", "#2b2627ff"],
+      colorScaleType: 'categoric',
+      units: '1-7'
+    },
+    {
+      name: "Qualificació mitjana d'emissions",
+      value: 'mean_emissions_qual',
+      binOperation: 'ckmeans',
+      colors: qualifColorRange,
+      sequentialColors: ["#ffffcc", "#ffea9a", "#fecd6a", "#fea246", "#fc6932", "#e92a21", "#c00624", "#2b2627ff"],
+      colorScaleType: 'categoric',
+      units: '1-7'
     },
 ];
 
@@ -129,7 +158,7 @@ const setHoveredPolygonId = (x) => (hoveredPolygonId.value = x);
 
 ```js
 // Update Emissions Indicator
-function getEmissionsIndicatorData(indicator) {
+function getEmissionsIndicatorData(indicator, binningType) {
   const data = [];
   datasets.forEach((dataset, i) => {
     const emissionsIndicatorArray = dataset.map((d) => d[indicator.value]);
@@ -139,7 +168,8 @@ function getEmissionsIndicatorData(indicator) {
     let fullDomain;
     let thresholds;
   
-    if(indicator.binOperation == 'threshold') {
+    if(indicator.binOperation == 'ckmeans') {
+      console.log('CKmeans BINNING');
       const ckMeans = ckmeans(emissionsIndicatorArray, nClasses);
       const ckThresholds = ckMeans.map((d) => d3.min(d));
 
@@ -156,6 +186,7 @@ function getEmissionsIndicatorData(indicator) {
     }
 
     else if (indicator.binOperation === 'logarithmic') {
+      console.log('Loagrithmic BINNNNING');
       const min = d3.min(emissionsIndicatorArray);
       const max = d3.max(emissionsIndicatorArray);
       const nClasses = indicator.colors.length;
@@ -163,25 +194,20 @@ function getEmissionsIndicatorData(indicator) {
       const logMin = Math.log10(min);
       const logMax = Math.log10(max);
 
-      // Create full domain: min + intermediate stops + max (length = nClasses)
       const logStops = Array.from({ length: nClasses }, (_, i) =>
         Math.pow(10, logMin + i * (logMax - logMin) / (nClasses - 1))
       );
 
-      // Ensure exact min and max (no floating error)
       logStops[0] = min;
       logStops[logStops.length - 1] = max;
 
-      // Thresholds: internal boundaries only (length = nClasses - 1)
-      thresholds = logStops.slice(1); // same as ckmeans: [stop1, stop2, ..., stopN-1]
+      thresholds = logStops.slice(1);
 
-      // Bin the data based on internal thresholds (produces n bins)
       bins = d3
         .bin()
         .thresholds(thresholds)
         .value((d) => d)(emissionsIndicatorArray);
 
-      // Full domain includes the left edge of each bin and the right edge of the last
       const stops = bins.map((d) => d.x0);
       stops.push(bins[bins.length - 1].x1);
 
@@ -198,6 +224,7 @@ function getEmissionsIndicatorData(indicator) {
 function getIncomeIndicatorData(indicator) {
   const data = [];
   datasets.forEach((dataset, i) => {
+    console.log('UPDATING INCOME DATASET', i)
     if(indicator.levels[i]) {
       const incomeEntries = dataset
         .map((d) => ({id: d[valuesByLevel[i].id] ,value: d[indicator.value]}))
@@ -209,6 +236,8 @@ function getIncomeIndicatorData(indicator) {
       const sum = incomeValues.reduce((a, b) => a + b, 0);
       const count = incomeValues.length;
 
+      console.log('Pushing content', incomeValues)
+
       data.push({ 
         mean: sum / count, 
         min: incomeValues[0], 
@@ -219,6 +248,7 @@ function getIncomeIndicatorData(indicator) {
       });
     }
     else {
+      console.log('Pushing null')
       data.push(null)
     }
   })
@@ -228,11 +258,15 @@ function getIncomeIndicatorData(indicator) {
 ```
 
 ```js
-const emissionsIndicatorData = getEmissionsIndicatorData(emissionsIndicator);
+const emissionsIndicatorData = getEmissionsIndicatorData(emissionsIndicator, binningType.value);
 ```
 
+<!-- ```js
+display(emissionsIndicatorData)
+``` -->
+
 ```js
-const incomeIndicatorData = getIncomeIndicatorData(incomeIndicator)
+const incomeIndicatorData = getIncomeIndicatorData(incomeIndicator);
 ```
 
 <!-- Inputs -->
@@ -261,20 +295,21 @@ const slider = rangeSlider(sliderElement, {
       const pLow = d3.bisectLeft(values, v[0]) / n;
       const pHigh = d3.bisectLeft(values, v[1]) / n;
       
-      // console.log('SETTING NEW PERCENTILES', {pLow, pHigh});
+      console.log('SETTING NEW PERCENTILES', {pLow, pHigh});
       stores.percentileRange = [pLow, pHigh];
 
       sliderElement.dispatchEvent(new Event("input", {bubbles: true}));
+      console.log('Setting income range', v)
       setIncomeRange(v);
     }
   }
 });
 
-function updateSliderBounds(newMin, newMax, q1, q3, currentValues) {
+function updateSliderBounds(newMin, newMax, indicatorValues) {
   console.log('Updating slider bounds according to percentiles', stores.percentileRange)
   const [pLow, pHigh] = stores.percentileRange;
-  const newLow = d3.quantileSorted(currentValues, pLow);
-  const newHigh = d3.quantileSorted(currentValues, pHigh);
+  const newLow = d3.quantileSorted(indicatorValues, pLow);
+  const newHigh = d3.quantileSorted(indicatorValues, pHigh);
 
   slider.min(newMin);
   slider.max(newMax);
@@ -284,6 +319,12 @@ function updateSliderBounds(newMin, newMax, q1, q3, currentValues) {
 
 
 // Indicators -----------
+const binningTypeInput = Inputs.select(binningTypes, {
+    label: "Estratègia d'agrupació",
+    format: (d) => d.name,
+    value: binningTypes[0]
+  })
+
 const emissionsIndicatorInput = Inputs.select(emissionsIndicators, {
     label: "Indicador d'emissions",
     format: (d) => d.name,
@@ -298,7 +339,12 @@ const incomeIndicatorInput = Inputs.select(incomeIndicators, {
   })
 ```
 
+<!-- ```js
+display(binningType)
+``` -->
+
 ```js
+const binningType = Generators.input(binningTypeInput);
 const emissionsIndicator = Generators.input(emissionsIndicatorInput);
 const incomeIndicator = Generators.input(incomeIndicatorInput);
 ```
@@ -317,10 +363,7 @@ document.addEventListener('map-loaded', () => {
   updateSliderBounds(
     incomeIndicatorData[1].min, 
     incomeIndicatorData[1].max, 
-    incomeIndicatorData[1].q1, 
-    incomeIndicatorData[1].q3,
     incomeIndicatorData[1].values.map((d) => d.value),
-
   );  
   setMapLoaded(true);
   stores.percentileRange = [0.25, 0.75];
@@ -339,8 +382,6 @@ document.addEventListener('zoom-level-changed', (event) => {
 updateSliderBounds(
     incomeIndicatorData[currentDatasetIndex].min, 
     incomeIndicatorData[currentDatasetIndex].max, 
-    incomeIndicatorData[currentDatasetIndex].q1, 
-    incomeIndicatorData[currentDatasetIndex].q3,
     incomeIndicatorData[currentDatasetIndex].values.map(d => d.value)
   );
 ```
@@ -458,7 +499,7 @@ mapContainer.appendChild(outerCard);
               type: "threshold",
               domain: emissionsIndicatorData[currentDatasetIndex].thresholds,
               range: emissionsIndicatorData[currentDatasetIndex].range,
-              tickFormat: (d) => d.toFixed(2),
+              tickFormat: (d) => {return emissionsIndicator.value == 'total_emissions' ? (d/1000000).toFixed(2) : d.toFixed(2)},
               width: 900,
               label: `${emissionsIndicator.name} (${emissionsIndicator.units})`,
             }
@@ -466,9 +507,13 @@ mapContainer.appendChild(outerCard);
         )
       }
       ${sliderElement}
+      <!-- Tick plot -->
       ${resize((width) =>
         Plot.plot({
           height: 80,
+          x: {
+            label: "Mitjana de la renda per unitat de consum (2022)"
+          },
           marks: [
             Plot.tickX(emissionsData, {
               x: "incomeValue",
@@ -486,10 +531,10 @@ mapContainer.appendChild(outerCard);
           color: {
             type: "categorical",
             domain: Array.from({ length: 7 }, (_, i) => i.toString()),
-            range: mapThresholdScheme
+            range: emissionsIndicator.colors
           },
-          y: { grid: true}, // Per mantenir escala -> domain: [0, mostFrequentClass[1]] 
-          x: { domain: Array.from({ length: 7 }, (_, i) => i.toString()) },
+          y: { grid: true, label: `Nombre de ${valuesByLevel[currentDatasetIndex].censusLevel}`}, // Per mantenir escala -> domain: [0, mostFrequentClass[1]] 
+          x: { domain: Array.from({ length: 7 }, (_, i) => i.toString()), tickFormat: null, ticks: 0, label: null},
           marks: [
             Plot.barY(
               histogramData,
@@ -520,6 +565,40 @@ mapContainer.appendChild(outerCard);
   </div>
 </div>
 
+<!-- <div class="card" style="flex">
+${resize((width) => 
+    Plot.plot({
+      height: 200,
+      color: {
+        type: "threshold",
+        domain: emissionsIndicatorData[currentDatasetIndex].bins.map((d) => d.x0),
+        range: emissionsIndicator.colors
+      },
+      y: { grid: true, label: `Nombre de ${valuesByLevel[currentDatasetIndex].censusLevel}` },
+      marks: [
+        Plot.rectY(emissionsIndicatorData[currentDatasetIndex].bins, {
+          x1: "x0",
+          x2: "x1",
+          y2: "length",
+          channels: {
+            Mida: "y",
+            Categoria: "x"
+          },
+          tip: {
+            format: {
+              y2: true,
+              x: true,
+              fill: false
+            }
+          },
+          fill: emissionsIndicatorData[currentDatasetIndex].bins.map((d) => d.x0),
+        }),
+        Plot.ruleY([0])
+      ]
+    })
+  )}
+</div> -->
+
 ```js
 const informationPhrase = 
   html`
@@ -531,9 +610,9 @@ const informationPhrase =
       amb
       <span class="indicador-demografic" ">${lowercaseFirstLetter(incomeIndicator.name)}</span>
       entre 
-      <span>${incomeRange[0].toFixed(2)}</span>
+      <span>${Number.isInteger(incomeRange[0]) ? incomeRange[0].toString() : incomeRange[0].toFixed(2)} €</span>
       i
-      <span>${incomeRange[1].toFixed(2)}</span>
+      <span>${Number.isInteger(incomeRange[1]) ? incomeRange[1].toString() : incomeRange[1].toFixed(2)} €</span>
     </h2>
   `
 ```
@@ -578,8 +657,8 @@ const hoveredItemCard = (data, indicator, type) => {
     <div style="flex: 1; display: flex; flex-direction: column;">
       <h5>${indicator.name}</h5>
       <div style="display: flex; flex-direction: row; gap:4px; align-items: end">
-        <h1 class="${type == 'emissions' ? 'indicador-emissions' : 'indicador-demografic'}">${data.value.toFixed(2)}</h1>
-        <h3 class="${type == 'emissions' ? 'indicador-emissions' : 'indicador-demografic'}">${indicator.units}</h3>
+        <h1 class="${type == 'emissions' ? 'indicador-emissions' : 'indicador-demografic'}">${Number.isInteger(data.value) ? data.value.toString() : emissionsIndicator.value == 'total_emissions' ? (data.value/1000000).toFixed(2) : data.value.toFixed(2)}</h1>
+        <h3 class="${type == 'emissions' ? 'indicador-emissions' : 'indicador-demografic'}">(${indicator.units})</h3>
       </div>
       <div style="display: flex; flex-direction: row; gap:4px; align-items: end">
         <h3>Posició</h3> <h2> ${data.pos} </h2>  <h3> de  </h3> <h2>${data.totalValues}</h2>
@@ -592,7 +671,7 @@ const hoveredItemCard = (data, indicator, type) => {
 <!-- Histogram cells -->
 ```js
 function getTickColor(val) {
-  return d3.scaleThreshold(Array.from({ length: 7 }, (_, i) => i), mapThresholdScheme)(val);
+  return d3.scaleThreshold(Array.from({ length: 7 }, (_, i) => i), emissionsIndicator.colors)(val);
 }
 ```
 
@@ -624,6 +703,10 @@ function getEmissionsData(datasetIndex) {
 ```js
 const emissionsData = getEmissionsData(currentDatasetIndex);
 ```
+
+<!-- ```js
+display(emissionsIndicatorData[currentDatasetIndex].bins)
+``` -->
 
 ```js
 const histogramData = emissionsData.filter(
@@ -700,22 +783,22 @@ function getHoveredInfo(hoveredPolygonId, currentDatasetIndex) {
 ```js
 const hoveredInfo = getHoveredInfo(hoveredPolygonId, currentDatasetIndex);
 ```
-
+<!-- 
 ```js
 display(incomeRange)
-```
+``` -->
 
 ```js
-display('HISTOGRAM DATA')
-display(histogramData)
+// display('HISTOGRAM DATA')
+// display(histogramData)
 
-display('EMISSIONS DATA')
+// display('EMISSIONS DATA')
 // display(emissionsData)
 ```
 
-```js
+<!-- ```js
 display(emissionsIndicatorData[0].bins.map((d) => {return [d.x0, d.x1]}))
 display('INDICATORS DATA')
 display(emissionsIndicatorData)
 display(incomeIndicatorData)
-```
+``` -->
