@@ -333,7 +333,7 @@ const emissionsIndicatorInput = Inputs.select(emissionsIndicators, {
 
 
 const incomeIndicatorInput = Inputs.select(incomeIndicators, {
-    label: "Indicador demogràfic",
+    label: "Indicador sociodemogràfic",
     format: (d) => d.name,
     value: incomeIndicators[0]
   })
@@ -518,7 +518,6 @@ mapContainer.appendChild(outerCard);
             Plot.tickX(emissionsData, {
               x: "incomeValue",
               strokeOpacity: 0.5,
-              tip: true,
               stroke: (d) =>
                 d.incomeValue >= incomeRange[0] && d.incomeValue <= incomeRange[1] ? getTickColor(d.class) : "#d9d9d9"
             })
@@ -602,9 +601,9 @@ ${resize((width) =>
 ```js
 const informationPhrase = 
   html`
-    <h2>
+    <h4>
       <span class="indicador-emissions">${emissionsIndicator.name}</span>
-      de
+      dels edificis de 
       </span>
       <span>${valuesByLevel[currentDatasetIndex].censusLevel}</span>
       amb
@@ -613,7 +612,7 @@ const informationPhrase =
       <span>${Number.isInteger(incomeRange[0]) ? incomeRange[0].toString() : incomeRange[0].toFixed(2)} €</span>
       i
       <span>${Number.isInteger(incomeRange[1]) ? incomeRange[1].toString() : incomeRange[1].toFixed(2)} €</span>
-    </h2>
+    </h4>
   `
 ```
 

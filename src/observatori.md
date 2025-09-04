@@ -337,13 +337,13 @@ const threshold_poblacio = [...grouped_poblacio].filter(
             fy: "zona_climatica",
             fill: "avg_emissions",
             channels: {
-              emissions_totals: {
-                value: "sum_emissions",
-                label: "Emissions totals"
+              emissions_mitjanes: {
+                value: "avg_emissions",
+                label: "Emissions mitjanes (Kg CO₂/Any)"
               },
               emissions_totals: {
                 value: "sum_emissions",
-                label: "Emissions totals"
+                label: "Emissions totals (Kg CO₂/Any)"
               },
               zona: {
                 value: "zona_climatica",
@@ -363,9 +363,12 @@ const threshold_poblacio = [...grouped_poblacio].filter(
                 r: false,
                 fy: false,
                 x: false,
+                stroke: false,
+                fill: false,
                 municipi: (d) => municipisDict[d].municipi,
                 poblacio: (d) => [...municipis].find((m) => m.codi == d).poblacio,
                 emissions_totals: true,
+                emissions_mitjanes: true
               }
             },
             stroke: (d) => d.avg_emissions + 10,
@@ -736,7 +739,7 @@ ${vg.plot(
       y: "size",
       fill: "qual_energia",
       pixelSize: 5,
-      imageRendering: "pixelated"
+      imageRendering: "pixelated",
     }
   ),
   vg.intervalXY({as: $raster}),
