@@ -1,0 +1,141 @@
+@import url('observablehq:default.css');
+@import url('observablehq:theme-air.css');
+
+:root {
+  --sans-serif: 'neue-haas-grotesk-display', sans-serif;
+  --serif: merriweather, serif;
+  --indicadorEmissions: #f75757;
+  --indicadorDemografic: #577ff7;
+  --dashboard-foreground: #000;
+  --dashboard-foreground-muted: #606060;
+  --dashboard-background: #f2f2f2;
+  --dashboard-background-alt: #fff;
+
+  --theme-background: #f2f2f2;
+  --theme-background-alt: #eaeaea;
+  --theme-foreground-muted: #767676;
+  --theme-background-faint: #dcdcdc;
+  --theme-foreground-focus: #3f62aa;
+  --theme-foreground-cards: #c0c6cd;
+
+  /* 
+  --theme-background: #f3f3f3;
+  --theme-background-alt: #f3f3f3;
+  --theme-foreground-alt: #007EBB;
+  --theme-foreground-muted: #505050;
+  --theme-foreground-faint: #f3f3f3;
+  --theme-foreground-fainter: #f3f3f3;
+  --theme-foreground-faintest: #f3f3f3;
+  --theme-foreground-focus: #f3f3f3; */
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--sans-serif);
+  font-weight: 600;
+}
+
+main h2 {
+  font-style: normal;
+  font-weight: 500;
+  color: var(--dashboard-foreground-muted);
+}
+
+.card {
+  background-color: var(--dashboard-background-alt);
+}
+
+.card h1,
+.card h2 {
+  font-weight: 600;
+}
+.card h3,
+li,
+label {
+  font-weight: 500;
+}
+
+.card h1 {
+  font-size: 1.5rem;
+}
+.card h2 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--dashboard-foreground);
+}
+.card h3 {
+  font-size: 1rem;
+}
+.card h4 {
+  font-size: 0.85rem;
+}
+
+.grafic {
+  padding-top: 1rem;
+}
+
+#observablehq-main,
+#observablehq-header,
+#observablehq-footer {
+  max-width: none;
+}
+
+.indicador-emissions {
+  color: var(--indicadorEmissions) !important;
+}
+
+.indicador-demografic {
+  color: var(--indicadorDemografic) !important;
+}
+
+.notes {
+  font-family: var(--sans-serif);
+  font-size: 0.85rem;
+  color: var(--dashboard-foreground-muted);
+  padding-top: 2rem;
+}
+
+.legend {
+  display: inline-block;
+  width: 1rem;
+  margin: 0 0.3rem 0.25rem 1rem;
+}
+.daily {
+  border-top: 1.5px #bdbdbd solid;
+}
+.monthly {
+  border-top: 3.2px #4f82de solid;
+}
+.yearly {
+  border-top: 1.5px #000 dashed;
+}
+
+.halo {
+  -webkit-font-smoothing: antialiased;
+  text-shadow:
+    0.5px 0.5px 0.5px #fff,
+    -0.5px -0.5px 0.5px #fff,
+    0.5px -0.5px 0.5px #fff,
+    -0.5px 0.5px 0.5px #fff,
+    0.5px 0.5px 0.5px #fff,
+    0.5px 0.5px 1px #fff,
+    -0.5px -0.5px 1px #fff,
+    0.5px -0.5px 1px #fff,
+    -0.5px 0.5px 1px #fff,
+    0.5px 0.5px 1px #fff,
+    0.5px 0.5px 3px #ffffff33,
+    -0.5px -0.5px 3px #ffffff33,
+    0.5px -0.5px 3px #ffffff33,
+    -0.5px 0.5px 3px #ffffff33,
+    0.5px 0.5px 3px #ffffff33;
+}
+
+#observablehq-footer nav a {
+  background-color: var(--dashboard-background-alt);
+  border: none;
+  box-shadow: 0 0 0.5rem rgba(0, 0, 0, 0.1);
+}
