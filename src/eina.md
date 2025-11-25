@@ -19,7 +19,7 @@ import {
 } from './components/colors.js';
 import { html } from 'npm:htl';
 import mapboxgl from 'npm:mapbox-gl';
-import stores from './components/stores.js';
+import sliderState from './components/sliderState.js';
 import { ckmeans } from 'simple-statistics';
 import * as vgplot from 'npm:@uwdata/vgplot';
 import rangeSlider from 'npm:range-slider-input';
@@ -115,7 +115,7 @@ const setHoveredPolygonId = (x) => (hoveredPolygonId.value = x);
 
 ```js
 // Update Emissions Indicator
-function getEmissionsIndicatorData(indicator, binningType) {
+function getEmissionsIndicatorData(indicator) {
   const data = [];
   datasets.forEach((dataset, i) => {
     const emissionsIndicatorArray = dataset.map((d) => d[indicator.value]);
@@ -126,7 +126,6 @@ function getEmissionsIndicatorData(indicator, binningType) {
     let thresholds;
 
     if (indicator.binOperation == 'ckmeans') {
-      console.log('CKmeans BINNING');
       const ckMeans = ckmeans(emissionsIndicatorArray, nClasses);
       const ckThresholds = ckMeans.map((d) => d3.min(d));
 
@@ -141,7 +140,6 @@ function getEmissionsIndicatorData(indicator, binningType) {
       thresholds = [...bins.map((d) => d.x1).slice(0, bins.length - 1)];
       fullDomain = [...stops]; // color stop1 color stop2 color finalStop color
     } else if (indicator.binOperation === 'logarithmic') {
-      console.log('Loagrithmic BINNNNING');
       const min = d3.min(emissionsIndicatorArray);
       const max = d3.max(emissionsIndicatorArray);
       const nClasses = indicator.colors.length;
@@ -179,7 +177,6 @@ function getEmissionsIndicatorData(indicator, binningType) {
 function getIncomeIndicatorData(indicator) {
   const data = [];
   datasets.forEach((dataset, i) => {
-    console.log('UPDATING INCOME DATASET', i);
     if (indicator.levels[i]) {
       const incomeEntries = dataset
         .map((d) => ({ id: d[valuesByLevel[i].id], value: d[indicator.value] }))
@@ -191,8 +188,6 @@ function getIncomeIndicatorData(indicator) {
       const sum = incomeValues.reduce((a, b) => a + b, 0);
       const count = incomeValues.length;
 
-      console.log('Pushing content', incomeValues);
-
       data.push({
         mean: sum / count,
         min: incomeValues[0],
@@ -202,7 +197,6 @@ function getIncomeIndicatorData(indicator) {
         values: incomeEntries
       });
     } else {
-      console.log('Pushing null');
       data.push(null);
     }
   });
@@ -212,7 +206,7 @@ function getIncomeIndicatorData(indicator) {
 ```
 
 ```js
-const emissionsIndicatorData = getEmissionsIndicatorData(emissionsIndicator, binningType.value);
+const emissionsIndicatorData = getEmissionsIndicatorData(emissionsIndicator);
 ```
 
 ```js
@@ -249,41 +243,34 @@ const slider = rangeSlider(sliderElement, {
     sliderElement.value = v;
     if (user) {
       // // Get new percentiles values
-      const values = stores.indicatorValues;
+      const values = sliderState.indicatorValues;
       const n = values.length;
+
 
       const pLow = d3.bisectLeft(values, v[0]) / n;
       const pHigh = d3.bisectLeft(values, v[1]) / n;
 
-      // console.log('SETTING NEW PERCENTILES', { pLow, pHigh });
-      stores.percentileRange = [pLow, pHigh];
+      sliderState.percentileRange = [pLow, pHigh];
 
       sliderElement.dispatchEvent(new Event('input', { bubbles: true }));
-      console.log('Setting income range', v);
       setIncomeRange(v);
     }
   }
 });
 
 function updateSliderBounds(newMin, newMax, indicatorValues) {
-  console.log('Updating slider bounds according to percentiles', stores.percentileRange);
-  const [pLow, pHigh] = stores.percentileRange;
+  const [pLow, pHigh] = sliderState.percentileRange;
   const newLow = d3.quantileSorted(indicatorValues, pLow);
   const newHigh = d3.quantileSorted(indicatorValues, pHigh);
 
-  slider.min(newMin);
-  slider.max(newMax);
+  slider.min(newMin - slider.step());
+  slider.max(newMax + slider.step());
   slider.value([newLow, newHigh]);
+  
   setIncomeRange([newLow, newHigh]);
 }
 
 // Indicators -----------
-const binningTypeInput = Inputs.select(binningTypes, {
-  label: "Estratègia d'agrupació",
-  format: (d) => d.name,
-  value: binningTypes[0]
-});
-
 const emissionsIndicatorInput = Inputs.select(emissionsIndicatorsMeta, {
   label: "Indicador d'emissions",
   format: (d) => d.name,
@@ -297,12 +284,7 @@ const incomeIndicatorInput = Inputs.select(socEcIndicatorsMeta, {
 });
 ```
 
-<!-- ```js
-display(binningType)
-``` -->
-
 ```js
-const binningType = Generators.input(binningTypeInput);
 const emissionsIndicator = Generators.input(emissionsIndicatorInput);
 const incomeIndicator = Generators.input(incomeIndicatorInput);
 ```
@@ -317,7 +299,7 @@ document.addEventListener('polygon-change', (e) => {
 
 ```js
 document.addEventListener('map-loaded', () => {
-  console.log('Map loaded', emissionsIndicator);
+  sliderState.indicatorValues = incomeIndicatorData[currentDatasetIndex].values.map((d) => d.value)
   map.initializeData(
     emissionsIndicator,
     emissionsIndicatorData,
@@ -330,15 +312,15 @@ document.addEventListener('map-loaded', () => {
     incomeIndicatorData[1].values.map((d) => d.value)
   );
   setMapLoaded(true);
-  stores.percentileRange = [0.25, 0.75];
+  sliderState.percentileRange = [0.25, 0.75];
 });
 ```
 
 ```js
 document.addEventListener('zoom-level-changed', (event) => {
   const datasetIndex = event.detail.zoomLevel;
+  sliderState.indicatorValues = incomeIndicatorData[datasetIndex].values.map((d) => d.value);
   setCurrentDatasetIndex(datasetIndex);
-  stores.indicatorValues = incomeIndicatorData[datasetIndex].values.map((d) => d.value);
 });
 ```
 
@@ -589,7 +571,6 @@ const hoverItemHeader = html` <h3>
 
 ```js
 const hoveredItemCard = (data, indicator, type) => {
-  // console.log("Hovered item card data", data);
   if (!hoveredPolygonId) {
     return html` <div
       style="display: flex; gap: 20px; justify-content: space-between; height: 100%;"
@@ -653,7 +634,6 @@ function getTickColor(val) {
 
 ```js
 function getEmissionsData(datasetIndex) {
-  console.log('GET EMISSIONS DATA FUNCTION RUN');
   const index = datasetIndex;
   const getEntryClass = (value) =>
     emissionsIndicatorData[index].bins
