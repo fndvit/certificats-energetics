@@ -9,15 +9,22 @@ html`<link href="https://cdn.jsdelivr.net/npm/range-slider-input@2.4.4/dist/styl
 ```
 
 <!-- Imports & files -->
+
 ```js
-import { html } from "npm:htl";
+import {
+  qualifColorDomain,
+  qualifColorRange,
+  categoricalScheme5,
+  mapColorScheme
+} from './components/colors.js';
+import { html } from 'npm:htl';
 import mapboxgl from 'npm:mapbox-gl';
-import * as vgplot from 'npm:@uwdata/vgplot';
-import rangeSlider from "npm:range-slider-input";
-import { ckmeans } from 'simple-statistics';
-import { qualifColorDomain, qualifColorRange, categoricalScheme5, mapColorScheme } from './components/colors.js';
-import { ChoroplethMap } from './components/choropleth.js';
 import stores from './components/stores.js';
+import { ckmeans } from 'simple-statistics';
+import * as vgplot from 'npm:@uwdata/vgplot';
+import rangeSlider from 'npm:range-slider-input';
+import { emissionsIndicatorsMeta, socEcIndicatorsMeta } from './components/indicatorsMeta.js';
+import { ChoroplethMap } from './components/map/choropleth.js';
 
 const labels = FileAttachment('./data/labels.json').json();
 const municipisDict = FileAttachment('./data/municipisDict.json').json();
@@ -42,78 +49,28 @@ const datasets = [
 ```
 
 <!-- ```js
-display(datasets)
-``` -->
-
-<!-- Dictionaries -->
-```js
-const binningTypes = [
-  {
-    name: "CKMeans",
-    value: "ckmeans"
-  },
-  {
-    name: "Logarítmica",
-    value: "logarithmic"
-  },
-]
-
-const emissionsIndicators = [
-    {
-      name: 'Mitjana d\'emissions',
-      value: 'mean_emissions',
-      binOperation: 'ckmeans',
-      colors: mapColorScheme,
-      sequentialColors: d3.quantize(d3.interpolateYlOrRd, 8).map((d) => d3.color(d).formatHex()),
-      colorScaleType: 'categoric',
-      units: 'Kg C02'
-    },
-    {
-      name: 'Emissions totals',
-      value: 'total_emissions',
-      binOperation: 'logarithmic',
-      colors: mapColorScheme,
-      sequentialColors: ["#ffffcc", "#ffea9a", "#fecd6a", "#fea246", "#fc6932", "#e92a21", "#c00624", "#2b2627ff"],
-      colorScaleType: 'categoric',
-      units: 'Gg C02'
-    },
-    {
-      name: "Qualificació mitjana d'energia",
-      value: 'mean_energy_qual',
-      binOperation: 'ckmeans',
-      colors: qualifColorRange,
-      sequentialColors: ["#ffffcc", "#ffea9a", "#fecd6a", "#fea246", "#fc6932", "#e92a21", "#c00624", "#2b2627ff"],
-      colorScaleType: 'categoric',
-      units: '1-7'
-    },
-    {
-      name: "Qualificació mitjana d'emissions",
-      value: 'mean_emissions_qual',
-      binOperation: 'ckmeans',
-      colors: qualifColorRange,
-      sequentialColors: ["#ffffcc", "#ffea9a", "#fecd6a", "#fea246", "#fc6932", "#e92a21", "#c00624", "#2b2627ff"],
-      colorScaleType: 'categoric',
-      units: '1-7'
-    },
-];
-
-const incomeIndicators = [
-  {
-    name: 'Mitjana de la renda per unitat de consum (2022)', 
-    value: 'Media de la renta por unidad de consumo_2022',
-    units: '€',
-    levels: [true, true, false]
-  },
-  {
-    name: 'Mediana de la renda per unitat de consum (2022)', 
-    value: 'Mediana de la renta por unidad de consumo_2022',
-    units: '€',
-    levels: [true, true, false]
-  }
-];
+const indicatorsData = await FileAttachment("data/indicatorsData.json").json();
 ```
 
 ```js
+display('New indicators data')
+display(indicatorsData)
+``` -->
+
+<!-- Dictionaries -->
+
+```js
+const binningTypes = [
+  {
+    name: 'CKMeans',
+    value: 'ckmeans'
+  },
+  {
+    name: 'Logarítmica',
+    value: 'logarithmic'
+  }
+];
+
 const valuesByLevel = [
   {
     id: 'MUNDISSEC',
@@ -127,12 +84,13 @@ const valuesByLevel = [
     id: 'codi_comarca',
     censusLevel: 'comarques'
   }
-]
+];
 ```
 
 <!-- Helpers -->
+
 ```js
-const lowercaseFirstLetter = str => str.charAt(0).toLowerCase() + str.slice(1);
+const lowercaseFirstLetter = (str) => str.charAt(0).toLowerCase() + str.slice(1);
 ```
 
 ```js
@@ -141,20 +99,19 @@ const setCurrentDatasetIndex = (x) => (currentDatasetIndex.value = x);
 ```
 
 ```js
-const incomeRange = Mutable([0, 0])
+const incomeRange = Mutable([0, 0]);
 const setIncomeRange = (x) => (incomeRange.value = x);
 ```
 
 ```js
-const mapLoaded = Mutable(false)
+const mapLoaded = Mutable(false);
 const setMapLoaded = (x) => (mapLoaded.value = x);
 ```
 
 ```js
-const hoveredPolygonId = Mutable(null)
+const hoveredPolygonId = Mutable(null);
 const setHoveredPolygonId = (x) => (hoveredPolygonId.value = x);
 ```
-
 
 ```js
 // Update Emissions Indicator
@@ -167,8 +124,8 @@ function getEmissionsIndicatorData(indicator, binningType) {
     let bins;
     let fullDomain;
     let thresholds;
-  
-    if(indicator.binOperation == 'ckmeans') {
+
+    if (indicator.binOperation == 'ckmeans') {
       console.log('CKmeans BINNING');
       const ckMeans = ckmeans(emissionsIndicatorArray, nClasses);
       const ckThresholds = ckMeans.map((d) => d3.min(d));
@@ -183,9 +140,7 @@ function getEmissionsIndicatorData(indicator, binningType) {
 
       thresholds = [...bins.map((d) => d.x1).slice(0, bins.length - 1)];
       fullDomain = [...stops]; // color stop1 color stop2 color finalStop color
-    }
-
-    else if (indicator.binOperation === 'logarithmic') {
+    } else if (indicator.binOperation === 'logarithmic') {
       console.log('Loagrithmic BINNNNING');
       const min = d3.min(emissionsIndicatorArray);
       const max = d3.max(emissionsIndicatorArray);
@@ -195,7 +150,7 @@ function getEmissionsIndicatorData(indicator, binningType) {
       const logMax = Math.log10(max);
 
       const logStops = Array.from({ length: nClasses }, (_, i) =>
-        Math.pow(10, logMin + i * (logMax - logMin) / (nClasses - 1))
+        Math.pow(10, logMin + (i * (logMax - logMin)) / (nClasses - 1))
       );
 
       logStops[0] = min;
@@ -213,9 +168,9 @@ function getEmissionsIndicatorData(indicator, binningType) {
 
       fullDomain = stops;
     }
-  
-    data.push({layerId: i, fullDomain, thresholds, range: indicator.colors, sequentialRange: indicator.sequentialColors, bins});
-  })
+
+    data.push({ layerId: i, fullDomain, thresholds, range: indicator.colors, bins });
+  });
 
   return data;
 }
@@ -224,10 +179,10 @@ function getEmissionsIndicatorData(indicator, binningType) {
 function getIncomeIndicatorData(indicator) {
   const data = [];
   datasets.forEach((dataset, i) => {
-    console.log('UPDATING INCOME DATASET', i)
-    if(indicator.levels[i]) {
+    console.log('UPDATING INCOME DATASET', i);
+    if (indicator.levels[i]) {
       const incomeEntries = dataset
-        .map((d) => ({id: d[valuesByLevel[i].id] ,value: d[indicator.value]}))
+        .map((d) => ({ id: d[valuesByLevel[i].id], value: d[indicator.value] }))
         .filter((v) => v.value != null && !isNaN(v.value))
         .sort((a, b) => a.value - b.value);
 
@@ -236,22 +191,21 @@ function getIncomeIndicatorData(indicator) {
       const sum = incomeValues.reduce((a, b) => a + b, 0);
       const count = incomeValues.length;
 
-      console.log('Pushing content', incomeValues)
+      console.log('Pushing content', incomeValues);
 
-      data.push({ 
-        mean: sum / count, 
-        min: incomeValues[0], 
-        max: incomeValues[incomeValues.length - 1], 
-        q1: d3.quantile(incomeValues, 0.25), 
+      data.push({
+        mean: sum / count,
+        min: incomeValues[0],
+        max: incomeValues[incomeValues.length - 1],
+        q1: d3.quantile(incomeValues, 0.25),
         q3: d3.quantile(incomeValues, 0.75),
         values: incomeEntries
       });
+    } else {
+      console.log('Pushing null');
+      data.push(null);
     }
-    else {
-      console.log('Pushing null')
-      data.push(null)
-    }
-  })
+  });
 
   return data;
 }
@@ -261,15 +215,21 @@ function getIncomeIndicatorData(indicator) {
 const emissionsIndicatorData = getEmissionsIndicatorData(emissionsIndicator, binningType.value);
 ```
 
-<!-- ```js
-display(emissionsIndicatorData)
-``` -->
+```js
+display(emissionsIndicatorData);
+```
 
 ```js
 const incomeIndicatorData = getIncomeIndicatorData(incomeIndicator);
 ```
 
+```js
+display('Old income indicator data');
+display(incomeIndicatorData);
+```
+
 <!-- Inputs -->
+
 ```js
 // Slider -----------
 const defaultMin = 20000;
@@ -294,19 +254,19 @@ const slider = rangeSlider(sliderElement, {
 
       const pLow = d3.bisectLeft(values, v[0]) / n;
       const pHigh = d3.bisectLeft(values, v[1]) / n;
-      
-      console.log('SETTING NEW PERCENTILES', {pLow, pHigh});
+
+      // console.log('SETTING NEW PERCENTILES', { pLow, pHigh });
       stores.percentileRange = [pLow, pHigh];
 
-      sliderElement.dispatchEvent(new Event("input", {bubbles: true}));
-      console.log('Setting income range', v)
+      sliderElement.dispatchEvent(new Event('input', { bubbles: true }));
+      console.log('Setting income range', v);
       setIncomeRange(v);
     }
   }
 });
 
 function updateSliderBounds(newMin, newMax, indicatorValues) {
-  console.log('Updating slider bounds according to percentiles', stores.percentileRange)
+  console.log('Updating slider bounds according to percentiles', stores.percentileRange);
   const [pLow, pHigh] = stores.percentileRange;
   const newLow = d3.quantileSorted(indicatorValues, pLow);
   const newHigh = d3.quantileSorted(indicatorValues, pHigh);
@@ -317,26 +277,24 @@ function updateSliderBounds(newMin, newMax, indicatorValues) {
   setIncomeRange([newLow, newHigh]);
 }
 
-
 // Indicators -----------
 const binningTypeInput = Inputs.select(binningTypes, {
-    label: "Estratègia d'agrupació",
-    format: (d) => d.name,
-    value: binningTypes[0]
-  })
+  label: "Estratègia d'agrupació",
+  format: (d) => d.name,
+  value: binningTypes[0]
+});
 
-const emissionsIndicatorInput = Inputs.select(emissionsIndicators, {
-    label: "Indicador d'emissions",
-    format: (d) => d.name,
-    value: emissionsIndicators[0]
-  })
+const emissionsIndicatorInput = Inputs.select(emissionsIndicatorsMeta, {
+  label: "Indicador d'emissions",
+  format: (d) => d.name,
+  value: emissionsIndicatorsMeta[0]
+});
 
-
-const incomeIndicatorInput = Inputs.select(incomeIndicators, {
-    label: "Indicador sociodemogràfic",
-    format: (d) => d.name,
-    value: incomeIndicators[0]
-  })
+const incomeIndicatorInput = Inputs.select(socEcIndicatorsMeta, {
+  label: 'Indicador sociodemogràfic',
+  format: (d) => d.name,
+  value: socEcIndicatorsMeta[0]
+});
 ```
 
 <!-- ```js
@@ -351,20 +309,26 @@ const incomeIndicator = Generators.input(incomeIndicatorInput);
 
 ```js
 document.addEventListener('polygon-change', (e) => {
-  setHoveredPolygonId(e.detail.polygonId)
+  setHoveredPolygonId(e.detail.polygonId);
 });
 ```
 
 <!-- Data Initializing -->
+
 ```js
 document.addEventListener('map-loaded', () => {
-  console.log('Map loaded', emissionsIndicator)
-  map.initializeData(emissionsIndicator, emissionsIndicatorData, incomeIndicator, incomeIndicatorData);
+  console.log('Map loaded', emissionsIndicator);
+  map.initializeData(
+    emissionsIndicator,
+    emissionsIndicatorData,
+    incomeIndicator,
+    incomeIndicatorData
+  );
   updateSliderBounds(
-    incomeIndicatorData[1].min, 
-    incomeIndicatorData[1].max, 
-    incomeIndicatorData[1].values.map((d) => d.value),
-  );  
+    incomeIndicatorData[1].min,
+    incomeIndicatorData[1].max,
+    incomeIndicatorData[1].values.map((d) => d.value)
+  );
   setMapLoaded(true);
   stores.percentileRange = [0.25, 0.75];
 });
@@ -374,34 +338,34 @@ document.addEventListener('map-loaded', () => {
 document.addEventListener('zoom-level-changed', (event) => {
   const datasetIndex = event.detail.zoomLevel;
   setCurrentDatasetIndex(datasetIndex);
-  stores.indicatorValues = incomeIndicatorData[datasetIndex].values.map(d => d.value);
+  stores.indicatorValues = incomeIndicatorData[datasetIndex].values.map((d) => d.value);
 });
 ```
 
 ```js
 updateSliderBounds(
-    incomeIndicatorData[currentDatasetIndex].min, 
-    incomeIndicatorData[currentDatasetIndex].max, 
-    incomeIndicatorData[currentDatasetIndex].values.map(d => d.value)
-  );
+  incomeIndicatorData[currentDatasetIndex].min,
+  incomeIndicatorData[currentDatasetIndex].max,
+  incomeIndicatorData[currentDatasetIndex].values.map((d) => d.value)
+);
 ```
 
 ```js
-if(mapLoaded) {
+if (mapLoaded) {
   map.updateEmissionsData(emissionsIndicator, emissionsIndicatorData);
 }
 ```
 
 ```js
-if(mapLoaded) {
+if (mapLoaded) {
   map.updateIncomeData(incomeIndicator, incomeIndicatorData);
 }
 ```
 
 ```js
-incomeIndicator
-if(mapLoaded) {
-map.updateMapOpacity([incomeRange[0], incomeRange[1]]);
+incomeIndicator;
+if (mapLoaded) {
+  map.updateMapOpacity([incomeRange[0], incomeRange[1]]);
 }
 ```
 
@@ -565,7 +529,7 @@ mapContainer.appendChild(outerCard);
 </div>
 
 <!-- <div class="card" style="flex">
-${resize((width) => 
+${resize((width) =>
     Plot.plot({
       height: 200,
       color: {
@@ -599,8 +563,7 @@ ${resize((width) =>
 </div> -->
 
 ```js
-const informationPhrase = 
-  html`
+const informationPhrase = html`
     <h4>
       <span class="indicador-emissions">${emissionsIndicator.name}</span>
       dels edificis de 
@@ -613,89 +576,109 @@ const informationPhrase =
       i
       <span>${Number.isInteger(incomeRange[1]) ? incomeRange[1].toString() : incomeRange[1].toFixed(2)} €</span>
     </h4>
-  `
+  `;
 ```
 
 ```js
-const hoverItemHeader = 
-  html `
-  <h3>
-      ${hoveredInfo.names ? hoveredInfo.names.filter(n => n !== '').join(' / ') : ""}
-  </h3>` 
+const hoverItemHeader = html` <h3>
+  ${hoveredInfo.names ? hoveredInfo.names.filter((n) => n !== '').join(' / ') : ''}
+</h3>`;
 ```
 
 <!-- { value: emissionsDataValue, pos: emissionsDataPos, totalValues: incomeValues.length } -->
+
 ```js
 const hoveredItemCard = (data, indicator, type) => {
-  console.log("Hovered item card data", data);
+  // console.log("Hovered item card data", data);
   if (!hoveredPolygonId) {
-    return html `
-    <div style="display: flex; gap: 20px; justify-content: space-between; height: 100%;">
+    return html` <div
+      style="display: flex; gap: 20px; justify-content: space-between; height: 100%;"
+    >
+      <div style="flex: 1; display: flex; flex-direction: column;">
+        <h5>${indicator.name}</h5>
+        <div style="display: flex; flex-direction: row; gap:4px; align-items: end"></div>
+      </div>
+    </div>`;
+  } else if (!data.value) {
+    return html` <div
+      style="display: flex; gap: 20px; justify-content: space-between; height: 100%;"
+    >
       <div style="flex: 1; display: flex; flex-direction: column;">
         <h5>${indicator.name}</h5>
         <div style="display: flex; flex-direction: row; gap:4px; align-items: end">
-          
+          <h1 class="${type == 'emissions' ? 'indicador-emissions' : 'indicador-demografic'}">
+            ${'Sense dades'}
+          </h1>
         </div>
       </div>
-    </div>`
-  }
-  else if (!data.value) {
-    return html `
-    <div style="display: flex; gap: 20px; justify-content: space-between; height: 100%;">
-      <div style="flex: 1; display: flex; flex-direction: column;">
-        <h5>${indicator.name}</h5>
-        <div style="display: flex; flex-direction: row; gap:4px; align-items: end">
-          <h1 class="${type == 'emissions' ? 'indicador-emissions' : 'indicador-demografic'}">${'Sense dades'}</h1>
-        </div>
-      </div>
-    </div>`
+    </div>`;
   }
 
-  return html `
-  <div style="display: flex; gap: 20px; justify-content: space-between; height: 100%;">
+  return html` <div style="display: flex; gap: 20px; justify-content: space-between; height: 100%;">
     <div style="flex: 1; display: flex; flex-direction: column;">
       <h5>${indicator.name}</h5>
       <div style="display: flex; flex-direction: row; gap:4px; align-items: end">
-        <h1 class="${type == 'emissions' ? 'indicador-emissions' : 'indicador-demografic'}">${Number.isInteger(data.value) ? data.value.toString() : emissionsIndicator.value == 'total_emissions' ? (data.value/1000000).toFixed(2) : data.value.toFixed(2)}</h1>
-        <h3 class="${type == 'emissions' ? 'indicador-emissions' : 'indicador-demografic'}">(${indicator.units})</h3>
+        <h1 class="${type == 'emissions' ? 'indicador-emissions' : 'indicador-demografic'}">
+          ${Number.isInteger(data.value)
+            ? data.value.toString()
+            : emissionsIndicator.value == 'total_emissions'
+              ? (data.value / 1000000).toFixed(2)
+              : data.value.toFixed(2)}
+        </h1>
+        <h3 class="${type == 'emissions' ? 'indicador-emissions' : 'indicador-demografic'}">
+          (${indicator.units})
+        </h3>
       </div>
       <div style="display: flex; flex-direction: row; gap:4px; align-items: end">
-        <h3>Posició</h3> <h2> ${data.pos} </h2>  <h3> de  </h3> <h2>${data.totalValues}</h2>
+        <h3>Posició</h3>
+        <h2>${data.pos}</h2>
+        <h3>de</h3>
+        <h2>${data.totalValues}</h2>
       </div>
     </div>
-  </div>`
-}
+  </div>`;
+};
 ```
 
 <!-- Histogram cells -->
+
 ```js
 function getTickColor(val) {
-  return d3.scaleThreshold(Array.from({ length: 7 }, (_, i) => i), emissionsIndicator.colors)(val);
+  return d3.scaleThreshold(
+    Array.from({ length: 7 }, (_, i) => i),
+    emissionsIndicator.colors
+  )(val);
 }
 ```
 
 ```js
 function getEmissionsData(datasetIndex) {
-  console.log('GET EMISSIONS DATA FUNCTION RUN')
+  console.log('GET EMISSIONS DATA FUNCTION RUN');
   const index = datasetIndex;
-    const getEntryClass = (value) =>
-      emissionsIndicatorData[index].bins.findIndex((d) => { return d.x0 != d.x1 ? (value >= d.x0 && value < d.x1) : value >= d.x0}).toString();
-    
-    const valuesByClass = datasets[index].map((d) => {
+  const getEntryClass = (value) =>
+    emissionsIndicatorData[index].bins
+      .findIndex((d) => {
+        return d.x0 != d.x1 ? value >= d.x0 && value < d.x1 : value >= d.x0;
+      })
+      .toString();
+
+  const valuesByClass = datasets[index]
+    .map((d) => {
       const emissionsValue = d[emissionsIndicator.value];
       const incomeValue = d[incomeIndicator.value];
       const id = d[valuesByLevel[datasetIndex].id];
       return { id, class: getEntryClass(emissionsValue), emissionsValue, incomeValue };
-    }).sort((a,b) => a.emissionsValue - b.emissionsValue);
-    
-    // const mostFrequentClass = d3.greatest(
-    //   d3.rollup(valuesByClass, v => v.length, d => d.class),
-    //   ([, count]) => count
-    // );
-    
-    return valuesByClass;
-   
-  return null
+    })
+    .sort((a, b) => a.emissionsValue - b.emissionsValue);
+
+  // const mostFrequentClass = d3.greatest(
+  //   d3.rollup(valuesByClass, v => v.length, d => d.class),
+  //   ([, count]) => count
+  // );
+
+  return valuesByClass;
+
+  return null;
 }
 ```
 
@@ -709,11 +692,9 @@ display(emissionsIndicatorData[currentDatasetIndex].bins)
 
 ```js
 const histogramData = emissionsData.filter(
-      d => d.incomeValue >= incomeRange[0] && d.incomeValue <= incomeRange[1]
-    );
+  (d) => d.incomeValue >= incomeRange[0] && d.incomeValue <= incomeRange[1]
+);
 ```
-
-
 
 <!-- ```js
 html `
@@ -744,37 +725,53 @@ html `
 
 ```js
 function getHoveredNames(hoveredPolygon, currentDatasetIndex) {
-  if(hoveredPolygon) {
+  if (hoveredPolygon) {
     const sectionCode = currentDatasetIndex == 0 ? hoveredPolygon.slice(-3) : '';
     const districtCode = currentDatasetIndex == 0 ? hoveredPolygon.slice(6, 8) : '';
-    const municipiCode = currentDatasetIndex == 0 ? hoveredPolygon.slice(0, -5) : currentDatasetIndex == 1 ? hoveredPolygon : '';
-    
-    if(municipisDict[municipiCode]) {
-      const municipiName = (currentDatasetIndex == 0 || currentDatasetIndex == 1) ? municipisDict[municipiCode].municipi :  '';
-      const comarcaName = currentDatasetIndex == 2 ? municipisDict.find(d => d.codi_comarca == hoveredPolygon).comarca : municipisDict[municipiCode].comarca;
-  
+    const municipiCode =
+      currentDatasetIndex == 0
+        ? hoveredPolygon.slice(0, -5)
+        : currentDatasetIndex == 1
+          ? hoveredPolygon
+          : '';
+
+    if (municipisDict[municipiCode]) {
+      const municipiName =
+        currentDatasetIndex == 0 || currentDatasetIndex == 1
+          ? municipisDict[municipiCode].municipi
+          : '';
+      const comarcaName =
+        currentDatasetIndex == 2
+          ? municipisDict.find((d) => d.codi_comarca == hoveredPolygon).comarca
+          : municipisDict[municipiCode].comarca;
+
       return [districtCode, sectionCode, municipiName, comarcaName];
     }
   }
-  return ['']
+  return [''];
 }
 ```
 
 ```js
 function getHoveredInfo(hoveredPolygonId, currentDatasetIndex) {
   const names = getHoveredNames(hoveredPolygonId, currentDatasetIndex);
-  
+
   const incomeValues = incomeIndicatorData[currentDatasetIndex].values;
-  const incomeDataPos = incomeValues.findIndex(obj => obj.id === hoveredPolygonId);
+  const incomeDataPos = incomeValues.findIndex((obj) => obj.id === hoveredPolygonId);
   const incomeValue = incomeDataPos !== -1 ? incomeValues[incomeDataPos].value : null;
 
-  const emissionsDataPos = emissionsData.findIndex(obj => obj.id === hoveredPolygonId);
-  const emissionsDataValue = emissionsDataPos !== -1 ? emissionsData[emissionsDataPos].emissionsValue : null;
+  const emissionsDataPos = emissionsData.findIndex((obj) => obj.id === hoveredPolygonId);
+  const emissionsDataValue =
+    emissionsDataPos !== -1 ? emissionsData[emissionsDataPos].emissionsValue : null;
 
   return {
     names,
     incomeData: { value: incomeValue, pos: incomeDataPos, totalValues: emissionsData.length },
-    emissionsData: { value: emissionsDataValue, pos: emissionsDataPos, totalValues: incomeValues.length }
+    emissionsData: {
+      value: emissionsDataValue,
+      pos: emissionsDataPos,
+      totalValues: incomeValues.length
+    }
   };
 }
 ```
@@ -782,7 +779,8 @@ function getHoveredInfo(hoveredPolygonId, currentDatasetIndex) {
 ```js
 const hoveredInfo = getHoveredInfo(hoveredPolygonId, currentDatasetIndex);
 ```
-<!-- 
+
+<!--
 ```js
 display(incomeRange)
 ``` -->

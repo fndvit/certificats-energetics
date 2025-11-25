@@ -12,7 +12,6 @@ class DataManager {
     { dfId: 'codi_comarca', tilesetId: 'CODICOMAR' }
   ];
 
-  ckMeansThresholds = [];
   emissionsIndicatorData = {};
   incomeIndicatorData = {};
 
@@ -314,7 +313,7 @@ export class ChoroplethMap {
       document.dispatchEvent(event);
       // mutable hoveredPolygonId = hoveredPolygonId;
 
-      console.log('Hovered polygon', this.hoveredPolygonId);
+      // console.log('Hovered polygon', this.hoveredPolygonId);
 
       this.map.setFeatureState(
         {
@@ -371,7 +370,7 @@ export class ChoroplethMap {
       ...colors
     ];
 
-    console.log('CATEGORICAL COLOR EXPRESSION', colorExpression);
+    // console.log('CATEGORICAL COLOR EXPRESSION', colorExpression);
 
     return colorExpression;
   }
@@ -384,40 +383,6 @@ export class ChoroplethMap {
       }
     }
     return normalized;
-  }
-
-  createSequentialColorExpression(data, tilesetId, scheme) {
-    console.log('CREATE sequential', arguments);
-
-    const { domain, range } = scheme;
-
-    // Modify insignifically repeated values to not raise Mapbox error
-    const cleanDomain = this.normalizeDomain(domain);
-
-    const matchExpression = ['match', ['get', tilesetId]];
-    data.forEach((entry) => {
-      if (entry.emissionsValue && entry.demoValue) {
-        matchExpression.push(entry.id, entry.emissionsValue);
-      }
-    });
-    matchExpression.push(0);
-
-    const interpolateExpression = ['interpolate', ['linear'], matchExpression];
-
-    for (let i = 0; i < cleanDomain.length; i++) {
-      interpolateExpression.push(cleanDomain[i], range[i]);
-    }
-
-    const colorExpression = [
-      'case',
-      ['==', matchExpression, 0],
-      this.noDataColor,
-      interpolateExpression
-    ];
-
-    console.log('SEQUENTIAL COLOR EXPRESSION', colorExpression);
-
-    return colorExpression;
   }
 
   /**
@@ -498,19 +463,6 @@ export class ChoroplethMap {
           range: this.dataManager.emissionsIndicatorData[level].range
         }
       );
-    } else if (this.emissionsIndicator.type == 'sequential') {
-      layerColor = this.createSequentialColorExpression(
-        this.dataManager.getIndicatorsData(
-          level,
-          this.emissionsIndicator.value,
-          this.incomeIndicator
-        ),
-        DataManager.DatasetKeys[level].tilesetId,
-        {
-          domain: this.dataManager.emissionsIndicatorData[level].fullDomain,
-          range: this.dataManager.emissionsIndicatorData[level].sequentialRange
-        }
-      );
     }
 
     this.map.setPaintProperty(fillLayer.id, 'fill-color', layerColor);
@@ -536,8 +488,8 @@ export class ChoroplethMap {
   }
 
   updateIncomeData(incomeIndicator, indicatorData) {
-    console.log('Update income data');
-    this.dataManager.incomeIndicatorData = indicatorData;
+    // console.log('Update income data');
+    this.dataManager.incomeIndicatorData = indicatorData; // PDM: probably not needed
     this.incomeIndicator = incomeIndicator.value;
     this.updateLayerVisibilityAndZoom(incomeIndicator.levels);
   }

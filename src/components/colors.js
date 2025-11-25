@@ -1,4 +1,3 @@
-export const qualifColorDomain = [1, 2, 3, 4, 5, 6, 7];
 export const qualifColorRange = [
   '#3b7634',
   '#5ea336',
