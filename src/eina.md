@@ -8,7 +8,7 @@ style: ./dashboard.css
 html`<link href="https://cdn.jsdelivr.net/npm/range-slider-input@2.4.4/dist/style.css" rel="stylesheet">`
 ```
 
-<!-- Imports & files -->
+<!--    Imports & files    -->
 
 ```js
 import {
@@ -19,12 +19,12 @@ import {
 } from './components/colors.js';
 import { html } from 'npm:htl';
 import mapboxgl from 'npm:mapbox-gl';
-import sliderState from './components/sliderState.js';
 import { ckmeans } from 'simple-statistics';
 import * as vgplot from 'npm:@uwdata/vgplot';
 import rangeSlider from 'npm:range-slider-input';
-import { emissionsIndicatorsMeta, socEcIndicatorsMeta } from './components/indicatorsMeta.js';
+import sliderState from './components/sliderState.js';
 import { ChoroplethMap } from './components/map/choropleth.js';
+import { emissionsIndicatorsMeta, socEcIndicatorsMeta } from './components/indicatorsMeta.js';
 
 const labels = FileAttachment('./data/labels.json').json();
 const municipisDict = FileAttachment('./data/municipisDict.json').json();
@@ -48,16 +48,7 @@ const datasets = [
 ];
 ```
 
-<!-- ```js
-const indicatorsData = await FileAttachment("data/indicatorsData.json").json();
-```
-
-```js
-display('New indicators data')
-display(indicatorsData)
-``` -->
-
-<!-- Dictionaries -->
+<!--    Dictionaries    -->
 
 ```js
 const binningTypes = [
@@ -87,11 +78,7 @@ const valuesByLevel = [
 ];
 ```
 
-<!-- Helpers -->
-
-```js
-const lowercaseFirstLetter = (str) => str.charAt(0).toLowerCase() + str.slice(1);
-```
+<!--    Mutables    -->
 
 ```js
 const currentDatasetIndex = Mutable(1);
@@ -113,128 +100,18 @@ const hoveredPolygonId = Mutable(null);
 const setHoveredPolygonId = (x) => (hoveredPolygonId.value = x);
 ```
 
-```js
-// Update Emissions Indicator
-function getEmissionsIndicatorData(indicator) {
-  const data = [];
-  datasets.forEach((dataset, i) => {
-    const emissionsIndicatorArray = dataset.map((d) => d[indicator.value]);
-
-    const nClasses = indicator.colors.length;
-    let bins;
-    let fullDomain;
-    let thresholds;
-
-    if (indicator.binOperation == 'ckmeans') {
-      const ckMeans = ckmeans(emissionsIndicatorArray, nClasses);
-      const ckThresholds = ckMeans.map((d) => d3.min(d));
-
-      bins = d3
-        .bin()
-        .thresholds(ckThresholds)
-        .value((d) => d)(emissionsIndicatorArray);
-
-      const stops = bins.map((d) => d.x0);
-      stops.push(bins[bins.length - 1].x1);
-
-      thresholds = [...bins.map((d) => d.x1).slice(0, bins.length - 1)];
-      fullDomain = [...stops]; // color stop1 color stop2 color finalStop color
-    } else if (indicator.binOperation === 'logarithmic') {
-      const min = d3.min(emissionsIndicatorArray);
-      const max = d3.max(emissionsIndicatorArray);
-      const nClasses = indicator.colors.length;
-
-      const logMin = Math.log10(min);
-      const logMax = Math.log10(max);
-
-      const logStops = Array.from({ length: nClasses }, (_, i) =>
-        Math.pow(10, logMin + (i * (logMax - logMin)) / (nClasses - 1))
-      );
-
-      logStops[0] = min;
-      logStops[logStops.length - 1] = max;
-
-      thresholds = logStops.slice(1);
-
-      bins = d3
-        .bin()
-        .thresholds(thresholds)
-        .value((d) => d)(emissionsIndicatorArray);
-
-      const stops = bins.map((d) => d.x0);
-      stops.push(bins[bins.length - 1].x1);
-
-      fullDomain = stops;
-    }
-
-    data.push({ layerId: i, fullDomain, thresholds, range: indicator.colors, bins });
-  });
-
-  return data;
-}
-
-// Update income indicator
-function getIncomeIndicatorData(indicator) {
-  const data = [];
-  datasets.forEach((dataset, i) => {
-    if (indicator.levels[i]) {
-      const incomeEntries = dataset
-        .map((d) => ({ id: d[valuesByLevel[i].id], value: d[indicator.value] }))
-        .filter((v) => v.value != null && !isNaN(v.value))
-        .sort((a, b) => a.value - b.value);
-
-      const incomeValues = incomeEntries.map((d) => d.value);
-
-      const sum = incomeValues.reduce((a, b) => a + b, 0);
-      const count = incomeValues.length;
-
-      data.push({
-        mean: sum / count,
-        min: incomeValues[0],
-        max: incomeValues[incomeValues.length - 1],
-        q1: d3.quantile(incomeValues, 0.25),
-        q3: d3.quantile(incomeValues, 0.75),
-        values: incomeEntries
-      });
-    } else {
-      data.push(null);
-    }
-  });
-
-  return data;
-}
-```
+<!--    Inputs    -->
 
 ```js
-const emissionsIndicatorData = getEmissionsIndicatorData(emissionsIndicator);
-```
-
-```js
-display(emissionsIndicatorData);
-```
-
-```js
-const incomeIndicatorData = getIncomeIndicatorData(incomeIndicator);
-```
-
-```js
-display('Old income indicator data');
-display(incomeIndicatorData);
-```
-
-<!-- Inputs -->
-
-```js
-// Slider -----------
 const defaultMin = 20000;
 const defaultMax = 50000;
+const nSteps = 30;
 
 const sliderElement = html`<div></div>`;
 
 const slider = rangeSlider(sliderElement, {
   min: defaultMin,
   max: defaultMax,
-  step: 1000,
   value: [
     defaultMin + (defaultMax - defaultMin) * 0.2,
     defaultMax - (defaultMax - defaultMin) * 0.2
@@ -260,17 +137,29 @@ const slider = rangeSlider(sliderElement, {
 
 function updateSliderBounds(newMin, newMax, indicatorValues) {
   const [pLow, pHigh] = sliderState.percentileRange;
-  const newLow = d3.quantileSorted(indicatorValues, pLow);
-  const newHigh = d3.quantileSorted(indicatorValues, pHigh);
+  const lowHandle = d3.quantileSorted(indicatorValues, pLow);
+  const highHandle = d3.quantileSorted(indicatorValues, pHigh);
 
-  slider.min(newMin - slider.step());
-  slider.max(newMax + slider.step());
-  slider.value([newLow, newHigh]);
+  const newMinExtended = newMin - 1;
+  const newMaxExtended = newMax + 1;
+
+  const divisionFactor = (newMaxExtended - newMinExtended) / nSteps;
+
+  const roundToStep = (value) =>
+    newMinExtended + Math.round((value - newMinExtended) / divisionFactor) * divisionFactor;
+
+  const roundedLowHandle = roundToStep(lowHandle);
+  const roundedHighHandle = roundToStep(highHandle);
+
+  slider.step(divisionFactor);
+  slider.min(newMinExtended - 1);
+  slider.max(newMaxExtended + 1);
+  slider.value([roundedLowHandle, roundedHighHandle]);
   
-  setIncomeRange([newLow, newHigh]);
+  setIncomeRange([roundedLowHandle, roundedHighHandle]);
 }
 
-// Indicators -----------
+
 const emissionsIndicatorInput = Inputs.select(emissionsIndicatorsMeta, {
   label: "Indicador d'emissions",
   format: (d) => d.name,
@@ -289,15 +178,13 @@ const emissionsIndicator = Generators.input(emissionsIndicatorInput);
 const incomeIndicator = Generators.input(incomeIndicatorInput);
 ```
 
+<!--    Event listeners    -->
+
 ```js
 document.addEventListener('polygon-change', (e) => {
   setHoveredPolygonId(e.detail.polygonId);
 });
-```
 
-<!-- Data Initializing -->
-
-```js
 document.addEventListener('map-loaded', () => {
   sliderState.indicatorValues = incomeIndicatorData[currentDatasetIndex].values.map((d) => d.value)
   map.initializeData(
@@ -314,15 +201,15 @@ document.addEventListener('map-loaded', () => {
   setMapLoaded(true);
   sliderState.percentileRange = [0.25, 0.75];
 });
-```
 
-```js
 document.addEventListener('zoom-level-changed', (event) => {
   const datasetIndex = event.detail.zoomLevel;
   sliderState.indicatorValues = incomeIndicatorData[datasetIndex].values.map((d) => d.value);
   setCurrentDatasetIndex(datasetIndex);
 });
 ```
+
+<!--    Reactive listeners    -->
 
 ```js
 updateSliderBounds(
@@ -352,84 +239,36 @@ if (mapLoaded) {
 ```
 
 ```js
+const hoveredInfo = getHoveredInfo(hoveredPolygonId, currentDatasetIndex);
+```
+
+```js
+const emissionsIndicatorData = getEmissionsIndicatorData(emissionsIndicator);
+```
+
+```js
+const incomeIndicatorData = getIncomeIndicatorData(incomeIndicator);
+```
+
+```js
+const emissionsData = getEmissionsData(currentDatasetIndex);
+```
+
+```js
+const histogramData = emissionsData.filter(
+  (d) => d.incomeValue >= incomeRange[0] && d.incomeValue <= incomeRange[1]
+);
+```
+
+<!--    Map & HTML    -->
+
+```js
 const mapContainer = display(document.createElement('div'));
 mapContainer.style = 'position:relative; height:540px; border-radius: 12px;';
 
 const map = ChoroplethMap.create(mapContainer, datasets);
 invalidation.then(() => map.destroy());
 ```
-
-```js
-// const legend = document.createElement('div');
-// legend.style.position = 'absolute';
-// legend.style.bottom = '1rem';
-// legend.style.right = '1rem';
-// legend.style.background = 'white';
-// legend.style.padding = '0.5rem 0.75rem';
-// legend.style.border = '1px solid #ccc';
-// legend.style.borderRadius = '0.5rem';
-// legend.style.boxShadow = '0 2px 4px rgba(0,0,0,0.15)';
-// legend.style.fontSize = '0.8rem';
-// legend.style.lineHeight = '1.2rem';
-// legend.style.zIndex = '10';
-
-// // Append to map container
-// mapContainer.appendChild(legend);
-```
-
-<!-- ```js
-// Remove existing container if it exists
-let existing = mapContainer.querySelector('.bottom-right-cards');
-if (existing) existing.remove();
-
-// Create outer card container
-const outerCard = document.createElement('div');
-outerCard.className = 'card bottom-right-cards'; // add card class and marker class
-outerCard.style.position = 'absolute';
-outerCard.style.bottom = '1rem';
-outerCard.style.right = '1rem';
-outerCard.style.padding = '0.75rem'; // smaller padding
-outerCard.style.fontSize = '0.85rem'; // compact font
-outerCard.style.display = 'flex';
-outerCard.style.flexDirection = 'column';
-outerCard.style.gap = '10px';
-outerCard.style.zIndex = '10';
-outerCard.style.maxWidth = '300px'; // optional constraint
-
-// Optional header
-const header = document.createElement('div');
-header.innerHTML = hoveredInfo.names.filter(n => n !== '').join(' / ');
-header.style.fontWeight = '600';
-outerCard.appendChild(header);
-
-// Inner horizontal flex container
-const innerContainer = document.createElement('div');
-innerContainer.style.display = 'flex';
-innerContainer.style.flexDirection = 'row';
-innerContainer.style.gap = '10px';
-
-// Create and append the cards
-const incomeCard = document.createElement('div');
-incomeCard.className = 'card';
-incomeCard.style.flex = '1';
-incomeCard.style.fontSize = '0.75rem'; // shrink inner text
-incomeCard.style.padding = '0.5rem';
-incomeCard.appendChild(hoveredItemCard(hoveredInfo.incomeData, incomeIndicator, 'emissions'));
-
-const emissionsCard = document.createElement('div');
-emissionsCard.className = 'card';
-emissionsCard.style.flex = '1';
-emissionsCard.style.fontSize = '0.75rem';
-emissionsCard.style.padding = '0.5rem';
-emissionsCard.appendChild(hoveredItemCard(hoveredInfo.emissionsData, emissionsIndicator, 'demografic'));
-
-innerContainer.appendChild(incomeCard);
-innerContainer.appendChild(emissionsCard);
-
-// Final assembly
-outerCard.appendChild(innerContainer);
-mapContainer.appendChild(outerCard);
-``` -->
 
 <div class="grid grid-cols-3" style="grid-auto-rows: min-content;">
   <div class="card" style="display:flex; flex-direction: column; gap: 25px;">
@@ -510,40 +349,6 @@ mapContainer.appendChild(outerCard);
   </div>
 </div>
 
-<!-- <div class="card" style="flex">
-${resize((width) =>
-    Plot.plot({
-      height: 200,
-      color: {
-        type: "threshold",
-        domain: emissionsIndicatorData[currentDatasetIndex].bins.map((d) => d.x0),
-        range: emissionsIndicator.colors
-      },
-      y: { grid: true, label: `Nombre de ${valuesByLevel[currentDatasetIndex].censusLevel}` },
-      marks: [
-        Plot.rectY(emissionsIndicatorData[currentDatasetIndex].bins, {
-          x1: "x0",
-          x2: "x1",
-          y2: "length",
-          channels: {
-            Mida: "y",
-            Categoria: "x"
-          },
-          tip: {
-            format: {
-              y2: true,
-              x: true,
-              fill: false
-            }
-          },
-          fill: emissionsIndicatorData[currentDatasetIndex].bins.map((d) => d.x0),
-        }),
-        Plot.ruleY([0])
-      ]
-    })
-  )}
-</div> -->
-
 ```js
 const informationPhrase = html`
     <h4>
@@ -566,8 +371,6 @@ const hoverItemHeader = html` <h3>
   ${hoveredInfo.names ? hoveredInfo.names.filter((n) => n !== '').join(' / ') : ''}
 </h3>`;
 ```
-
-<!-- { value: emissionsDataValue, pos: emissionsDataPos, totalValues: incomeValues.length } -->
 
 ```js
 const hoveredItemCard = (data, indicator, type) => {
@@ -621,18 +424,18 @@ const hoveredItemCard = (data, indicator, type) => {
 };
 ```
 
-<!-- Histogram cells -->
 
+<!--    Functions & Helpers    -->
 ```js
+const lowercaseFirstLetter = (str) => str.charAt(0).toLowerCase() + str.slice(1);
+
 function getTickColor(val) {
   return d3.scaleThreshold(
     Array.from({ length: 7 }, (_, i) => i),
     emissionsIndicator.colors
   )(val);
 }
-```
 
-```js
 function getEmissionsData(datasetIndex) {
   const index = datasetIndex;
   const getEntryClass = (value) =>
@@ -660,50 +463,7 @@ function getEmissionsData(datasetIndex) {
 
   return null;
 }
-```
 
-```js
-const emissionsData = getEmissionsData(currentDatasetIndex);
-```
-
-<!-- ```js
-display(emissionsIndicatorData[currentDatasetIndex].bins)
-``` -->
-
-```js
-const histogramData = emissionsData.filter(
-  (d) => d.incomeValue >= incomeRange[0] && d.incomeValue <= incomeRange[1]
-);
-```
-
-<!-- ```js
-html `
-    <div style="display: flex; margin-top: 10px; gap: 20px; align-items: stretch;">
-      <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
-        <h2>${emissionsIndicator.name}</h2>
-        <h2 class="indicador-emissions">${hoveredInfo.emissionsData.value.toFixed(2)} ${emissionsIndicator.units}</h2>
-        <h2>Posició ${hoveredInfo.emissionsData.pos} de ${emissionsData.length}</h2>
-      </div>
-
-      <div style="width: 1px; background: repeating-linear-gradient(
-        to bottom,
-        #999,
-        #999 4px,
-        transparent 4px,
-        transparent 8px
-      );"></div>
-
-      <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; ">
-        <h2>${incomeIndicator.name}</h2>
-        <h2 class="indicador-demografic">${hoveredInfo.incomeData.value} ${incomeIndicator.units}</h2>
-        <h2>Posició ${hoveredInfo.incomeData.pos} de ${incomeIndicatorData[currentDatasetIndex].values.length}</h2>
-      </div>
-    </div>`
-``` -->
-
-<!-- Hovered cards cells -->
-
-```js
 function getHoveredNames(hoveredPolygon, currentDatasetIndex) {
   if (hoveredPolygon) {
     const sectionCode = currentDatasetIndex == 0 ? hoveredPolygon.slice(-3) : '';
@@ -757,25 +517,224 @@ function getHoveredInfo(hoveredPolygonId, currentDatasetIndex) {
 ```
 
 ```js
-const hoveredInfo = getHoveredInfo(hoveredPolygonId, currentDatasetIndex);
+function getEmissionsIndicatorData(indicator) {
+  const data = [];
+  datasets.forEach((dataset, i) => {
+    const emissionsIndicatorArray = dataset.map((d) => d[indicator.value]);
+
+    const nClasses = indicator.colors.length;
+    let bins;
+    let fullDomain;
+    let thresholds;
+
+    if (indicator.binOperation == 'ckmeans') {
+      const ckMeans = ckmeans(emissionsIndicatorArray, nClasses);
+      const ckThresholds = ckMeans.map((d) => d3.min(d));
+
+      bins = d3
+        .bin()
+        .thresholds(ckThresholds)
+        .value((d) => d)(emissionsIndicatorArray);
+
+      const stops = bins.map((d) => d.x0);
+      stops.push(bins[bins.length - 1].x1);
+
+      thresholds = [...bins.map((d) => d.x1).slice(0, bins.length - 1)];
+      fullDomain = [...stops]; // color stop1 color stop2 color finalStop color
+    } else if (indicator.binOperation === 'logarithmic') {
+      const min = d3.min(emissionsIndicatorArray);
+      const max = d3.max(emissionsIndicatorArray);
+      const nClasses = indicator.colors.length;
+
+      const logMin = Math.log10(min);
+      const logMax = Math.log10(max);
+
+      const logStops = Array.from({ length: nClasses }, (_, i) =>
+        Math.pow(10, logMin + (i * (logMax - logMin)) / (nClasses - 1))
+      );
+
+      logStops[0] = min;
+      logStops[logStops.length - 1] = max;
+
+      thresholds = logStops.slice(1);
+
+      bins = d3
+        .bin()
+        .thresholds(thresholds)
+        .value((d) => d)(emissionsIndicatorArray);
+
+      const stops = bins.map((d) => d.x0);
+      stops.push(bins[bins.length - 1].x1);
+
+      fullDomain = stops;
+    }
+
+    data.push({ layerId: i, fullDomain, thresholds, range: indicator.colors, bins });
+  });
+
+  return data;
+}
+
+function getIncomeIndicatorData(indicator) {
+  const data = [];
+  datasets.forEach((dataset, i) => {
+    if (indicator.levels[i]) {
+      const incomeEntries = dataset
+        .map((d) => ({ id: d[valuesByLevel[i].id], value: d[indicator.value] }))
+        .filter((v) => v.value != null && !isNaN(v.value))
+        .sort((a, b) => a.value - b.value);
+
+      const incomeValues = incomeEntries.map((d) => d.value);
+
+      const sum = incomeValues.reduce((a, b) => a + b, 0);
+      const count = incomeValues.length;
+
+      data.push({
+        mean: sum / count,
+        min: incomeValues[0],
+        max: incomeValues[incomeValues.length - 1],
+        q1: d3.quantile(incomeValues, 0.25),
+        q3: d3.quantile(incomeValues, 0.75),
+        values: incomeEntries
+      });
+    } else {
+      data.push(null);
+    }
+  });
+
+  return data;
+}
 ```
 
-<!--
-```js
-display(incomeRange)
-``` -->
 
 ```js
-// display('HISTOGRAM DATA')
-// display(histogramData)
+// const legend = document.createElement('div');
+// legend.style.position = 'absolute';
+// legend.style.bottom = '1rem';
+// legend.style.right = '1rem';
+// legend.style.background = 'white';
+// legend.style.padding = '0.5rem 0.75rem';
+// legend.style.border = '1px solid #ccc';
+// legend.style.borderRadius = '0.5rem';
+// legend.style.boxShadow = '0 2px 4px rgba(0,0,0,0.15)';
+// legend.style.fontSize = '0.8rem';
+// legend.style.lineHeight = '1.2rem';
+// legend.style.zIndex = '10';
 
-// display('EMISSIONS DATA')
-// display(emissionsData)
+// // Append to map container
+// mapContainer.appendChild(legend);
 ```
 
 <!-- ```js
-display(emissionsIndicatorData[0].bins.map((d) => {return [d.x0, d.x1]}))
-display('INDICATORS DATA')
-display(emissionsIndicatorData)
-display(incomeIndicatorData)
+// Remove existing container if it exists
+let existing = mapContainer.querySelector('.bottom-right-cards');
+if (existing) existing.remove();
+
+// Create outer card container
+const outerCard = document.createElement('div');
+outerCard.className = 'card bottom-right-cards'; // add card class and marker class
+outerCard.style.position = 'absolute';
+outerCard.style.bottom = '1rem';
+outerCard.style.right = '1rem';
+outerCard.style.padding = '0.75rem'; // smaller padding
+outerCard.style.fontSize = '0.85rem'; // compact font
+outerCard.style.display = 'flex';
+outerCard.style.flexDirection = 'column';
+outerCard.style.gap = '10px';
+outerCard.style.zIndex = '10';
+outerCard.style.maxWidth = '300px'; // optional constraint
+
+// Optional header
+const header = document.createElement('div');
+header.innerHTML = hoveredInfo.names.filter(n => n !== '').join(' / ');
+header.style.fontWeight = '600';
+outerCard.appendChild(header);
+
+// Inner horizontal flex container
+const innerContainer = document.createElement('div');
+innerContainer.style.display = 'flex';
+innerContainer.style.flexDirection = 'row';
+innerContainer.style.gap = '10px';
+
+// Create and append the cards
+const incomeCard = document.createElement('div');
+incomeCard.className = 'card';
+incomeCard.style.flex = '1';
+incomeCard.style.fontSize = '0.75rem'; // shrink inner text
+incomeCard.style.padding = '0.5rem';
+incomeCard.appendChild(hoveredItemCard(hoveredInfo.incomeData, incomeIndicator, 'emissions'));
+
+const emissionsCard = document.createElement('div');
+emissionsCard.className = 'card';
+emissionsCard.style.flex = '1';
+emissionsCard.style.fontSize = '0.75rem';
+emissionsCard.style.padding = '0.5rem';
+emissionsCard.appendChild(hoveredItemCard(hoveredInfo.emissionsData, emissionsIndicator, 'demografic'));
+
+innerContainer.appendChild(incomeCard);
+innerContainer.appendChild(emissionsCard);
+
+// Final assembly
+outerCard.appendChild(innerContainer);
+mapContainer.appendChild(outerCard);
+``` -->
+
+<!-- <div class="card" style="flex">
+${resize((width) =>
+    Plot.plot({
+      height: 200,
+      color: {
+        type: "threshold",
+        domain: emissionsIndicatorData[currentDatasetIndex].bins.map((d) => d.x0),
+        range: emissionsIndicator.colors
+      },
+      y: { grid: true, label: `Nombre de ${valuesByLevel[currentDatasetIndex].censusLevel}` },
+      marks: [
+        Plot.rectY(emissionsIndicatorData[currentDatasetIndex].bins, {
+          x1: "x0",
+          x2: "x1",
+          y2: "length",
+          channels: {
+            Mida: "y",
+            Categoria: "x"
+          },
+          tip: {
+            format: {
+              y2: true,
+              x: true,
+              fill: false
+            }
+          },
+          fill: emissionsIndicatorData[currentDatasetIndex].bins.map((d) => d.x0),
+        }),
+        Plot.ruleY([0])
+      ]
+    })
+  )}
+</div> -->
+
+
+<!-- ```js
+html `
+    <div style="display: flex; margin-top: 10px; gap: 20px; align-items: stretch;">
+      <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
+        <h2>${emissionsIndicator.name}</h2>
+        <h2 class="indicador-emissions">${hoveredInfo.emissionsData.value.toFixed(2)} ${emissionsIndicator.units}</h2>
+        <h2>Posició ${hoveredInfo.emissionsData.pos} de ${emissionsData.length}</h2>
+      </div>
+
+      <div style="width: 1px; background: repeating-linear-gradient(
+        to bottom,
+        #999,
+        #999 4px,
+        transparent 4px,
+        transparent 8px
+      );"></div>
+
+      <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; ">
+        <h2>${incomeIndicator.name}</h2>
+        <h2 class="indicador-demografic">${hoveredInfo.incomeData.value} ${incomeIndicator.units}</h2>
+        <h2>Posició ${hoveredInfo.incomeData.pos} de ${incomeIndicatorData[currentDatasetIndex].values.length}</h2>
+      </div>
+    </div>`
 ``` -->
