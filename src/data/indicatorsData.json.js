@@ -38,17 +38,6 @@ async function getIndicatorsData(paths) {
 
       const dataset = fileContent;
 
-      // console.log(dataset.length);
-
-      // Filtrem files sense algun dels indicadors d'emissions
-      /*
-      .filter((row) => {
-        return [...emissionsIndicatorsMeta.map((ind) => ind.value)].every(
-          (indicatorName) => row[indicatorName]
-        );
-      });
-      */
-
       for (const row of dataset) {
         for (const indicator of [...emissionsIndicatorsMeta, ...socEcIndicatorsMeta]) {
           if (!indicatorsValues[indicator.value]) {
@@ -57,8 +46,6 @@ async function getIndicatorsData(paths) {
           indicatorsValues[indicator.value].push(row[indicator.value]);
         }
       }
-
-      // console.log(indicatorsValues['mean_emissions']);
 
       for (const [indicatorName, indicatorValues] of Object.entries(indicatorsValues)) {
         if (emissionsIndicatorsMeta.find((ind) => ind.value === indicatorName)) {
@@ -92,7 +79,6 @@ async function getIndicatorsData(paths) {
     }
   }
 
-  // console.log('indicatorsData.emissions', indicatorsData.emissions.mean_emissions[0].thresholds);
   return indicatorsData;
 }
 

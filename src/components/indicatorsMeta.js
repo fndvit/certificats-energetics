@@ -6,7 +6,6 @@ export const emissionsIndicatorsMeta = [
     value: 'mean_emissions',
     binOperation: 'ckmeans',
     colors: mapColorScheme,
-    // sequentialColors: quantize(interpolateYlOrRd, 8).map((d) => color(d).formatHex()),
     colorScaleType: 'categoric',
     units: 'Kg C02'
   },
@@ -15,16 +14,6 @@ export const emissionsIndicatorsMeta = [
     value: 'total_emissions',
     binOperation: 'logarithmic',
     colors: mapColorScheme,
-    // sequentialColors: [
-    //   '#ffffcc',
-    //   '#ffea9a',
-    //   '#fecd6a',
-    //   '#fea246',
-    //   '#fc6932',
-    //   '#e92a21',
-    //   '#c00624',
-    //   '#2b2627ff'
-    // ],
     colorScaleType: 'categoric',
     units: 'Gg C02'
   },
@@ -33,16 +22,6 @@ export const emissionsIndicatorsMeta = [
     value: 'mean_energy_qual',
     binOperation: 'ckmeans',
     colors: qualifColorRange,
-    // sequentialColors: [
-    //   '#ffffcc',
-    //   '#ffea9a',
-    //   '#fecd6a',
-    //   '#fea246',
-    //   '#fc6932',
-    //   '#e92a21',
-    //   '#c00624',
-    //   '#2b2627ff'
-    // ],
     colorScaleType: 'categoric',
     units: '1-7'
   },
@@ -51,16 +30,6 @@ export const emissionsIndicatorsMeta = [
     value: 'mean_emissions_qual',
     binOperation: 'ckmeans',
     colors: qualifColorRange,
-    // sequentialColors: [
-    //   '#ffffcc',
-    //   '#ffea9a',
-    //   '#fecd6a',
-    //   '#fea246',
-    //   '#fc6932',
-    //   '#e92a21',
-    //   '#c00624',
-    //   '#2b2627ff'
-    // ],
     colorScaleType: 'categoric',
     units: '1-7'
   }

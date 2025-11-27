@@ -18,7 +18,7 @@ export const layers = [
       source: 'seccen',
       'source-layer': sourceLayerIds[0],
       paint: {
-        'fill-opacity': ['case', ['boolean', ['feature-state', 'visible'], false], 0, 1]
+        'fill-opacity': ['case', ['boolean', ['feature-state', 'visible'], true], 1, 0]
       }
     }
   },
@@ -39,7 +39,7 @@ export const layers = [
       source: 'municipis',
       'source-layer': sourceLayerIds[1],
       paint: {
-        'fill-opacity': ['case', ['boolean', ['feature-state', 'visible'], false], 0, 1]
+        'fill-opacity': ['case', ['boolean', ['feature-state', 'visible'], true], 1, 0]
       }
     }
   },
@@ -60,7 +60,7 @@ export const layers = [
       source: 'comarques',
       'source-layer': sourceLayerIds[2],
       paint: {
-        'fill-opacity': ['case', ['boolean', ['feature-state', 'visible'], false], 0, 1]
+        'fill-opacity': ['case', ['boolean', ['feature-state', 'visible'], true], 1, 0]
       }
     }
   }

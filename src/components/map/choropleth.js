@@ -15,7 +15,6 @@ class DataManager {
     this.datasets = datasets;
   }
 
-  // Return only emissions indicator data
   getIndicatorData(level, indicator) {
     return this.datasets[level].map((d) => ({
       id: d[DataManager.DatasetKeys[level].dfId],
@@ -222,55 +221,45 @@ export class ChoroplethMap {
     return normalized;
   }
 
-  /**
-   * Creates a range treshold opacity expression.
-   * Features out of the range will be transparent.
-   * @param {{id: string, value: number}[]} data
-   * @param {string} tilesetId
-   * @param {number[]} range
-   */
-  createOpacityExpression(data, tilesetId, range) {
-    const matchExpression = ['match', ['get', tilesetId]];
-    data.forEach((entry) => {
-      if (entry.value) {
-        matchExpression.push(entry.id, entry.value);
-      }
-    });
-    matchExpression.push(0);
+  setMapOpacity(range) {
+    const data = this.dataManager.getIndicatorData(this.currentDatasetIndex, this.incomeIndicator);
+    const source = sources[this.currentDatasetIndex];
 
-    return [
-      'let',
-      'indicatorValue',
-      matchExpression,
-      [
-        'case',
-        [
-          'any',
-          [
-            'all',
-            ['>=', ['var', 'indicatorValue'], range[0]],
-            ['<=', ['var', 'indicatorValue'], range[1]]
-          ],
-          ['==', 0, ['var', 'indicatorValue']]
-        ],
-        1,
-        0
-      ]
-    ];
+    for (let i = 0; i < data.length; i++) {
+      const d = data[i];
+      this.map.setFeatureState(
+        {
+          source: source.id,
+          sourceLayer: source.layer,
+          id: d.id
+        },
+        { visible: this.isBetweenRange(d.value, range) }
+      );
+    }
   }
 
-  updateMapOpacity(range) {
-    const layerOpacity = this.createOpacityExpression(
-      this.dataManager.getIndicatorData(this.currentDatasetIndex, this.incomeIndicator),
-      DataManager.DatasetKeys[this.currentDatasetIndex].tilesetId,
-      range
-    );
+  updateMapOpacity(oldRange, newRange) {
+    const data = this.dataManager.getIndicatorData(this.currentDatasetIndex, this.incomeIndicator);
+    const source = sources[this.currentDatasetIndex];
 
-    this.map.setPaintProperty(
-      layers[this.currentDatasetIndex].fill.id,
-      'fill-opacity',
-      layerOpacity
-    );
+    let wasIn, isIn, d;
+
+    for (let i = 0; i < data.length; i++) {
+      d = data[i];
+      wasIn = this.isBetweenRange(d.value, oldRange);
+      isIn = this.isBetweenRange(d.value, newRange);
+
+      if (wasIn !== isIn) {
+        this.map.setFeatureState(
+          {
+            source: source.id,
+            sourceLayer: source.layer,
+            id: d.id
+          },
+          { visible: isIn }
+        );
+      }
+    }
   }
 
   updateMapPalette() {
@@ -333,29 +322,7 @@ export class ChoroplethMap {
 
     this.visibleIndices = visibleIndices;
 
-    let zoomLevels;
-
-    switch (visibleIndices.length) {
-      case 3:
-        zoomLevels = [
-          [11.5, 22],
-          [8, 11.5],
-          [0, 8]
-        ];
-        break;
-      case 2:
-        zoomLevels = [
-          [9.5, 22],
-          [0, 9.5]
-        ];
-        break;
-      case 1:
-        zoomLevels = [[0, 22]];
-        break;
-      default:
-        console.warn('No visible layers!');
-        zoomLevels = [];
-    }
+    let zoomLevels = this.getZoomLevels(visibleIndices.length);
 
     this.zoomLevels = visibleIndices.map((_, i) => zoomLevels[i]);
 
@@ -405,5 +372,33 @@ export class ChoroplethMap {
 
       this.hoveredPolygonId = null;
     }
+  }
+
+  getZoomLevels(nVisibleIndices) {
+    switch (nVisibleIndices) {
+      case 3:
+        return [
+          [11.5, 22],
+          [8, 11.5],
+          [0, 8]
+        ];
+        break;
+      case 2:
+        return [
+          [9.5, 22],
+          [0, 9.5]
+        ];
+        break;
+      case 1:
+        return [[0, 22]];
+        break;
+      default:
+        console.warn('No visible layers!');
+        return [];
+    }
+  }
+
+  isBetweenRange(val, range) {
+    return val && val >= range[0] && val <= range[1];
   }
 }

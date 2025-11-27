@@ -103,26 +103,16 @@ const setHoveredPolygonId = (x) => (hoveredPolygonId.value = x);
 <!--    Inputs    -->
 
 ```js
-const defaultMin = 20000;
-const defaultMax = 50000;
 const nSteps = 30;
 
 const sliderElement = html`<div></div>`;
 
 const slider = rangeSlider(sliderElement, {
-  min: defaultMin,
-  max: defaultMax,
-  value: [
-    defaultMin + (defaultMax - defaultMin) * 0.2,
-    defaultMax - (defaultMax - defaultMin) * 0.2
-  ],
   onInput: (v, user) => {
     sliderElement.value = v;
     if (user) {
-      // // Get new percentiles values
       const values = sliderState.indicatorValues;
       const n = values.length;
-
 
       const pLow = d3.bisectLeft(values, v[0]) / n;
       const pHigh = d3.bisectLeft(values, v[1]) / n;
@@ -130,6 +120,10 @@ const slider = rangeSlider(sliderElement, {
       sliderState.percentileRange = [pLow, pHigh];
 
       sliderElement.dispatchEvent(new Event('input', { bubbles: true }));
+
+      map.updateMapOpacity(sliderState.currentRange, v);
+
+      sliderState.currentRange = v;
       setIncomeRange(v);
     }
   }
@@ -234,7 +228,7 @@ if (mapLoaded) {
 ```js
 incomeIndicator;
 if (mapLoaded) {
-  map.updateMapOpacity([incomeRange[0], incomeRange[1]]);
+  map.setMapOpacity([incomeRange[0], incomeRange[1]]);
 }
 ```
 
