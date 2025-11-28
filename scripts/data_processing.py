@@ -95,6 +95,7 @@ SAME_MEANING_VALUES = [
       'Informe de evaluación del Edificio (IEE)'
     ]
   ],
+  ['normativa', 'Abans de 1979', ['Antes de 1979']],
 ]
 CATEGORICAL_COLUMNS_TO_ENCODE = ['eina', 'motiu', 'us_edifici', 'normativa']
 QUALIFICATIONS_NUMERICAL_EQUIVALENCE = {
