@@ -161,8 +161,8 @@ def castColumns(df):
     df = df.dropna(subset=['MUNDISSEC']) # Eliminem els 24 registres amb MUNDISSEC nan
     df['MUNDISSEC'] = df['MUNDISSEC'].astype(str).str.zfill(11)
 
-    df['qual_emissions'] = df['qual_emissions'].map(QUALIFICATIONS_NUMERICAL_EQUIVALENCE)
-    df['qual_energia'] = df['qual_energia'].map(QUALIFICATIONS_NUMERICAL_EQUIVALENCE)
+    #df['qual_emissions'] = df['qual_emissions'].map(QUALIFICATIONS_NUMERICAL_EQUIVALENCE)
+    #df['qual_energia'] = df['qual_energia'].map(QUALIFICATIONS_NUMERICAL_EQUIVALENCE)
 
     # Tractem com a NA els valors de cost_energia que siguin 0 i on energia_primària sigui > 0
     df.loc[(df['cost_energia'] == 0) & (df['energia_primaria'] > 0) & df['energia_primaria'].notna(), 'cost_energia'] = pd.NA
@@ -247,7 +247,7 @@ def process_certificates_dataset(df, municipi_dict):
           .pipe(removeOutliers)
     )
 
-    return encode_categorical_columns(clean_df, CATEGORICAL_COLUMNS_TO_ENCODE)
+    return clean_df
 
 
 def get_sections_dataset():
@@ -351,8 +351,8 @@ def aggregateByLevel(df, level):
       count=pd.NamedAgg(column='emissions_de_co2', aggfunc='count'),
       mean_emissions=pd.NamedAgg(column='emissions_de_co2', aggfunc='mean'),
       total_emissions=pd.NamedAgg(column='emissions_totals', aggfunc='sum'),
-      mean_energy_qual=pd.NamedAgg(column='qual_energia', aggfunc='mean'),
-      mean_emissions_qual=pd.NamedAgg(column='qual_emissions', aggfunc='mean'),
+    #   mean_energy_qual=pd.NamedAgg(column='qual_energia', aggfunc='mean'),
+    #   mean_emissions_qual=pd.NamedAgg(column='qual_emissions', aggfunc='mean'),
       total_primary_energy=pd.NamedAgg(column='energia_primaria', aggfunc='sum'),
       mean_primary_energy=pd.NamedAgg(column='energia_primaria', aggfunc='mean'),
       total_surface=pd.NamedAgg(column='metres_cadastre', aggfunc='sum'),
@@ -379,20 +379,15 @@ def get_aggregated_datasets(certificates, rendes_datasets):
     return [certificates_by_section, certificates_by_mun, certificates_by_com]
 
 
-def save_data(certificates, label_mapping, aggregated_datasets, municipi_dict):
+def save_data(certificates, aggregated_datasets, municipi_dict):
     data_dir = "src/data"
     parquet_path = os.path.join(data_dir, "certificats.parquet")
-    labels_json_path = os.path.join(data_dir, "labels.json")
     municipi_dict_path = os.path.join(data_dir, "municipisDict.json")
     
     os.makedirs(data_dir, exist_ok=True)
 
     certificates.to_parquet(parquet_path, engine="fastparquet", compression="GZIP")
     print("✅ Data cleaned and saved to", parquet_path)
-    
-    with open(labels_json_path, "w") as f:
-        json.dump(label_mapping, f)
-    print("✅ Label mapping saved to", labels_json_path)
 
     with open(municipi_dict_path, "w") as f:
         json.dump(municipi_dict, f)
@@ -409,8 +404,16 @@ def save_data(certificates, label_mapping, aggregated_datasets, municipi_dict):
 df = pd.read_json("static/raw_data.json")
 print('Starting data processing...')
 print(df.columns)
-certificates, label_mapping = process_certificates_dataset(df, municipi_dict)
+certificates = process_certificates_dataset(df, municipi_dict)
 sections = get_sections_dataset()
 rendes_datasets = get_rendes_dataset(sections)
 aggregated_datasets = get_aggregated_datasets(certificates, rendes_datasets)
-save_data(certificates, label_mapping, aggregated_datasets, municipi_dict)
+
+# Save Girona dataset separately
+girona_certificates = certificates[certificates['codi_provincia'] == '17']
+os.makedirs("src/data", exist_ok=True)
+
+girona_path = os.path.join("src/data", "certificats_girona.csv")
+girona_certificates.to_csv(girona_path, index=False)
+
+save_data(certificates, aggregated_datasets, municipi_dict)
