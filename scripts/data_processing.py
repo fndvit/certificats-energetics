@@ -161,8 +161,8 @@ def castColumns(df):
     df = df.dropna(subset=['MUNDISSEC']) # Eliminem els 24 registres amb MUNDISSEC nan
     df['MUNDISSEC'] = df['MUNDISSEC'].astype(str).str.zfill(11)
 
-    df['qual_emissions'] = df['qual_emissions'].map(QUALIFICATIONS_NUMERICAL_EQUIVALENCE)
-    df['qual_energia'] = df['qual_energia'].map(QUALIFICATIONS_NUMERICAL_EQUIVALENCE)
+    #df['qual_emissions'] = df['qual_emissions'].map(QUALIFICATIONS_NUMERICAL_EQUIVALENCE)
+    #df['qual_energia'] = df['qual_energia'].map(QUALIFICATIONS_NUMERICAL_EQUIVALENCE)
 
     # Tractem com a NA els valors de cost_energia que siguin 0 i on energia_primària sigui > 0
     df.loc[(df['cost_energia'] == 0) & (df['energia_primaria'] > 0) & df['energia_primaria'].notna(), 'cost_energia'] = pd.NA
@@ -247,7 +247,7 @@ def process_certificates_dataset(df, municipi_dict):
           .pipe(removeOutliers)
     )
 
-    return encode_categorical_columns(clean_df, CATEGORICAL_COLUMNS_TO_ENCODE)
+    return clean_df
 
 
 def get_sections_dataset():
@@ -413,4 +413,11 @@ certificates, label_mapping = process_certificates_dataset(df, municipi_dict)
 sections = get_sections_dataset()
 rendes_datasets = get_rendes_dataset(sections)
 aggregated_datasets = get_aggregated_datasets(certificates, rendes_datasets)
+
+# Save Girona dataset separately
+girona_certificates = certificates[certificates['codi_provincia'] == '17']
+girona_path = "src/data/certificats_girona.csv"
+os.makedirs(girona_path, exist_ok=True)
+girona_certificates.to_csv(girona_path, index=False)
+
 save_data(certificates, label_mapping, aggregated_datasets, municipi_dict)
