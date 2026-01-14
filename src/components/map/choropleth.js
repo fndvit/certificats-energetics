@@ -227,14 +227,7 @@ export class ChoroplethMap {
 
     for (let i = 0; i < data.length; i++) {
       const d = data[i];
-      this.map.setFeatureState(
-        {
-          source: source.id,
-          sourceLayer: source.layer,
-          id: d.id
-        },
-        { visible: this.isBetweenRange(d.value, range) }
-      );
+      this.setFeatureOpacity(source, d.id, this.isBetweenRange(d.value, range));
     }
   }
 
@@ -250,14 +243,7 @@ export class ChoroplethMap {
       isIn = this.isBetweenRange(d.value, newRange);
 
       if (wasIn !== isIn) {
-        this.map.setFeatureState(
-          {
-            source: source.id,
-            sourceLayer: source.layer,
-            id: d.id
-          },
-          { visible: isIn }
-        );
+        this.setFeatureOpacity(source, d.id, isIn);
       }
     }
   }
@@ -400,5 +386,16 @@ export class ChoroplethMap {
 
   isBetweenRange(val, range) {
     return val && val >= range[0] && val <= range[1];
+  }
+
+  setFeatureOpacity(source, featureId, visible) {
+    this.map.setFeatureState(
+      {
+        source: source.id,
+        sourceLayer: source.layer,
+        id: featureId
+      },
+      { visible: visible }
+    );
   }
 }

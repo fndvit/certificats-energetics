@@ -1,12 +1,8 @@
 ---
 title: Eina de decisions
 toc: false
-style: ./dashboard.css
+style: ./eina.css
 ---
-
-```js
-html`<link href="https://cdn.jsdelivr.net/npm/range-slider-input@2.4.4/dist/style.css" rel="stylesheet">`
-```
 
 <!--    Imports & files    -->
 
@@ -271,20 +267,6 @@ invalidation.then(() => map.destroy());
       ${incomeIndicatorInput}
     </div>
     <div style="display:flex; flex-direction:column; gap:15px;">
-      ${
-        Plot.legend(
-          {color: 
-            {
-              type: "threshold",
-              domain: emissionsIndicatorData[currentDatasetIndex].thresholds,
-              range: emissionsIndicatorData[currentDatasetIndex].range,
-              tickFormat: (d) => {return emissionsIndicator.value == 'total_emissions' ? (d/1000000).toFixed(2) : d.toFixed(2)},
-              width: 900,
-              label: `${emissionsIndicator.name} (${emissionsIndicator.units})`,
-            }
-          }
-        )
-      }
       ${sliderElement}
       <!-- Tick plot -->
       ${resize((width) =>
@@ -303,6 +285,20 @@ invalidation.then(() => map.destroy());
           ]
         })
       )}
+      ${
+        Plot.legend(
+          {color: 
+            {
+              type: "threshold",
+              domain: emissionsIndicatorData[currentDatasetIndex].thresholds,
+              range: emissionsIndicatorData[currentDatasetIndex].range,
+              tickFormat: (d) => {return emissionsIndicator.value == 'total_emissions' ? (d/1000000).toFixed(2) : d.toFixed(2)},
+              width: 900,
+              label: `${emissionsIndicator.name} (${emissionsIndicator.units})`,
+            }
+          }
+        )
+      }
       ${resize((width) => 
         Plot.plot({
           height: 200,
@@ -363,7 +359,8 @@ const informationPhrase = html`
 ```js
 const hoverItemHeader = html` <h3>
   ${hoveredInfo.names ? hoveredInfo.names.filter((n) => n !== '').join(' / ') : ''}
-</h3>`;
+</h3>
+  <span> Nº certificats: <b> ${hoveredInfo.nCerts ?? 0} </b> </span> `
 ```
 
 ```js
@@ -409,7 +406,7 @@ const hoveredItemCard = (data, indicator, type) => {
       </div>
       <div style="display: flex; flex-direction: row; gap:4px; align-items: end">
         <h3>Posició</h3>
-        <h2>${data.pos}</h2>
+        <h2>${data.pos + 1}</h2>
         <h3>de</h3>
         <h2>${data.totalValues}</h2>
       </div>
@@ -490,6 +487,9 @@ function getHoveredNames(hoveredPolygon, currentDatasetIndex) {
 function getHoveredInfo(hoveredPolygonId, currentDatasetIndex) {
   const names = getHoveredNames(hoveredPolygonId, currentDatasetIndex);
 
+  // Get nº Certificates
+  const nCerts = datasets[currentDatasetIndex].find((d) => d[valuesByLevel[currentDatasetIndex].id] == hoveredPolygonId)?.count;
+
   const incomeValues = incomeIndicatorData[currentDatasetIndex].values;
   const incomeDataPos = incomeValues.findIndex((obj) => obj.id === hoveredPolygonId);
   const incomeValue = incomeDataPos !== -1 ? incomeValues[incomeDataPos].value : null;
@@ -500,12 +500,13 @@ function getHoveredInfo(hoveredPolygonId, currentDatasetIndex) {
 
   return {
     names,
-    incomeData: { value: incomeValue, pos: incomeDataPos, totalValues: emissionsData.length },
+    incomeData: { value: incomeValue, pos: incomeDataPos, totalValues: incomeValues.length },
     emissionsData: {
       value: emissionsDataValue,
       pos: emissionsDataPos,
-      totalValues: incomeValues.length
-    }
+      totalValues: emissionsData.length
+    },
+    nCerts
   };
 }
 ```
