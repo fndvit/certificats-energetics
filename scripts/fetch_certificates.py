@@ -3,7 +3,7 @@ import json
 import os
 
 url = "https://analisi.transparenciacatalunya.cat/resource/j6ii-t3w2.json"
-params = {"$limit": 1400000}
+params = {"$limit": 2000000}
 
 os.makedirs("static", exist_ok=True)
 

@@ -8,7 +8,6 @@ style: ./dashboard.css
 import * as vgplot from "npm:@uwdata/vgplot";
 import { html } from "npm:htl";
 import {
-  qualifColorDomain,
   qualifColorRange,
   categoricalScheme5,
 } from "./components/colors.js";
@@ -29,6 +28,8 @@ const municipisByCode = municipis.reduce((dict, row) => {
   }
   return dict;
 }, {});
+
+const qualifColorDomain = [1, 2, 3, 4, 5, 6, 7];
 
 const qualifLabelsLookup = {
   1: "A",
