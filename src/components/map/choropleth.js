@@ -39,10 +39,10 @@ export class ChoroplethMap {
   ];
 
   static defaults = {
-    zoom: 7,
+    zoom: 7.6,
     minZoom: 7,
     maxZoom: 14,
-    center: [1.8, 41.7]
+    center: [1.5, 41.7]
   };
 
   noDataColor = '#d4d4d4';
