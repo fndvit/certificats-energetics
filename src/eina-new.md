@@ -151,13 +151,13 @@ function updateSliderBounds(newMin, newMax, indicatorValues) {
 
 
 const emissionsIndicatorInput = Inputs.select(emissionsIndicatorsMeta, {
-  label: "Indicador d'emissions",
+  label: "",
   format: (d) => d.name,
   value: emissionsIndicatorsMeta[0]
 });
 
 const incomeIndicatorInput = Inputs.select(socEcIndicatorsMeta, {
-  label: 'Indicador sociodemogràfic',
+  label: '',
   format: (d) => d.name,
   value: socEcIndicatorsMeta[0]
 });
@@ -262,68 +262,92 @@ Object.assign(mapContainer.style, {
 
 const map = ChoroplethMap.create(mapContainer, datasets);
 invalidation.then(() => map.destroy());
-
 ```
-  <div class="card" style="margin-top: -25px; display:flex; flex-direction: column; gap: 25px; max-width: 450px">
-    <div stye="display: inline-block;">
-      ${emissionsIndicatorInput}
-      ${incomeIndicatorInput}
-    </div>
-    <div style="display:flex; flex-direction:column; gap:15px;">
-      ${sliderElement}
-      <!-- Tick plot -->
-      ${resize((width) =>
-        Plot.plot({
-          height: 80,
-          x: {
-            label: "Mitjana de la renda per unitat de consum (2022)"
-          },
-          marks: [
-            Plot.tickX(emissionsData, {
-              x: "incomeValue",
-              strokeOpacity: 0.5,
-              stroke: (d) =>
-                d.incomeValue >= incomeRange[0] && d.incomeValue <= incomeRange[1] ? getTickColor(d.class) : "#d9d9d9"
-            })
-          ]
-        })
-      )}
-      ${
-        Plot.legend(
-          {color: 
-            {
-              type: "threshold",
-              domain: emissionsIndicatorData[currentDatasetIndex].thresholds,
-              range: emissionsIndicatorData[currentDatasetIndex].range,
-              tickFormat: (d) => {return emissionsIndicator.value == 'total_emissions' ? (d/1000000).toFixed(2) : d.toFixed(2)},
-              width: 900,
-              label: `${emissionsIndicator.name} (${emissionsIndicator.units})`,
+
+<!-- Top Card -->
+
+<div class="card glass" style="margin-top: -25px; max-width: 750px;">
+    <div style="display: flex; flex-direction: row; gap: 1.5rem">
+      <!-- Left column -->
+      <div style="flex: 0 0 35%; min-width: 0;">
+        <div style="display: flex; flex-direction: column; justify-content: space-between; height: 100%">
+          <div class="glassText">
+            ${informationPhrase}
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px">
+            <div>
+              <p class="glassText" style="margin: 0px">Indicador d'emissions</p>
+              ${emissionsIndicatorInput}
+            </div>
+            <div>
+              <p class="glassText" style="margin: 0px">Indicador sociodemogràfic</p>
+              ${incomeIndicatorInput}
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Right column -->
+      <div class="card" style="flex: 1; min-width: 0; gap: 8px">
+        <!-- Legend -->
+        ${
+          Plot.legend(
+            {color: 
+              {
+                type: "threshold",
+                domain: emissionsIndicatorData[currentDatasetIndex].thresholds,
+                range: emissionsIndicatorData[currentDatasetIndex].range,
+                tickFormat: (d) => {return emissionsIndicator.value == 'total_emissions' ? (d/1000000).toFixed(2) : d.toFixed(2)},
+                label: `${emissionsIndicator.name} (${emissionsIndicator.units})`,
+              }
             }
-          }
-        )
-      }
-      ${resize((width) => 
-        Plot.plot({
-          height: 200,
-          color: {
-            type: "categorical",
-            domain: Array.from({ length: 7 }, (_, i) => i.toString()),
-            range: emissionsIndicator.colors
-          },
-          y: { grid: true, label: `Nombre de ${valuesByLevel[currentDatasetIndex].censusLevel}`}, // Per mantenir escala -> domain: [0, mostFrequentClass[1]] 
-          x: { domain: Array.from({ length: 7 }, (_, i) => i.toString()), tickFormat: null, ticks: 0, label: null},
-          marks: [
-            Plot.barY(
-              histogramData,
-              Plot.groupX({ y: "count" }, { x: "class", fill: "class", tip:true })
-            ),
-            Plot.ruleY([0])
-          ]
-        })
-      )}
+          )
+        }
+        <!-- Histogram -->
+        ${resize((width) => 
+          Plot.plot({
+            height: 150,
+            color: {
+              type: "categorical",
+              domain: Array.from({ length: 7 }, (_, i) => i.toString()),
+              range: emissionsIndicator.colors
+            },
+            y: { grid: true, label: `Nombre de ${valuesByLevel[currentDatasetIndex].censusLevel}`}, // Per mantenir escala -> domain: [0, mostFrequentClass[1]] 
+            x: { domain: Array.from({ length: 7 }, (_, i) => i.toString()), tickFormat: null, ticks: 0, label: null},
+            marks: [
+              Plot.barY(
+                histogramData,
+                Plot.groupX({ y: "count" }, { x: "class", fill: "class", tip:true })
+              ),
+              Plot.ruleY([0])
+            ]
+          })
+        )}
+        <!-- Slider -->
+        ${sliderElement}
+        <!-- Tick plot -->
+        ${resize((width) =>
+          Plot.plot({
+            height: 80,
+            x: {
+              label: "Mitjana de la renda per unitat de consum (2022)"
+            },
+            marks: [
+              Plot.tickX(emissionsData, {
+                x: "incomeValue",
+                strokeOpacity: 0.5,
+                stroke: (d) =>
+                  d.incomeValue >= incomeRange[0] && d.incomeValue <= incomeRange[1] ? getTickColor(d.class) : "#d9d9d9"
+              })
+            ]
+          })
+        )}
+      </div>
     </div>
-  
-  <!-- <div class="card">
+  </div>
+
+</div>
+
+<!-- <div class="card">
     <div>
       ${hoverItemHeader}
     </div>
@@ -336,24 +360,23 @@ invalidation.then(() => map.destroy());
       </div>
     </div>
   </div> -->
-</div>
 
 
 
 ```js
 const informationPhrase = html`
-    <h4>
-      <span class="indicador-emissions">${emissionsIndicator.name}</span>
+    <p class="indicadorText" style="font-size: 16px">
+      <span style="font-weight: bold;">${emissionsIndicator.name}</span>
       dels edificis de 
       </span>
       <span>${valuesByLevel[currentDatasetIndex].censusLevel}</span>
       amb
-      <span class="indicador-demografic" ">${lowercaseFirstLetter(incomeIndicator.name)}</span>
+      <span style="font-weight: bold;">${lowercaseFirstLetter(incomeIndicator.name)}</span>
       entre 
       <span>${Number.isInteger(incomeRange[0]) ? incomeRange[0].toString() : incomeRange[0].toFixed(2)} €</span>
       i
       <span>${Number.isInteger(incomeRange[1]) ? incomeRange[1].toString() : incomeRange[1].toFixed(2)} €</span>
-    </h4>
+    </p>
   `;
 ```
 
