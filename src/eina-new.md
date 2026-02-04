@@ -7,15 +7,7 @@ style: ./eina-new.css
 <!--    Imports & files    -->
 
 ```js
-import {
-  qualifColorDomain,
-  qualifColorRange,
-  categoricalScheme5,
-  mapColorScheme
-} from './components/colors.js';
 import { html } from 'npm:htl';
-import mapboxgl from 'npm:mapbox-gl';
-import * as vgplot from 'npm:@uwdata/vgplot';
 import rangeSlider from 'npm:range-slider-input';
 import sliderState from './components/sliderState.js';
 import { ChoroplethMap } from './components/map/choropleth.js';
@@ -23,7 +15,6 @@ import { emissionsIndicatorsMeta, socEcIndicatorsMeta } from './components/indic
 import { getEmissionsIndicatorData, getIncomeIndicatorData, getEmissionsData } from './components/dataProcessing.js';
 import { getHoveredInfo, getTickColor, lowercaseFirstLetter } from './components/mapHelpers.js';
 
-const labels = FileAttachment('./data/labels.json').json();
 const municipisDict = FileAttachment('./data/municipisDict.json').json();
 
 const datasets = [
@@ -248,7 +239,29 @@ const emissionsData = getEmissionsData(currentDatasetIndex, datasets, emissionsI
 ```
 
 ```js
-const hoveredInfo = getHoveredInfo(hoveredPolygonId, currentDatasetIndex, datasets, valuesByLevel, incomeIndicatorData, emissionsData, municipisDict);
+// Pre-compute lookup maps for O(1) hover performance
+const datasetLookup = datasets[currentDatasetIndex].reduce((map, d) => {
+  map[d[valuesByLevel[currentDatasetIndex].id]] = d;
+  return map;
+}, {});
+```
+
+```js
+const incomeLookup = incomeIndicatorData[currentDatasetIndex].values.reduce((map, d, i) => {
+  map[d.id] = { value: d.value, pos: i };
+  return map;
+}, {});
+```
+
+```js
+const emissionsLookup = emissionsData.reduce((map, d, i) => {
+  map[d.id] = { value: d.emissionsValue, pos: i };
+  return map;
+}, {});
+```
+
+```js
+const hoveredInfo = getHoveredInfo(hoveredPolygonId, currentDatasetIndex, datasets, valuesByLevel, incomeIndicatorData, emissionsData, municipisDict, datasetLookup, incomeLookup, emissionsLookup);
 ```
 
 ```js
@@ -271,7 +284,7 @@ const map = ChoroplethMap.create(mapContainer, datasets);
 invalidation.then(() => map.destroy());
 ```
 
-${mapTooltip()}
+${hoveredPolygonId ? mapTooltip() : ''}
 
 <!-- Top Card -->
 
@@ -364,26 +377,11 @@ ${mapTooltip()}
 
 </div>
 
-<!-- <div class="card">
-    <div>
-      ${hoverItemHeader}
-    </div>
-    <div style="display: flex; flex-direction: row; gap: 15px;">
-      <div class="card" style="flex: 1;">
-        ${hoveredItemCard(hoveredInfo.emissionsData, emissionsIndicator, 'emissions')}
-      </div>
-      <div class="card" style="flex: 1;">
-        ${hoveredItemCard(hoveredInfo.incomeData, incomeIndicator, 'demografic')}
-      </div>
-    </div>
-  </div> -->
-
-
 ```js
-const mapTooltip = () => { 
+const mapTooltip = () => {
   const p = mousePosition;
 
-  if (!hoveredPolygonId || p == null) return null;
+  if (!hoveredPolygonId || hoveredPolygonId === null || p == null) return null;
 
   const fmt = d3.format(",.2f");
 
@@ -414,70 +412,6 @@ const mapTooltip = () => {
 }
 ```
 
-<!-- 
-```js
-const hoveredItemCard = (data, indicator, type) => {
-  if (!hoveredPolygonId) {
-    return html` <div
-      style="display: flex; gap: 20px; justify-content: space-between; height: 100%;"
-    >
-      <div style="flex: 1; display: flex; flex-direction: column;">
-        <h5>${indicator.name}</h5>
-        <div style="display: flex; flex-direction: row; gap:4px; align-items: end"></div>
-      </div>
-    </div>`;
-  } else if (!data.value) {
-    return html` <div
-      style="display: flex; gap: 20px; justify-content: space-between; height: 100%;"
-    >
-      <div style="flex: 1; display: flex; flex-direction: column;">
-        <h5>${indicator.name}</h5>
-        <div style="display: flex; flex-direction: row; gap:4px; align-items: end">
-          <h1 class="${type == 'emissions' ? 'indicador-emissions' : 'indicador-demografic'}">
-            ${'Sense dades'}
-          </h1>
-        </div>
-      </div>
-    </div>`;
-  }
-
-  return html` <div style="display: flex; gap: 20px; justify-content: space-between; height: 100%;">
-    <div style="flex: 1; display: flex; flex-direction: column;">
-      <h5>${indicator.name}</h5>
-      <div style="display: flex; flex-direction: row; gap:4px; align-items: end">
-        <h1 class="${type == 'emissions' ? 'indicador-emissions' : 'indicador-demografic'}">
-          ${Number.isInteger(data.value)
-            ? data.value.toString()
-            : emissionsIndicator.value == 'total_emissions'
-              ? (data.value / 1000000).toFixed(2)
-              : data.value.toFixed(2)}
-        </h1>
-        <h3 class="${type == 'emissions' ? 'indicador-emissions' : 'indicador-demografic'}">
-          (${indicator.units})
-        </h3>
-      </div>
-      <div style="display: flex; flex-direction: row; gap:4px; align-items: end">
-        <h3>Posició</h3>
-        <h2>${data.pos + 1}</h2>
-        <h3>de</h3>
-        <h2>${data.totalValues}</h2>
-      </div>
-    </div>
-  </div>`;
-};
-``` -->
-
-<!-- return {
-    names,
-    incomeData: { value: incomeValue, pos: incomeDataPos, totalValues: incomeValues.length },
-    emissionsData: {
-      value: emissionsDataValue,
-      pos: emissionsDataPos,
-      totalValues: emissionsData.length
-    },
-    nCerts
-  }; -->
-
 ```js
 const informationPhrase = html`
     <p class="indicadorText" style="font-size: 16px">
@@ -495,201 +429,8 @@ const informationPhrase = html`
   `;
 ```
 
-```js
-const hoverItemHeader = html` <h3>
-  ${hoveredInfo.names ? hoveredInfo.names.filter((n) => n !== '').join(' / ') : ''}
-</h3>
-  <span> Nº certificats: <b> ${hoveredInfo.nCerts ?? 0} </b> </span> `
-```
-
-```js
-const hoveredItemCard = (data, indicator, type) => {
-  if (!hoveredPolygonId) {
-    return html` <div
-      style="display: flex; gap: 20px; justify-content: space-between; height: 100%;"
-    >
-      <div style="flex: 1; display: flex; flex-direction: column;">
-        <h5>${indicator.name}</h5>
-        <div style="display: flex; flex-direction: row; gap:4px; align-items: end"></div>
-      </div>
-    </div>`;
-  } else if (!data.value) {
-    return html` <div
-      style="display: flex; gap: 20px; justify-content: space-between; height: 100%;"
-    >
-      <div style="flex: 1; display: flex; flex-direction: column;">
-        <h5>${indicator.name}</h5>
-        <div style="display: flex; flex-direction: row; gap:4px; align-items: end">
-          <h1 class="${type == 'emissions' ? 'indicador-emissions' : 'indicador-demografic'}">
-            ${'Sense dades'}
-          </h1>
-        </div>
-      </div>
-    </div>`;
-  }
-
-  return html` <div style="display: flex; gap: 20px; justify-content: space-between; height: 100%;">
-    <div style="flex: 1; display: flex; flex-direction: column;">
-      <h5>${indicator.name}</h5>
-      <div style="display: flex; flex-direction: row; gap:4px; align-items: end">
-        <h1 class="${type == 'emissions' ? 'indicador-emissions' : 'indicador-demografic'}">
-          ${Number.isInteger(data.value)
-            ? data.value.toString()
-            : emissionsIndicator.value == 'total_emissions'
-              ? (data.value / 1000000).toFixed(2)
-              : data.value.toFixed(2)}
-        </h1>
-        <h3 class="${type == 'emissions' ? 'indicador-emissions' : 'indicador-demografic'}">
-          (${indicator.units})
-        </h3>
-      </div>
-      <div style="display: flex; flex-direction: row; gap:4px; align-items: end">
-        <h3>Posició</h3>
-        <h2>${data.pos + 1}</h2>
-        <h3>de</h3>
-        <h2>${data.totalValues}</h2>
-      </div>
-    </div>
-  </div>`;
-};
-```
-
-
 <!--    Functions & Helpers    -->
 <!-- Helper functions have been extracted to:
      - src/components/dataProcessing.js
      - src/components/mapHelpers.js
 -->
-
-
-```js
-// const legend = document.createElement('div');
-// legend.style.position = 'absolute';
-// legend.style.bottom = '1rem';
-// legend.style.right = '1rem';
-// legend.style.background = 'white';
-// legend.style.padding = '0.5rem 0.75rem';
-// legend.style.border = '1px solid #ccc';
-// legend.style.borderRadius = '0.5rem';
-// legend.style.boxShadow = '0 2px 4px rgba(0,0,0,0.15)';
-// legend.style.fontSize = '0.8rem';
-// legend.style.lineHeight = '1.2rem';
-// legend.style.zIndex = '10';
-
-// // Append to map container
-// mapContainer.appendChild(legend);
-```
-
-<!-- ```js
-// Remove existing container if it exists
-let existing = mapContainer.querySelector('.bottom-right-cards');
-if (existing) existing.remove();
-
-// Create outer card container
-const outerCard = document.createElement('div');
-outerCard.className = 'card bottom-right-cards'; // add card class and marker class
-outerCard.style.position = 'absolute';
-outerCard.style.bottom = '1rem';
-outerCard.style.right = '1rem';
-outerCard.style.padding = '0.75rem'; // smaller padding
-outerCard.style.fontSize = '0.85rem'; // compact font
-outerCard.style.display = 'flex';
-outerCard.style.flexDirection = 'column';
-outerCard.style.gap = '10px';
-outerCard.style.zIndex = '10';
-outerCard.style.maxWidth = '300px'; // optional constraint
-
-// Optional header
-const header = document.createElement('div');
-header.innerHTML = hoveredInfo.names.filter(n => n !== '').join(' / ');
-header.style.fontWeight = '600';
-outerCard.appendChild(header);
-
-// Inner horizontal flex container
-const innerContainer = document.createElement('div');
-innerContainer.style.display = 'flex';
-innerContainer.style.flexDirection = 'row';
-innerContainer.style.gap = '10px';
-
-// Create and append the cards
-const incomeCard = document.createElement('div');
-incomeCard.className = 'card';
-incomeCard.style.flex = '1';
-incomeCard.style.fontSize = '0.75rem'; // shrink inner text
-incomeCard.style.padding = '0.5rem';
-incomeCard.appendChild(hoveredItemCard(hoveredInfo.incomeData, incomeIndicator, 'emissions'));
-
-const emissionsCard = document.createElement('div');
-emissionsCard.className = 'card';
-emissionsCard.style.flex = '1';
-emissionsCard.style.fontSize = '0.75rem';
-emissionsCard.style.padding = '0.5rem';
-emissionsCard.appendChild(hoveredItemCard(hoveredInfo.emissionsData, emissionsIndicator, 'demografic'));
-
-innerContainer.appendChild(incomeCard);
-innerContainer.appendChild(emissionsCard);
-
-// Final assembly
-outerCard.appendChild(innerContainer);
-mapContainer.appendChild(outerCard);
-``` -->
-
-<!-- <div class="card" style="flex">
-${resize((width) =>
-    Plot.plot({
-      height: 200,
-      color: {
-        type: "threshold",
-        domain: emissionsIndicatorData[currentDatasetIndex].bins.map((d) => d.x0),
-        range: emissionsIndicator.colors
-      },
-      y: { grid: true, label: `Nombre de ${valuesByLevel[currentDatasetIndex].censusLevel}` },
-      marks: [
-        Plot.rectY(emissionsIndicatorData[currentDatasetIndex].bins, {
-          x1: "x0",
-          x2: "x1",
-          y2: "length",
-          channels: {
-            Mida: "y",
-            Categoria: "x"
-          },
-          tip: {
-            format: {
-              y2: true,
-              x: true,
-              fill: false
-            }
-          },
-          fill: emissionsIndicatorData[currentDatasetIndex].bins.map((d) => d.x0),
-        }),
-        Plot.ruleY([0])
-      ]
-    })
-  )}
-</div> -->
-
-
-<!-- ```js
-html `
-    <div style="display: flex; margin-top: 10px; gap: 20px; align-items: stretch;">
-      <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
-        <h2>${emissionsIndicator.name}</h2>
-        <h2 class="indicador-emissions">${hoveredInfo.emissionsData.value.toFixed(2)} ${emissionsIndicator.units}</h2>
-        <h2>Posició ${hoveredInfo.emissionsData.pos} de ${emissionsData.length}</h2>
-      </div>
-
-      <div style="width: 1px; background: repeating-linear-gradient(
-        to bottom,
-        #999,
-        #999 4px,
-        transparent 4px,
-        transparent 8px
-      );"></div>
-
-      <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; ">
-        <h2>${incomeIndicator.name}</h2>
-        <h2 class="indicador-demografic">${hoveredInfo.incomeData.value} ${incomeIndicator.units}</h2>
-        <h2>Posició ${hoveredInfo.incomeData.pos} de ${incomeIndicatorData[currentDatasetIndex].values.length}</h2>
-      </div>
-    </div>`
-``` -->

@@ -84,10 +84,19 @@ export class ChoroplethMap {
     // });
   }
 
+  /**
+   * Factory method to create a new ChoroplethMap instance.
+   * @param {HTMLElement} container - DOM element to mount the map
+   * @param {Array} datasets - Array of datasets [seccen, mun, com]
+   * @returns {ChoroplethMap} New map instance
+   */
   static create(container, datasets) {
     return new ChoroplethMap(container, datasets);
   }
 
+  /**
+   * Cleans up the map instance and removes it from the DOM.
+   */
   destroy() {
     this.map.remove();
   }
@@ -138,8 +147,6 @@ export class ChoroplethMap {
   }
 
   onMouseMoveGeneral(e) {
-    // const source = sources[this.currentDatasetIndex];
-
     const i = this.currentDatasetIndex;
 
     const layer = layers[i];
@@ -181,6 +188,15 @@ export class ChoroplethMap {
 
     this.hoveredPolygonId = nextId;
 
+    // Dispatch polygon-change event
+    const oe = e.originalEvent;
+    document.dispatchEvent(
+      new CustomEvent('polygon-change', {
+        detail: { polygonId: nextId, x: oe.clientX, y: oe.clientY },
+        bubbles: true
+      })
+    );
+
     if (nextFeature) {
       this.lastHoveredSource = nextFeature.source;
       this.lastHoveredSourceLayer = nextFeature.sourceLayer;
@@ -193,55 +209,6 @@ export class ChoroplethMap {
         },
         { hover: true }
       );
-    }
-  }
-
-  async onMouseMove(e, i) {
-    if (e.features.length > 0) {
-      if (this.hoveredPolygonId !== null) {
-        this.map.setFeatureState(
-          {
-            source: sources[i].id,
-            sourceLayer: sourceLayerIds[i],
-            id: this.hoveredPolygonId
-          },
-          { hover: false }
-        );
-      }
-      this.hoveredPolygonId = e.features[0].id;
-
-      const oe = e.originalEvent;
-
-      const event = new CustomEvent('polygon-change', {
-        detail: { polygonId: this.hoveredPolygonId, x: oe.clientX, y: oe.clientY },
-        bubbles: true
-      });
-      document.dispatchEvent(event);
-
-      this.map.setFeatureState(
-        {
-          source: sources[i].id,
-          sourceLayer: sourceLayerIds[i],
-          id: this.hoveredPolygonId
-        },
-        { hover: true }
-      );
-    } else {
-    }
-  }
-
-  async onMouseLeave(i) {
-    console.log('mouseleave');
-    if (this.hoveredPolygonId !== null) {
-      this.map.setFeatureState(
-        {
-          source: sources[i].id,
-          sourceLayer: sourceLayerIds[i],
-          id: this.hoveredPolygonId
-        },
-        { hover: false }
-      );
-      this.hoveredPolygonId = null;
     }
   }
 
@@ -286,6 +253,11 @@ export class ChoroplethMap {
     return normalized;
   }
 
+  /**
+   * Sets opacity for all features based on income range filter.
+   * Features within range are fully visible, others are hidden.
+   * @param {number[]} range - [min, max] income values to show
+   */
   setMapOpacity(range) {
     const data = this.dataManager.getIndicatorData(this.currentDatasetIndex, this.incomeIndicator);
     const source = sources[this.currentDatasetIndex];
@@ -296,6 +268,12 @@ export class ChoroplethMap {
     }
   }
 
+  /**
+   * Efficiently updates opacity when income range changes.
+   * Only updates features that changed visibility state.
+   * @param {number[]} oldRange - Previous [min, max] range
+   * @param {number[]} newRange - New [min, max] range
+   */
   updateMapOpacity(oldRange, newRange) {
     const data = this.dataManager.getIndicatorData(this.currentDatasetIndex, this.incomeIndicator);
     const source = sources[this.currentDatasetIndex];
@@ -341,6 +319,14 @@ export class ChoroplethMap {
     this.map.setPaintProperty(fillLayer.id, 'fill-color', layerColor);
   }
 
+  /**
+   * Initializes the map with emissions and income indicator data.
+   * Called once after map loads.
+   * @param {Object} emissionsIndicator - Emissions indicator metadata
+   * @param {Array} emissionsIndicatorData - Processed emissions data with bins
+   * @param {Object} incomeIndicator - Income indicator metadata
+   * @param {Array} incomeIndicatorData - Processed income data with stats
+   */
   initializeData(emissionsIndicator, emissionsIndicatorData, incomeIndicator, incomeIndicatorData) {
     this.emissionsIndicator = {
       value: emissionsIndicator.value,
@@ -351,6 +337,12 @@ export class ChoroplethMap {
     this.updateIncomeData(incomeIndicator, incomeIndicatorData);
   }
 
+  /**
+   * Updates the map with new emissions indicator data.
+   * Recalculates color palette for all visible layers.
+   * @param {Object} emissionsIndicator - Emissions indicator metadata
+   * @param {Array} indicatorData - Processed emissions data with bins
+   */
   updateEmissionsData(emissionsIndicator, indicatorData) {
     this.dataManager.emissionsIndicatorData = indicatorData;
     this.emissionsIndicator = {
@@ -360,8 +352,14 @@ export class ChoroplethMap {
     this.updateMapPalette();
   }
 
+  /**
+   * Updates the map with new income indicator data.
+   * Adjusts layer visibility based on data availability.
+   * @param {Object} incomeIndicator - Income indicator metadata
+   * @param {Array} indicatorData - Processed income data with stats
+   */
   updateIncomeData(incomeIndicator, indicatorData) {
-    this.dataManager.incomeIndicatorData = indicatorData; // PDM: probably not needed
+    this.dataManager.incomeIndicatorData = indicatorData;
     this.incomeIndicator = incomeIndicator.value;
     this.updateLayerVisibilityAndZoom(incomeIndicator.levels);
   }
@@ -433,16 +431,13 @@ export class ChoroplethMap {
           [8, 11.5],
           [0, 8]
         ];
-        break;
       case 2:
         return [
           [11.5, 22],
           [0, 11.5]
         ];
-        break;
       case 1:
         return [[0, 22]];
-        break;
       default:
         console.warn('No visible layers!');
         return [];

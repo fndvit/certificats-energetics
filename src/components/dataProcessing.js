@@ -131,15 +131,14 @@ export function getEmissionsData(
   emissionsIndicatorData,
   valuesByLevel
 ) {
-  const index = datasetIndex;
   const getEntryClass = (value) =>
-    emissionsIndicatorData[index].bins
+    emissionsIndicatorData[datasetIndex].bins
       .findIndex((d) => {
         return d.x0 != d.x1 ? value >= d.x0 && value < d.x1 : value >= d.x0;
       })
       .toString();
 
-  const valuesByClass = datasets[index]
+  const valuesByClass = datasets[datasetIndex]
     .map((d) => {
       const emissionsValue = d[emissionsIndicator.value];
       const incomeValue = d[incomeIndicator.value];
