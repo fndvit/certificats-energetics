@@ -76,10 +76,12 @@ export class ChoroplethMap {
 
     this.map.on('load', () => this.onMapLoad());
     this.map.on('zoom', () => this.onMapZoom());
-    layers.forEach((layer, i) => {
-      this.map.on('mousemove', layer.fill.id, (e) => this.onMouseMove(e, i));
-      this.map.on('mouseleave', layer.fill.id, () => this.onMouseLeave(i));
-    });
+    this.map.on('mousemove', (e) => this.onMouseMoveGeneral(e));
+
+    // layers.forEach((layer, i) => {
+    //   this.map.on('mousemove', layer.fill.id, (e) => this.onMouseMove(e, i));
+    //   this.map.on('mouseleave', layer.fill.id, () => this.onMouseLeave(i));
+    // });
   }
 
   static create(container, datasets) {
@@ -135,6 +137,65 @@ export class ChoroplethMap {
     }
   }
 
+  onMouseMoveGeneral(e) {
+    // const source = sources[this.currentDatasetIndex];
+
+    const i = this.currentDatasetIndex;
+
+    const layer = layers[i];
+    const fillLayerId = layer.fill?.id;
+
+    const features = this.map.queryRenderedFeatures(e.point, {
+      layers: [fillLayerId]
+    });
+
+    const prevId = this.hoveredPolygonId;
+    const nextFeature = features[0] ?? null;
+    const nextId = nextFeature?.id ?? null;
+
+    if (prevId === nextId) {
+      // tooltip position update only
+      if (nextId !== null) {
+        const oe = e.originalEvent;
+        document.dispatchEvent(
+          new CustomEvent('polygon-change', {
+            detail: { polygonId: nextId, x: oe.clientX, y: oe.clientY },
+            bubbles: true
+          })
+        );
+      }
+      return;
+    }
+
+    // Clear previous hover
+    if (prevId !== null) {
+      this.map.setFeatureState(
+        {
+          source: sources[i].id,
+          sourceLayer: sourceLayerIds[i],
+          id: prevId
+        },
+        { hover: false }
+      );
+    }
+
+    this.hoveredPolygonId = nextId;
+
+    if (nextFeature) {
+      this.lastHoveredSource = nextFeature.source;
+      this.lastHoveredSourceLayer = nextFeature.sourceLayer;
+
+      this.map.setFeatureState(
+        {
+          source: nextFeature.source,
+          sourceLayer: nextFeature.sourceLayer,
+          id: nextId
+        },
+        { hover: true }
+      );
+    }
+  }
+
   async onMouseMove(e, i) {
     if (e.features.length > 0) {
       if (this.hoveredPolygonId !== null) {
@@ -149,8 +210,10 @@ export class ChoroplethMap {
       }
       this.hoveredPolygonId = e.features[0].id;
 
+      const oe = e.originalEvent;
+
       const event = new CustomEvent('polygon-change', {
-        detail: { polygonId: this.hoveredPolygonId },
+        detail: { polygonId: this.hoveredPolygonId, x: oe.clientX, y: oe.clientY },
         bubbles: true
       });
       document.dispatchEvent(event);
@@ -163,10 +226,12 @@ export class ChoroplethMap {
         },
         { hover: true }
       );
+    } else {
     }
   }
 
   async onMouseLeave(i) {
+    console.log('mouseleave');
     if (this.hoveredPolygonId !== null) {
       this.map.setFeatureState(
         {
@@ -176,8 +241,8 @@ export class ChoroplethMap {
         },
         { hover: false }
       );
+      this.hoveredPolygonId = null;
     }
-    this.hoveredPolygonId = null;
   }
 
   /**
@@ -371,8 +436,8 @@ export class ChoroplethMap {
         break;
       case 2:
         return [
-          [9.5, 22],
-          [0, 9.5]
+          [11.5, 22],
+          [0, 11.5]
         ];
         break;
       case 1:

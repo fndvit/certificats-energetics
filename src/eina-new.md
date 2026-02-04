@@ -15,12 +15,13 @@ import {
 } from './components/colors.js';
 import { html } from 'npm:htl';
 import mapboxgl from 'npm:mapbox-gl';
-import { ckmeans } from 'simple-statistics';
 import * as vgplot from 'npm:@uwdata/vgplot';
 import rangeSlider from 'npm:range-slider-input';
 import sliderState from './components/sliderState.js';
 import { ChoroplethMap } from './components/map/choropleth.js';
 import { emissionsIndicatorsMeta, socEcIndicatorsMeta } from './components/indicatorsMeta.js';
+import { getEmissionsIndicatorData, getIncomeIndicatorData, getEmissionsData } from './components/dataProcessing.js';
+import { getHoveredInfo, getTickColor, lowercaseFirstLetter } from './components/mapHelpers.js';
 
 const labels = FileAttachment('./data/labels.json').json();
 const municipisDict = FileAttachment('./data/municipisDict.json').json();
@@ -94,6 +95,11 @@ const setMapLoaded = (x) => (mapLoaded.value = x);
 ```js
 const hoveredPolygonId = Mutable(null);
 const setHoveredPolygonId = (x) => (hoveredPolygonId.value = x);
+```
+
+```js
+const mousePosition = Mutable(null);
+const setMousePosition = (([x, y]) => mousePosition.value = {x: x, y: y})
 ```
 
 <!--    Inputs    -->
@@ -172,6 +178,7 @@ const incomeIndicator = Generators.input(incomeIndicatorInput);
 
 ```js
 document.addEventListener('polygon-change', (e) => {
+  setMousePosition([e.detail.x, e.detail.y]);
   setHoveredPolygonId(e.detail.polygonId);
 });
 
@@ -229,19 +236,19 @@ if (mapLoaded) {
 ```
 
 ```js
-const hoveredInfo = getHoveredInfo(hoveredPolygonId, currentDatasetIndex);
+const emissionsIndicatorData = getEmissionsIndicatorData(emissionsIndicator, datasets);
 ```
 
 ```js
-const emissionsIndicatorData = getEmissionsIndicatorData(emissionsIndicator);
+const incomeIndicatorData = getIncomeIndicatorData(incomeIndicator, datasets, valuesByLevel);
 ```
 
 ```js
-const incomeIndicatorData = getIncomeIndicatorData(incomeIndicator);
+const emissionsData = getEmissionsData(currentDatasetIndex, datasets, emissionsIndicator, incomeIndicator, emissionsIndicatorData, valuesByLevel);
 ```
 
 ```js
-const emissionsData = getEmissionsData(currentDatasetIndex);
+const hoveredInfo = getHoveredInfo(hoveredPolygonId, currentDatasetIndex, datasets, valuesByLevel, incomeIndicatorData, emissionsData, municipisDict);
 ```
 
 ```js
@@ -263,6 +270,8 @@ Object.assign(mapContainer.style, {
 const map = ChoroplethMap.create(mapContainer, datasets);
 invalidation.then(() => map.destroy());
 ```
+
+${mapTooltip()}
 
 <!-- Top Card -->
 
@@ -311,8 +320,16 @@ invalidation.then(() => map.destroy());
               domain: Array.from({ length: 7 }, (_, i) => i.toString()),
               range: emissionsIndicator.colors
             },
-            y: { grid: true, label: `Nombre de ${valuesByLevel[currentDatasetIndex].censusLevel}`}, // Per mantenir escala -> domain: [0, mostFrequentClass[1]] 
-            x: { domain: Array.from({ length: 7 }, (_, i) => i.toString()), tickFormat: null, ticks: 0, label: null},
+            y: { 
+              grid: true, 
+              label: `Nombre de ${valuesByLevel[currentDatasetIndex].censusLevel}`,
+            }, // Per mantenir escala -> domain: [0, mostFrequentClass[1]] 
+            x: { 
+              domain: Array.from({ length: 7 }, (_, i) => i.toString()), 
+              tickFormat: null, 
+              tickSize: 0, 
+              label: null
+            },
             marks: [
               Plot.barY(
                 histogramData,
@@ -336,7 +353,7 @@ invalidation.then(() => map.destroy());
                 x: "incomeValue",
                 strokeOpacity: 0.5,
                 stroke: (d) =>
-                  d.incomeValue >= incomeRange[0] && d.incomeValue <= incomeRange[1] ? getTickColor(d.class) : "#d9d9d9"
+                  d.incomeValue >= incomeRange[0] && d.incomeValue <= incomeRange[1] ? getTickColor(d.class, emissionsIndicator) : "#d9d9d9"
               })
             ]
           })
@@ -362,6 +379,104 @@ invalidation.then(() => map.destroy());
   </div> -->
 
 
+```js
+const mapTooltip = () => { 
+  const p = mousePosition;
+
+  if (!hoveredPolygonId || p == null) return null;
+
+  const fmt = d3.format(",.2f");
+
+  const W = 240;
+  const H = 70;
+
+  const left = Math.max(8, p.x);
+  const top = Math.max(8, p.y);
+  
+  return html`
+    <div class="mb-tip" style="left:${left}px; top:${top}px;">
+      <div class="mb-tip-title">
+        ${hoveredInfo.names ? hoveredInfo.names.filter((n) => n !== '').join(' / ') : ''}
+      </div>
+      <div class="mb-tip-row">
+        <span>${emissionsIndicator.name}</span>
+        <span>
+          ${hoveredInfo.emissionsData.value == null ? "—" : fmt(hoveredInfo.emissionsData.value)}
+        </span>
+      </div>
+      <div class="mb-tip-row">
+        <span>${incomeIndicator.name}</span>
+        <span>
+          ${hoveredInfo.incomeData.value == null ? "—" : fmt(hoveredInfo.incomeData.value)}
+        </span>
+      </div>
+    </div>`;
+}
+```
+
+<!-- 
+```js
+const hoveredItemCard = (data, indicator, type) => {
+  if (!hoveredPolygonId) {
+    return html` <div
+      style="display: flex; gap: 20px; justify-content: space-between; height: 100%;"
+    >
+      <div style="flex: 1; display: flex; flex-direction: column;">
+        <h5>${indicator.name}</h5>
+        <div style="display: flex; flex-direction: row; gap:4px; align-items: end"></div>
+      </div>
+    </div>`;
+  } else if (!data.value) {
+    return html` <div
+      style="display: flex; gap: 20px; justify-content: space-between; height: 100%;"
+    >
+      <div style="flex: 1; display: flex; flex-direction: column;">
+        <h5>${indicator.name}</h5>
+        <div style="display: flex; flex-direction: row; gap:4px; align-items: end">
+          <h1 class="${type == 'emissions' ? 'indicador-emissions' : 'indicador-demografic'}">
+            ${'Sense dades'}
+          </h1>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  return html` <div style="display: flex; gap: 20px; justify-content: space-between; height: 100%;">
+    <div style="flex: 1; display: flex; flex-direction: column;">
+      <h5>${indicator.name}</h5>
+      <div style="display: flex; flex-direction: row; gap:4px; align-items: end">
+        <h1 class="${type == 'emissions' ? 'indicador-emissions' : 'indicador-demografic'}">
+          ${Number.isInteger(data.value)
+            ? data.value.toString()
+            : emissionsIndicator.value == 'total_emissions'
+              ? (data.value / 1000000).toFixed(2)
+              : data.value.toFixed(2)}
+        </h1>
+        <h3 class="${type == 'emissions' ? 'indicador-emissions' : 'indicador-demografic'}">
+          (${indicator.units})
+        </h3>
+      </div>
+      <div style="display: flex; flex-direction: row; gap:4px; align-items: end">
+        <h3>Posició</h3>
+        <h2>${data.pos + 1}</h2>
+        <h3>de</h3>
+        <h2>${data.totalValues}</h2>
+      </div>
+    </div>
+  </div>`;
+};
+``` -->
+
+<!-- return {
+    names,
+    incomeData: { value: incomeValue, pos: incomeDataPos, totalValues: incomeValues.length },
+    emissionsData: {
+      value: emissionsDataValue,
+      pos: emissionsDataPos,
+      totalValues: emissionsData.length
+    },
+    nCerts
+  }; -->
 
 ```js
 const informationPhrase = html`
@@ -441,189 +556,10 @@ const hoveredItemCard = (data, indicator, type) => {
 
 
 <!--    Functions & Helpers    -->
-```js
-const lowercaseFirstLetter = (str) => str.charAt(0).toLowerCase() + str.slice(1);
-
-function getTickColor(val) {
-  return d3.scaleThreshold(
-    Array.from({ length: 7 }, (_, i) => i),
-    emissionsIndicator.colors
-  )(val);
-}
-
-function getEmissionsData(datasetIndex) {
-  const index = datasetIndex;
-  const getEntryClass = (value) =>
-    emissionsIndicatorData[index].bins
-      .findIndex((d) => {
-        return d.x0 != d.x1 ? value >= d.x0 && value < d.x1 : value >= d.x0;
-      })
-      .toString();
-
-  const valuesByClass = datasets[index]
-    .map((d) => {
-      const emissionsValue = d[emissionsIndicator.value];
-      const incomeValue = d[incomeIndicator.value];
-      const id = d[valuesByLevel[datasetIndex].id];
-      return { id, class: getEntryClass(emissionsValue), emissionsValue, incomeValue };
-    })
-    .sort((a, b) => a.emissionsValue - b.emissionsValue);
-
-  // const mostFrequentClass = d3.greatest(
-  //   d3.rollup(valuesByClass, v => v.length, d => d.class),
-  //   ([, count]) => count
-  // );
-
-  return valuesByClass;
-
-  return null;
-}
-
-function getHoveredNames(hoveredPolygon, currentDatasetIndex) {
-  if (hoveredPolygon) {
-    const sectionCode = currentDatasetIndex == 0 ? hoveredPolygon.slice(-3) : '';
-    const districtCode = currentDatasetIndex == 0 ? hoveredPolygon.slice(6, 8) : '';
-    const municipiCode =
-      currentDatasetIndex == 0
-        ? hoveredPolygon.slice(0, -5)
-        : currentDatasetIndex == 1
-          ? hoveredPolygon
-          : '';
-
-    if (municipisDict[municipiCode]) {
-      const municipiName =
-        currentDatasetIndex == 0 || currentDatasetIndex == 1
-          ? municipisDict[municipiCode].municipi
-          : '';
-      const comarcaName =
-        currentDatasetIndex == 2
-          ? municipisDict.find((d) => d.codi_comarca == hoveredPolygon).comarca
-          : municipisDict[municipiCode].comarca;
-
-      return [districtCode, sectionCode, municipiName, comarcaName];
-    }
-  }
-  return [''];
-}
-```
-
-```js
-function getHoveredInfo(hoveredPolygonId, currentDatasetIndex) {
-  const names = getHoveredNames(hoveredPolygonId, currentDatasetIndex);
-
-  // Get nº Certificates
-  const nCerts = datasets[currentDatasetIndex].find((d) => d[valuesByLevel[currentDatasetIndex].id] == hoveredPolygonId)?.count;
-
-  const incomeValues = incomeIndicatorData[currentDatasetIndex].values;
-  const incomeDataPos = incomeValues.findIndex((obj) => obj.id === hoveredPolygonId);
-  const incomeValue = incomeDataPos !== -1 ? incomeValues[incomeDataPos].value : null;
-
-  const emissionsDataPos = emissionsData.findIndex((obj) => obj.id === hoveredPolygonId);
-  const emissionsDataValue =
-    emissionsDataPos !== -1 ? emissionsData[emissionsDataPos].emissionsValue : null;
-
-  return {
-    names,
-    incomeData: { value: incomeValue, pos: incomeDataPos, totalValues: incomeValues.length },
-    emissionsData: {
-      value: emissionsDataValue,
-      pos: emissionsDataPos,
-      totalValues: emissionsData.length
-    },
-    nCerts
-  };
-}
-```
-
-```js
-function getEmissionsIndicatorData(indicator) {
-  const data = [];
-  datasets.forEach((dataset, i) => {
-    const emissionsIndicatorArray = dataset.map((d) => d[indicator.value]);
-
-    const nClasses = indicator.colors.length;
-    let bins;
-    let fullDomain;
-    let thresholds;
-
-    if (indicator.binOperation == 'ckmeans') {
-      const ckMeans = ckmeans(emissionsIndicatorArray, nClasses);
-      const ckThresholds = ckMeans.map((d) => d3.min(d));
-
-      bins = d3
-        .bin()
-        .thresholds(ckThresholds)
-        .value((d) => d)(emissionsIndicatorArray);
-
-      const stops = bins.map((d) => d.x0);
-      stops.push(bins[bins.length - 1].x1);
-
-      thresholds = [...bins.map((d) => d.x1).slice(0, bins.length - 1)];
-      fullDomain = [...stops]; // color stop1 color stop2 color finalStop color
-    } else if (indicator.binOperation === 'logarithmic') {
-      const min = d3.min(emissionsIndicatorArray);
-      const max = d3.max(emissionsIndicatorArray);
-      const nClasses = indicator.colors.length;
-
-      const logMin = Math.log10(min);
-      const logMax = Math.log10(max);
-
-      const logStops = Array.from({ length: nClasses }, (_, i) =>
-        Math.pow(10, logMin + (i * (logMax - logMin)) / (nClasses - 1))
-      );
-
-      logStops[0] = min;
-      logStops[logStops.length - 1] = max;
-
-      thresholds = logStops.slice(1);
-
-      bins = d3
-        .bin()
-        .thresholds(thresholds)
-        .value((d) => d)(emissionsIndicatorArray);
-
-      const stops = bins.map((d) => d.x0);
-      stops.push(bins[bins.length - 1].x1);
-
-      fullDomain = stops;
-    }
-
-    data.push({ layerId: i, fullDomain, thresholds, range: indicator.colors, bins });
-  });
-
-  return data;
-}
-
-function getIncomeIndicatorData(indicator) {
-  const data = [];
-  datasets.forEach((dataset, i) => {
-    if (indicator.levels[i]) {
-      const incomeEntries = dataset
-        .map((d) => ({ id: d[valuesByLevel[i].id], value: d[indicator.value] }))
-        .filter((v) => v.value != null && !isNaN(v.value))
-        .sort((a, b) => a.value - b.value);
-
-      const incomeValues = incomeEntries.map((d) => d.value);
-
-      const sum = incomeValues.reduce((a, b) => a + b, 0);
-      const count = incomeValues.length;
-
-      data.push({
-        mean: sum / count,
-        min: incomeValues[0],
-        max: incomeValues[incomeValues.length - 1],
-        q1: d3.quantile(incomeValues, 0.25),
-        q3: d3.quantile(incomeValues, 0.75),
-        values: incomeEntries
-      });
-    } else {
-      data.push(null);
-    }
-  });
-
-  return data;
-}
-```
+<!-- Helper functions have been extracted to:
+     - src/components/dataProcessing.js
+     - src/components/mapHelpers.js
+-->
 
 
 ```js

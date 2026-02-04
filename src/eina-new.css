@@ -163,7 +163,7 @@ label {
 
 .glass {
   border: none;
-  background: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.6);
   box-shadow: 0 3px 16px rgba(0, 0, 0, 0.2);
   backdrop-filter: blur(85px);
 }
@@ -267,4 +267,43 @@ label {
     padding-left: var(--observablehq-inset-left);
     /* padding-right stays as default 1rem */
   }
+}
+
+#map {
+  position: relative;
+}
+.mb-tip {
+  position: fixed;
+  z-index: 10;
+  pointer-events: none;
+  width: 240px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 3px 16px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(1rem);
+  font:
+    0.8rem/1.35 system-ui,
+    -apple-system,
+    Segoe UI,
+    Roboto,
+    sans-serif;
+}
+.mb-tip-title {
+  font-weight: 650;
+  margin-bottom: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mb-tip-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.mb-tip-row span:first-child {
+  color: rgba(0, 0, 0, 0.65);
+}
+.mb-tip-row span:last-child {
+  font-variant-numeric: tabular-nums;
 }
