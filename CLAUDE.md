@@ -100,7 +100,13 @@ When modifying map behavior:
 
 ## Recent Refactors
 
-A 5-phase refactor was completed (documented in `.claude/REFACTOR_PLAN.md`):
+A 5-phase refactor was completed:
 - **Phase 1-2**: Extracted helper functions from `eina.md` into reusable modules (`dataProcessing.js`, `mapHelpers.js`), reducing code by ~200 lines
 - **Phase 3-4**: Optimized map performance by implementing O(1) hash map lookups for hover interactions, achieving ~500x improvement on census sections
 - **Phase 5**: Code cleanup - removed commented code, unused imports, added JSDoc comments, improved consistency
+
+**Viewport-based rendering optimization** (2026-02-11):
+- Implemented viewport-based feature state updates in `setMapOpacity()` and `updateMapOpacity()`
+- Only processes features visible in the current viewport (~100-500 instead of ~15,000 for census sections)
+- Achieves ~30-150x improvement on slider interactions at the census section level
+- Added `moveend` event handler to update opacity for newly visible features when panning

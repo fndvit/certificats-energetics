@@ -47,9 +47,9 @@ export function getHoveredNames(hoveredPolygon, currentDatasetIndex, municipisDi
  * @param {Array} incomeIndicatorData - Processed income data
  * @param {Array} emissionsData - Processed emissions data (from getEmissionsData)
  * @param {Object} municipisDict - Municipality lookup dictionary
- * @param {Object} [datasetLookup] - Pre-computed lookup map for O(1) dataset access
- * @param {Object} [incomeLookup] - Pre-computed lookup map for O(1) income data access
- * @param {Object} [emissionsLookup] - Pre-computed lookup map for O(1) emissions data access
+ * @param {Map} [datasetLookup] - Pre-computed lookup Map for O(1) dataset access
+ * @param {Map} [incomeLookup] - Pre-computed lookup Map for O(1) income data access
+ * @param {Map} [emissionsLookup] - Pre-computed lookup Map for O(1) emissions data access
  * @returns {Object} {names, incomeData, emissionsData, nCerts}
  */
 export function getHoveredInfo(
@@ -66,33 +66,36 @@ export function getHoveredInfo(
 ) {
   const names = getHoveredNames(hoveredPolygonId, currentDatasetIndex, municipisDict);
 
-  // Get nº Certificates - O(1) with lookup map, O(n) fallback
+  // Get nº Certificates - O(1) with lookup Map, O(n) fallback
   const nCerts = datasetLookup
-    ? datasetLookup[hoveredPolygonId]?.count
+    ? datasetLookup.get(hoveredPolygonId)?.count
     : datasets[currentDatasetIndex].find(
         (d) => d[valuesByLevel[currentDatasetIndex].id] == hoveredPolygonId
       )?.count;
 
   const incomeValues = incomeIndicatorData[currentDatasetIndex].values;
 
-  // Income data - O(1) with lookup map, O(n) fallback
+  // Income data - O(1) with lookup Map, O(n) fallback
   let incomeDataPos, incomeValue;
-  if (incomeLookup && incomeLookup[hoveredPolygonId]) {
-    incomeDataPos = incomeLookup[hoveredPolygonId].pos;
-    incomeValue = incomeLookup[hoveredPolygonId].value;
+  const incomeData = incomeLookup?.get(hoveredPolygonId);
+  if (incomeData) {
+    incomeDataPos = incomeData.pos;
+    incomeValue = incomeData.value;
   } else {
     incomeDataPos = incomeValues.findIndex((obj) => obj.id === hoveredPolygonId);
     incomeValue = incomeDataPos !== -1 ? incomeValues[incomeDataPos].value : null;
   }
 
-  // Emissions data - O(1) with lookup map, O(n) fallback
+  // Emissions data - O(1) with lookup Map, O(n) fallback
   let emissionsDataPos, emissionsDataValue;
-  if (emissionsLookup && emissionsLookup[hoveredPolygonId]) {
-    emissionsDataPos = emissionsLookup[hoveredPolygonId].pos;
-    emissionsDataValue = emissionsLookup[hoveredPolygonId].value;
+  const emissionsDataEntry = emissionsLookup?.get(hoveredPolygonId);
+  if (emissionsDataEntry) {
+    emissionsDataPos = emissionsDataEntry.pos;
+    emissionsDataValue = emissionsDataEntry.value;
   } else {
     emissionsDataPos = emissionsData.findIndex((obj) => obj.id === hoveredPolygonId);
-    emissionsDataValue = emissionsDataPos !== -1 ? emissionsData[emissionsDataPos].emissionsValue : null;
+    emissionsDataValue =
+      emissionsDataPos !== -1 ? emissionsData[emissionsDataPos].emissionsValue : null;
   }
 
   return {

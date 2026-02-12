@@ -93,6 +93,16 @@ const mousePosition = Mutable(null);
 const setMousePosition = (([x, y]) => mousePosition.value = {x: x, y: y})
 ```
 
+```js
+const isMouseOverUI = Mutable(false);
+const setIsMouseOverUI = (x) => (isMouseOverUI.value = x);
+```
+
+```js
+const isMouseButtonPressed = Mutable(false);
+const setIsMouseButtonPressed = (x) => (isMouseButtonPressed.value = x);
+```
+
 <!--    Inputs    -->
 
 ```js
@@ -122,13 +132,39 @@ const slider = rangeSlider(sliderElement, {
   }
 });
 
+/**
+ * Formats a number for display, using 2 decimal places unless it's an integer.
+ * @param {number} value - Number to format
+ * @param {string} [suffix=''] - Optional suffix (e.g., '€')
+ * @returns {string} Formatted number
+ */
+function formatNumber(value, suffix = '') {
+  const formatted = Number.isInteger(value) ? value.toString() : value.toFixed(2);
+  return suffix ? `${formatted} ${suffix}` : formatted;
+}
+
+/**
+ * Extracts just the numeric values from income indicator data for slider use.
+ * @param {Object} incomeData - Income indicator data with values array
+ * @returns {number[]} Array of numeric values
+ */
+function getIndicatorValues(incomeData) {
+  return incomeData.values.map(d => d.value);
+}
+
+/**
+ * Updates slider bounds with padding to prevent handles from sitting on exact min/max.
+ * Extends range by 1 unit on each side for better UX.
+ */
 function updateSliderBounds(newMin, newMax, indicatorValues) {
+  const SLIDER_PADDING = 1; // Extends range beyond min/max for easier interaction
+
   const [pLow, pHigh] = sliderState.percentileRange;
   const lowHandle = d3.quantileSorted(indicatorValues, pLow);
   const highHandle = d3.quantileSorted(indicatorValues, pHigh);
 
-  const newMinExtended = newMin - 1;
-  const newMaxExtended = newMax + 1;
+  const newMinExtended = newMin - SLIDER_PADDING;
+  const newMaxExtended = newMax + SLIDER_PADDING;
 
   const divisionFactor = (newMaxExtended - newMinExtended) / nSteps;
 
@@ -174,7 +210,7 @@ document.addEventListener('polygon-change', (e) => {
 });
 
 document.addEventListener('map-loaded', () => {
-  sliderState.indicatorValues = incomeIndicatorData[currentDatasetIndex].values.map((d) => d.value)
+  sliderState.indicatorValues = getIndicatorValues(incomeIndicatorData[currentDatasetIndex]);
   map.initializeData(
     emissionsIndicator,
     emissionsIndicatorData,
@@ -184,7 +220,7 @@ document.addEventListener('map-loaded', () => {
   updateSliderBounds(
     incomeIndicatorData[1].min,
     incomeIndicatorData[1].max,
-    incomeIndicatorData[1].values.map((d) => d.value)
+    getIndicatorValues(incomeIndicatorData[1])
   );
   setMapLoaded(true);
   sliderState.percentileRange = [0.25, 0.75];
@@ -192,27 +228,51 @@ document.addEventListener('map-loaded', () => {
 
 document.addEventListener('zoom-level-changed', (event) => {
   const datasetIndex = event.detail.zoomLevel;
-  sliderState.indicatorValues = incomeIndicatorData[datasetIndex].values.map((d) => d.value);
+  sliderState.indicatorValues = getIndicatorValues(incomeIndicatorData[datasetIndex]);
   setCurrentDatasetIndex(datasetIndex);
+});
+
+// Hide tooltip when mouse button is pressed (dragging)
+document.addEventListener('mousedown', () => {
+  setIsMouseButtonPressed(true);
+  setHoveredPolygonId(null); // Clear hovered polygon to prevent stale tooltip
+});
+
+document.addEventListener('mouseup', () => {
+  setIsMouseButtonPressed(false);
+});
+
+// Hide tooltip when hovering over UI elements
+// Attach listeners to all UI cards and Observable's sidebar
+const uiElements = document.querySelectorAll('.card, .observablehq-sidebar, nav');
+uiElements.forEach((element) => {
+  element.addEventListener('mouseenter', () => setIsMouseOverUI(true));
+  element.addEventListener('mouseleave', () => setIsMouseOverUI(false));
 });
 ```
 
 <!--    Reactive listeners    -->
 
+<!-- Reactive: Updates slider bounds when dataset or income indicator changes
+     Depends on: currentDatasetIndex, incomeIndicatorData -->
 ```js
 updateSliderBounds(
   incomeIndicatorData[currentDatasetIndex].min,
   incomeIndicatorData[currentDatasetIndex].max,
-  incomeIndicatorData[currentDatasetIndex].values.map((d) => d.value)
+  getIndicatorValues(incomeIndicatorData[currentDatasetIndex])
 );
 ```
 
+<!-- Reactive: Updates map colors when emissions indicator changes
+     Depends on: mapLoaded, emissionsIndicator, emissionsIndicatorData -->
 ```js
 if (mapLoaded) {
   map.updateEmissionsData(emissionsIndicator, emissionsIndicatorData);
 }
 ```
 
+<!-- Reactive: Updates map layer visibility when income indicator changes
+     Depends on: mapLoaded, incomeIndicator, incomeIndicatorData -->
 ```js
 if (mapLoaded) {
   map.updateIncomeData(incomeIndicator, incomeIndicatorData);
@@ -240,24 +300,30 @@ const emissionsData = getEmissionsData(currentDatasetIndex, datasets, emissionsI
 
 ```js
 // Pre-compute lookup maps for O(1) hover performance
-const datasetLookup = datasets[currentDatasetIndex].reduce((map, d) => {
-  map[d[valuesByLevel[currentDatasetIndex].id]] = d;
-  return map;
-}, {});
+const datasetLookup = new Map(
+  datasets[currentDatasetIndex].map(d => [
+    d[valuesByLevel[currentDatasetIndex].id],
+    d
+  ])
+);
 ```
 
 ```js
-const incomeLookup = incomeIndicatorData[currentDatasetIndex].values.reduce((map, d, i) => {
-  map[d.id] = { value: d.value, pos: i };
-  return map;
-}, {});
+const incomeLookup = new Map(
+  incomeIndicatorData[currentDatasetIndex].values.map((d, i) => [
+    d.id,
+    { value: d.value, pos: i }
+  ])
+);
 ```
 
 ```js
-const emissionsLookup = emissionsData.reduce((map, d, i) => {
-  map[d.id] = { value: d.emissionsValue, pos: i };
-  return map;
-}, {});
+const emissionsLookup = new Map(
+  emissionsData.map((d, i) => [
+    d.id,
+    { value: d.emissionsValue, pos: i }
+  ])
+);
 ```
 
 ```js
@@ -284,7 +350,7 @@ const map = ChoroplethMap.create(mapContainer, datasets);
 invalidation.then(() => map.destroy());
 ```
 
-${hoveredPolygonId ? mapTooltip() : ''}
+${hoveredPolygonId && !isMouseOverUI && !isMouseButtonPressed ? mapTooltip() : ''}
 
 <!-- Top Card -->
 
@@ -318,7 +384,10 @@ ${hoveredPolygonId ? mapTooltip() : ''}
                 type: "threshold",
                 domain: emissionsIndicatorData[currentDatasetIndex].thresholds,
                 range: emissionsIndicatorData[currentDatasetIndex].range,
-                tickFormat: (d) => {return emissionsIndicator.value == 'total_emissions' ? (d/1000000).toFixed(2) : d.toFixed(2)},
+                tickFormat: (d) => {
+                  const value = emissionsIndicator.value === 'total_emissions' ? d / 1000000 : d;
+                  return formatNumber(value);
+                },
                 label: `${emissionsIndicator.name} (${emissionsIndicator.units})`,
               }
             }
@@ -421,10 +490,10 @@ const informationPhrase = html`
       <span>${valuesByLevel[currentDatasetIndex].censusLevel}</span>
       amb
       <span style="font-weight: bold;">${lowercaseFirstLetter(incomeIndicator.name)}</span>
-      entre 
-      <span>${Number.isInteger(incomeRange[0]) ? incomeRange[0].toString() : incomeRange[0].toFixed(2)} €</span>
+      entre
+      <span>${formatNumber(incomeRange[0], '€')}</span>
       i
-      <span>${Number.isInteger(incomeRange[1]) ? incomeRange[1].toString() : incomeRange[1].toFixed(2)} €</span>
+      <span>${formatNumber(incomeRange[1], '€')}</span>
     </p>
   `;
 ```

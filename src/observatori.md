@@ -21,13 +21,9 @@ const municipisDict = FileAttachment("./data/municipisDict.json").json();
 
 ```js
 // Diccionaris
-const municipisByCode = municipis.reduce((dict, row) => {
-  const codi = row.codi;
-  if (!(codi in dict)) {
-    dict[codi] = row.nom;
-  }
-  return dict;
-}, {});
+const municipisByCode = Object.fromEntries(
+  municipis.map(row => [row.codi, row.nom])
+);
 
 const qualifColorDomain = [1, 2, 3, 4, 5, 6, 7];
 
@@ -241,10 +237,11 @@ const avg_climate_zone = Array.from(
 <!-- THIRD: CLIMATE ZONES -------------------------------------------------------------------------- -->
 
 ```js
+// Create lookup Map once - O(n) instead of O(n²)
+const municipiLookup = new Map(municipis.map(m => [m.codi, m]));
+
 const threshold_poblacio = [...grouped_poblacio].filter(
-  (d) =>
-    municipis.find((m) => m.codi == d.codi_poblacio).poblacio >=
-    populationThreshold
+  (d) => municipiLookup.get(d.codi_poblacio)?.poblacio >= populationThreshold
 );
 ```
 
@@ -366,8 +363,8 @@ const threshold_poblacio = [...grouped_poblacio].filter(
                 x: false,
                 stroke: false,
                 fill: false,
-                municipi: (d) => municipisDict[d].municipi,
-                poblacio: (d) => [...municipis].find((m) => m.codi == d).poblacio,
+                municipi: (d) => municipisDict[d]?.municipi ?? 'Unknown',
+                poblacio: (d) => municipiLookup.get(d)?.poblacio ?? 0,
                 emissions_totals: true,
                 emissions_mitjanes: true
               }

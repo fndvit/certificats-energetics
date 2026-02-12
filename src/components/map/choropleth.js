@@ -63,6 +63,7 @@ export class ChoroplethMap {
     this.zoomLevels = ChoroplethMap.SourceLayerZooms;
     this.visibleIndices = [0, 1];
     this.currentDatasetIndex = 1;
+    this.currentIncomeRange = null; // Track current income range for viewport updates
 
     this.map = new mapboxgl.Map({
       container,
@@ -77,11 +78,7 @@ export class ChoroplethMap {
     this.map.on('load', () => this.onMapLoad());
     this.map.on('zoom', () => this.onMapZoom());
     this.map.on('mousemove', (e) => this.onMouseMoveGeneral(e));
-
-    // layers.forEach((layer, i) => {
-    //   this.map.on('mousemove', layer.fill.id, (e) => this.onMouseMove(e, i));
-    //   this.map.on('mouseleave', layer.fill.id, () => this.onMouseLeave(i));
-    // });
+    this.map.on('moveend', () => this.onMapMoveEnd());
   }
 
   /**
@@ -96,35 +93,44 @@ export class ChoroplethMap {
 
   /**
    * Cleans up the map instance and removes it from the DOM.
+   * All event listeners are automatically cleaned up by Mapbox.
    */
   destroy() {
     this.map.remove();
   }
 
   async onMapLoad() {
-    sources.forEach((source) => {
-      this.map.addSource(source.id, source);
-    });
-
-    ['border', 'fill'].forEach((type) => {
-      this.zoomLevels.forEach((zoomLevel, i) => {
-        this.map.addLayer(
-          {
-            ...layers[i][type],
-            minzoom: zoomLevel[0],
-            maxzoom: zoomLevel[1]
-          },
-          type == 'border' ? 'settlement-subdivision-label' : 'tunnel-simple'
-        );
+    try {
+      sources.forEach((source) => {
+        this.map.addSource(source.id, source);
       });
-    });
 
-    this.map.addControl(
-      new mapboxgl.NavigationControl({ showCompass: false, showZoom: true }),
-      'top-right'
-    );
+      ['border', 'fill'].forEach((type) => {
+        this.zoomLevels.forEach((zoomLevel, i) => {
+          this.map.addLayer(
+            {
+              ...layers[i][type],
+              minzoom: zoomLevel[0],
+              maxzoom: zoomLevel[1]
+            },
+            type == 'border' ? 'settlement-subdivision-label' : 'tunnel-simple'
+          );
+        });
+      });
 
-    document.dispatchEvent(new Event('map-loaded', { bubbles: true }));
+      this.map.addControl(
+        new mapboxgl.NavigationControl({ showCompass: false, showZoom: true }),
+        'top-right'
+      );
+
+      document.dispatchEvent(new Event('map-loaded', { bubbles: true }));
+    } catch (error) {
+      console.error('Failed to initialize map layers:', error);
+      document.dispatchEvent(new CustomEvent('map-error', {
+        detail: { error: error.message },
+        bubbles: true
+      }));
+    }
   }
 
   async onMapZoom() {
@@ -137,12 +143,29 @@ export class ChoroplethMap {
       this.clearHighlightedFeatures();
       this.currentDatasetIndex = currentZoomIndex;
 
+      // Apply opacity to the new layer immediately to avoid flash of old state
+      // Uses smart logic: full update for muni/regions, viewport for census sections
+      if (this.currentIncomeRange !== null) {
+        this.setMapOpacity(this.currentIncomeRange);
+      }
+
       const event = new CustomEvent('zoom-level-changed', {
         detail: { zoomLevel: currentZoomIndex },
         bubbles: true
       });
 
       document.dispatchEvent(event);
+    }
+  }
+
+  /**
+   * Handles map moveend event to update opacity for newly visible features.
+   * Only needed for census sections (viewport optimization).
+   * Municipalities and regions are fully updated, so no action needed on pan.
+   */
+  onMapMoveEnd() {
+    if (this.currentIncomeRange !== null && this.currentDatasetIndex === 0) {
+      this.applyOpacityToViewport(this.currentIncomeRange);
     }
   }
 
@@ -243,29 +266,101 @@ export class ChoroplethMap {
     return colorExpression;
   }
 
+  /**
+   * Ensures domain values are strictly increasing for Mapbox step expressions.
+   * Adjusts any equal adjacent values by subtracting epsilon from the lower one.
+   * @param {number[]} domain - Array of threshold values
+   * @param {number} epsilon - Small value to separate equal thresholds (default: 1e-6)
+   * @returns {number[]} Normalized domain with strictly increasing values
+   */
   normalizeDomain(domain, epsilon = 1e-6) {
     const normalized = [...domain];
     for (let i = 1; i < normalized.length - 1; i++) {
-      if (normalized[i] >= normalized[i + 1]) {
-        normalized[i] = normalized[i] - epsilon;
+      const current = normalized[i];
+      const next = normalized[i + 1];
+
+      if (current >= next) {
+        normalized[i] = current - epsilon;
       }
     }
     return normalized;
   }
 
   /**
-   * Sets opacity for all features based on income range filter.
-   * Features within range are fully visible, others are hidden.
+   * Gets the set of feature IDs currently visible in the viewport.
+   * @returns {Set<string>} Set of visible feature IDs
+   */
+  getVisibleFeatureIds() {
+    const source = sources[this.currentDatasetIndex];
+    const sourceLayer = sourceLayerIds[this.currentDatasetIndex];
+
+    try {
+      const visibleFeatures = this.map.querySourceFeatures(source.id, {
+        sourceLayer: sourceLayer
+      });
+      return new Set(visibleFeatures.map(f => f.id));
+    } catch (error) {
+      // Fallback if querySourceFeatures fails (e.g., map not ready)
+      return null;
+    }
+  }
+
+  /**
+   * Applies opacity filter to features currently in the viewport.
+   * Much more efficient than updating all features.
    * @param {number[]} range - [min, max] income values to show
    */
-  setMapOpacity(range) {
+  applyOpacityToViewport(range) {
+    const visibleIds = this.getVisibleFeatureIds();
+    if (!visibleIds) return; // Map not ready yet
+
     const data = this.dataManager.getIndicatorData(this.currentDatasetIndex, this.incomeIndicator);
     const source = sources[this.currentDatasetIndex];
 
+    // Only update features visible in viewport (~100-500 instead of ~15,000)
     for (let i = 0; i < data.length; i++) {
       const d = data[i];
-      this.setFeatureOpacity(source, d.id, this.isBetweenRange(d.value, range));
+      if (visibleIds.has(d.id)) {
+        this.setFeatureOpacity(source, d.id, this.isBetweenRange(d.value, range));
+      }
     }
+  }
+
+  /**
+   * Sets opacity for all features based on income range filter.
+   * Uses viewport-based optimization for census sections, full update for others.
+   * @param {number[]} range - [min, max] income values to show
+   */
+  setMapOpacity(range) {
+    this.currentIncomeRange = range;
+
+    const data = this.dataManager.getIndicatorData(this.currentDatasetIndex, this.incomeIndicator);
+    const source = sources[this.currentDatasetIndex];
+
+    // For municipalities (900 features) and regions (40 features), update all features
+    // This ensures smooth zoom transitions without flickering
+    if (this.currentDatasetIndex >= 1) {
+      for (let i = 0; i < data.length; i++) {
+        const d = data[i];
+        this.setFeatureOpacity(source, d.id, this.isBetweenRange(d.value, range));
+      }
+      return;
+    }
+
+    // For census sections (15,000+ features), use viewport optimization
+    const visibleIds = this.getVisibleFeatureIds();
+
+    if (!visibleIds) {
+      // Fallback: update all features if viewport query not available
+      for (let i = 0; i < data.length; i++) {
+        const d = data[i];
+        this.setFeatureOpacity(source, d.id, this.isBetweenRange(d.value, range));
+      }
+      return;
+    }
+
+    // Viewport-based optimization: only update visible features
+    this.applyOpacityToViewport(range);
   }
 
   /**
@@ -275,18 +370,46 @@ export class ChoroplethMap {
    * @param {number[]} newRange - New [min, max] range
    */
   updateMapOpacity(oldRange, newRange) {
+    this.currentIncomeRange = newRange;
+
     const data = this.dataManager.getIndicatorData(this.currentDatasetIndex, this.incomeIndicator);
     const source = sources[this.currentDatasetIndex];
 
     let wasIn, isIn, d;
 
+    // For municipalities and regions, update all features that changed
+    if (this.currentDatasetIndex >= 1) {
+      for (let i = 0; i < data.length; i++) {
+        d = data[i];
+        wasIn = this.isBetweenRange(d.value, oldRange);
+        isIn = this.isBetweenRange(d.value, newRange);
+
+        if (wasIn !== isIn) {
+          this.setFeatureOpacity(source, d.id, isIn);
+        }
+      }
+      return;
+    }
+
+    // For census sections, use viewport optimization
+    const visibleIds = this.getVisibleFeatureIds();
+
+    if (!visibleIds) {
+      // Fallback to full update
+      this.setMapOpacity(newRange);
+      return;
+    }
+
+    // Only update visible features that changed state
     for (let i = 0; i < data.length; i++) {
       d = data[i];
-      wasIn = this.isBetweenRange(d.value, oldRange);
-      isIn = this.isBetweenRange(d.value, newRange);
+      if (visibleIds.has(d.id)) {
+        wasIn = this.isBetweenRange(d.value, oldRange);
+        isIn = this.isBetweenRange(d.value, newRange);
 
-      if (wasIn !== isIn) {
-        this.setFeatureOpacity(source, d.id, isIn);
+        if (wasIn !== isIn) {
+          this.setFeatureOpacity(source, d.id, isIn);
+        }
       }
     }
   }
