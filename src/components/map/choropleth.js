@@ -33,8 +33,8 @@ class DataManager {
 
 export class ChoroplethMap {
   static SourceLayerZooms = [
-    [11, 22],
-    [8.5, 11],
+    [11.5, 22],
+    [8.5, 11.5],
     [0, 8.5]
   ];
 
@@ -42,7 +42,9 @@ export class ChoroplethMap {
     zoom: 7.6,
     minZoom: 7,
     maxZoom: 14,
-    center: [1.5, 41.7]
+    center: [1.5, 41.7],
+    clickedFeatureOffsetX: 0,
+    clickedFeatureOffsetY: 0
   };
 
   noDataColor = '#d4d4d4';
@@ -53,6 +55,8 @@ export class ChoroplethMap {
   visibleIndices = [];
 
   hoveredPolygonId = null;
+  clickedPolygonId = null;
+  clickedPolygonLevel = null;
 
   constructor(container, datasets) {
     this.accessToken =
@@ -79,6 +83,7 @@ export class ChoroplethMap {
     this.map.on('zoom', () => this.onMapZoom());
     this.map.on('mousemove', (e) => this.onMouseMoveGeneral(e));
     this.map.on('moveend', () => this.onMapMoveEnd());
+    this.map.on('click', (e) => this.onMapClick(e));
   }
 
   /**
@@ -126,10 +131,12 @@ export class ChoroplethMap {
       document.dispatchEvent(new Event('map-loaded', { bubbles: true }));
     } catch (error) {
       console.error('Failed to initialize map layers:', error);
-      document.dispatchEvent(new CustomEvent('map-error', {
-        detail: { error: error.message },
-        bubbles: true
-      }));
+      document.dispatchEvent(
+        new CustomEvent('map-error', {
+          detail: { error: error.message },
+          bubbles: true
+        })
+      );
     }
   }
 
@@ -147,6 +154,17 @@ export class ChoroplethMap {
       // Uses smart logic: full update for muni/regions, viewport for census sections
       if (this.currentIncomeRange !== null) {
         this.setMapOpacity(this.currentIncomeRange);
+      }
+
+      // Clear clicked feature if it's from a different level
+      if (this.clickedPolygonLevel !== null && this.clickedPolygonLevel !== currentZoomIndex) {
+        this.clearClickedFeature();
+        document.dispatchEvent(
+          new CustomEvent('polygon-click', {
+            detail: { polygonId: null, level: null },
+            bubbles: true
+          })
+        );
       }
 
       const event = new CustomEvent('zoom-level-changed', {
@@ -236,6 +254,138 @@ export class ChoroplethMap {
   }
 
   /**
+   * Handles map click events to detect feature clicks and trigger region card display.
+   * @param {Object} e - Mapbox click event
+   */
+  onMapClick(e) {
+    const i = this.currentDatasetIndex;
+    const layer = layers[i];
+    const fillLayerId = layer.fill?.id;
+
+    if (!fillLayerId) return;
+
+    const features = this.map.queryRenderedFeatures(e.point, {
+      layers: [fillLayerId]
+    });
+
+    const clickedFeature = features[0] ?? null;
+    const clickedId = clickedFeature?.id ?? null;
+
+    if (clickedId === null) {
+      // Clicked outside a feature - close card
+      this.clearClickedFeature();
+      document.dispatchEvent(
+        new CustomEvent('polygon-click', {
+          detail: { polygonId: null, level: null },
+          bubbles: true
+        })
+      );
+      return;
+    }
+
+    // Clear previous clicked feature highlight
+    if (this.clickedPolygonId !== null && this.clickedPolygonLevel !== null) {
+      this.map.setFeatureState(
+        {
+          source: sources[this.clickedPolygonLevel].id,
+          sourceLayer: sourceLayerIds[this.clickedPolygonLevel],
+          id: this.clickedPolygonId
+        },
+        { clicked: false }
+      );
+    }
+
+    this.clickedPolygonId = clickedId;
+    this.clickedPolygonLevel = i;
+
+    // Set new clicked feature state for border highlight
+    this.map.setFeatureState(
+      {
+        source: clickedFeature.source,
+        sourceLayer: clickedFeature.sourceLayer,
+        id: clickedId
+      },
+      { clicked: true }
+    );
+
+    // Navigate to feature (pass the feature directly for reliable bounds calculation)
+    this.flyToFeature(clickedFeature, i);
+
+    // Dispatch event for UI
+    document.dispatchEvent(
+      new CustomEvent('polygon-click', {
+        detail: { polygonId: clickedId, level: i },
+        bubbles: true
+      })
+    );
+  }
+
+  /**
+   * Flies to a clicked feature, positioning its center with a configurable offset.
+   * Positions at the lowest zoom level available for the geographic layer.
+   * The offset shifts the feature center to the right and bottom of the viewport.
+   * @param {Object} feature - The clicked Mapbox feature with geometry
+   * @param {number} level - Geographic level index (0=census, 1=muni, 2=regions)
+   */
+  flyToFeature(feature, level) {
+    if (!feature || !feature.geometry) return;
+
+    // Calculate bounds of the feature
+    const bounds = new mapboxgl.LngLatBounds();
+
+    if (feature.geometry.type === 'Polygon') {
+      feature.geometry.coordinates[0].forEach((coord) => {
+        bounds.extend(coord);
+      });
+    } else if (feature.geometry.type === 'MultiPolygon') {
+      feature.geometry.coordinates.forEach((polygon) => {
+        polygon[0].forEach((coord) => {
+          bounds.extend(coord);
+        });
+      });
+    }
+
+    // Always use the geometric center of the feature for consistent positioning
+    const center = bounds.getCenter();
+
+    // Use lowest zoom level for this layer (slightly above minimum for padding)
+    const targetZoom = ChoroplethMap.SourceLayerZooms[level][1] - 0.1;
+
+    // Apply offset to position the feature center to the right and bottom
+    // Positive x shifts map right (feature appears on the left side of screen)
+    // Positive y shifts map down (feature appears on the top side of screen)
+    // Negate values to achieve right/bottom positioning
+    const offsetX = ChoroplethMap.defaults.clickedFeatureOffsetX;
+    const offsetY = ChoroplethMap.defaults.clickedFeatureOffsetY;
+
+    this.map.flyTo({
+      center: center,
+      zoom: targetZoom,
+      offset: [offsetX, offsetY],
+      duration: 1000,
+      essential: true
+    });
+  }
+
+  /**
+   * Clears the clicked feature highlight and resets state.
+   */
+  clearClickedFeature() {
+    if (this.clickedPolygonId !== null && this.clickedPolygonLevel !== null) {
+      this.map.setFeatureState(
+        {
+          source: sources[this.clickedPolygonLevel].id,
+          sourceLayer: sourceLayerIds[this.clickedPolygonLevel],
+          id: this.clickedPolygonId
+        },
+        { clicked: false }
+      );
+      this.clickedPolygonId = null;
+      this.clickedPolygonLevel = null;
+    }
+  }
+
+  /**
    * Creates a color step expression.
    * @param {{id: string, valueA: number, valueB: number}[]} data
    * @param {string} tilesetId
@@ -298,7 +448,7 @@ export class ChoroplethMap {
       const visibleFeatures = this.map.querySourceFeatures(source.id, {
         sourceLayer: sourceLayer
       });
-      return new Set(visibleFeatures.map(f => f.id));
+      return new Set(visibleFeatures.map((f) => f.id));
     } catch (error) {
       // Fallback if querySourceFeatures fails (e.g., map not ready)
       return null;
@@ -550,14 +700,14 @@ export class ChoroplethMap {
     switch (nVisibleIndices) {
       case 3:
         return [
-          [11.5, 22],
-          [8, 11.5],
+          [12, 22],
+          [8, 12],
           [0, 8]
         ];
       case 2:
         return [
-          [11.5, 22],
-          [0, 11.5]
+          [12, 22],
+          [0, 12]
         ];
       case 1:
         return [[0, 22]];

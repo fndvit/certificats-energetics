@@ -9,11 +9,13 @@ style: ./eina.css
 ```js
 import { html } from 'npm:htl';
 import rangeSlider from 'npm:range-slider-input';
+import chroma from 'npm:chroma-js';
 import sliderState from './components/sliderState.js';
 import { ChoroplethMap } from './components/map/choropleth.js';
 import { emissionsIndicatorsMeta, socEcIndicatorsMeta } from './components/indicatorsMeta.js';
 import { getEmissionsIndicatorData, getIncomeIndicatorData, getEmissionsData } from './components/dataProcessing.js';
-import { getHoveredInfo, getTickColor, lowercaseFirstLetter } from './components/mapHelpers.js';
+import { getHoveredInfo, getTickColor, lowercaseFirstLetter, getRegionCardData } from './components/mapHelpers.js';
+import { mapColorScheme } from './components/colors.js';
 
 const municipisDict = FileAttachment('./data/municipisDict.json').json();
 
@@ -101,6 +103,21 @@ const setIsMouseOverUI = (x) => (isMouseOverUI.value = x);
 ```js
 const isMouseButtonPressed = Mutable(false);
 const setIsMouseButtonPressed = (x) => (isMouseButtonPressed.value = x);
+```
+
+```js
+const clickedPolygonId = Mutable(null);
+const setClickedPolygonId = (x) => (clickedPolygonId.value = x);
+```
+
+```js
+const clickedPolygonLevel = Mutable(null);
+const setClickedPolygonLevel = (x) => (clickedPolygonLevel.value = x);
+```
+
+```js
+const showRegionCard = Mutable(false);
+const setShowRegionCard = (x) => (showRegionCard.value = x);
 ```
 
 <!--    Inputs    -->
@@ -242,6 +259,23 @@ document.addEventListener('mouseup', () => {
   setIsMouseButtonPressed(false);
 });
 
+// Handle polygon click events for region card
+document.addEventListener('polygon-click', (event) => {
+  const { polygonId, level } = event.detail;
+
+  if (polygonId === null) {
+    // Clicked outside - close card
+    setShowRegionCard(false);
+    setClickedPolygonId(null);
+    setClickedPolygonLevel(null);
+  } else {
+    // Clicked on a feature - show card
+    setClickedPolygonId(polygonId);
+    setClickedPolygonLevel(level);
+    setShowRegionCard(true);
+  }
+});
+
 // Hide tooltip when hovering over UI elements
 // Attach listeners to all UI cards and Observable's sidebar
 const uiElements = document.querySelectorAll('.card, .observablehq-sidebar, nav');
@@ -249,6 +283,17 @@ uiElements.forEach((element) => {
   element.addEventListener('mouseenter', () => setIsMouseOverUI(true));
   element.addEventListener('mouseleave', () => setIsMouseOverUI(false));
 });
+```
+
+```js
+// Reactive: Attach event listeners to region card wrapper when it appears
+{
+  const wrapper = document.getElementById('region-card-wrapper');
+  if (wrapper && showRegionCard) {
+    wrapper.addEventListener('mouseenter', () => setIsMouseOverUI(true));
+    wrapper.addEventListener('mouseleave', () => setIsMouseOverUI(false));
+  }
+}
 ```
 
 <!--    Reactive listeners    -->
@@ -299,25 +344,21 @@ const emissionsData = getEmissionsData(currentDatasetIndex, datasets, emissionsI
 ```
 
 ```js
-// Pre-compute lookup maps for O(1) hover performance
+// Pre-compute lookup maps for O(1) performance
 const datasetLookup = new Map(
   datasets[currentDatasetIndex].map(d => [
     d[valuesByLevel[currentDatasetIndex].id],
     d
   ])
 );
-```
 
-```js
 const incomeLookup = new Map(
   incomeIndicatorData[currentDatasetIndex].values.map((d, i) => [
     d.id,
     { value: d.value, pos: i }
   ])
 );
-```
 
-```js
 const emissionsLookup = new Map(
   emissionsData.map((d, i) => [
     d.id,
@@ -331,9 +372,76 @@ const hoveredInfo = getHoveredInfo(hoveredPolygonId, currentDatasetIndex, datase
 ```
 
 ```js
+const regionCardData = showRegionCard && clickedPolygonId && clickedPolygonLevel !== null
+  ? getRegionCardData(
+      clickedPolygonId,
+      clickedPolygonLevel,
+      incomeIndicatorData,
+      emissionsData,
+      municipisDict,
+      datasetLookup
+    )
+  : '';
+```
+
+```js
 const histogramData = emissionsData.filter(
   (d) => d.incomeValue >= incomeRange[0] && d.incomeValue <= incomeRange[1]
 );
+```
+
+```js
+// Calculate max values for sparkbar scaling - reactive to level changes
+const indicatorMaxValues = (() => {
+  const level = clickedPolygonLevel ?? currentDatasetIndex;
+  const dataset = datasets[level];
+
+  return {
+    count: d3.max(dataset, d => d.count) || 1,
+    meanEmissions: d3.max(dataset, d => d.mean_emissions) || 1,
+    totalEmissions: (d3.max(dataset, d => d.total_emissions) || 1000000) / 1000000,
+    meanEnergyQual: 7,  // Fixed scale (1-7)
+    meanEmissionsQual: 7,  // Fixed scale (1-7)
+    totalPrimaryEnergy: d3.max(dataset, d => d.total_primary_energy) || 1,
+    meanPrimaryEnergy: d3.max(dataset, d => d.mean_primary_energy) || 1,
+    totalSurface: d3.max(dataset, d => d.total_surface) || 1,
+    meanSurface: d3.max(dataset, d => d.mean_surface) || 1,
+    totalCost: d3.max(dataset, d => d.total_cost) || 1,
+    meanCost: d3.max(dataset, d => d.mean_cost) || 1
+  };
+})();
+```
+
+```js
+
+function createSparkbarFormatter(indicatorKey, maxValue, allValues) {
+  const minValue = d3.min(allValues) || 0;
+  const maxDataValue = d3.max(allValues) || 1;
+
+  const colorScale = d3.scaleSequential(d3.interpolateRgbBasis(emissionsIndicator.colors)).domain([minValue, maxDataValue]); 
+
+  return (value) => {
+    if (value == null) return html`<span>—</span>`;
+
+    const color = colorScale(value);
+    const borderColor = chroma(color).darken(1).hex();
+    const widthPercent = Math.min((value / maxValue) * 100, 100);
+
+    return html`<div style="
+      background: ${color};
+      border: 0.8px solid ${borderColor};
+      width: ${widthPercent}%;
+      float: right;
+      padding: 2px 6px;
+      box-sizing: border-box;
+      overflow: visible;
+      display: flex;
+      justify-content: end;
+      border-radius: 3px;
+      min-width: 40px;
+    "><span class="halo">${value.toFixed(2)}</span></div>`;
+  };
+}
 ```
 
 <!--    Map & HTML    -->
@@ -354,9 +462,9 @@ ${hoveredPolygonId && !isMouseOverUI && !isMouseButtonPressed ? mapTooltip() : '
 
 <!-- Top Card -->
 
-<div class="card glass" style="margin-top: -25px; max-width: 750px;">
-    <div style="display: flex; flex-direction: row; gap: 1.5rem">
-      <!-- Left column -->
+<div class="card glass" style="margin-top: -25px; margin-bottom: 25px; width: 550px; max-width: 550px; box-sizing: border-box;">
+    <div style="display: flex; flex-direction: column;">
+      <!-- Top row -->
       <div style="flex: 0 0 35%; min-width: 0;">
         <div style="display: flex; flex-direction: column; justify-content: space-between; height: 100%">
           <div class="glassText">
@@ -374,7 +482,7 @@ ${hoveredPolygonId && !isMouseOverUI && !isMouseButtonPressed ? mapTooltip() : '
           </div>
         </div>
       </div>
-      <!-- Right column -->
+      <!-- Bottom row -->
       <div class="card" style="flex: 1; min-width: 0; gap: 8px">
         <!-- Legend -->
         ${
@@ -446,6 +554,10 @@ ${hoveredPolygonId && !isMouseOverUI && !isMouseButtonPressed ? mapTooltip() : '
 
 </div>
 
+<div id="region-card-wrapper" style="width: 550px;">
+  ${showRegionCard ? regionCard() : ''}
+</div>
+
 ```js
 const mapTooltip = () => {
   const p = mousePosition;
@@ -459,7 +571,7 @@ const mapTooltip = () => {
 
   const left = Math.max(8, p.x);
   const top = Math.max(8, p.y);
-  
+
   return html`
     <div class="mb-tip" style="left:${left}px; top:${top}px;">
       <div class="mb-tip-title">
@@ -482,19 +594,152 @@ const mapTooltip = () => {
 ```
 
 ```js
+const regionCard = () => {
+  if (!showRegionCard || !regionCardData) return '';
+
+  const fmt = d3.format(",.1f");
+  const fmtInt = d3.format(".1f");
+
+  const { names, indicators, rankings } = regionCardData;
+
+  // Format region title (filter out empty names)
+  const regionTitle = names.filter(n => n !== '').join(' / ');
+
+  // Get current level dataset for percentile calculations
+  const level = clickedPolygonLevel ?? currentDatasetIndex;
+  const dataset = datasets[level];
+
+  // Collect all values for each indicator (for percentile-based coloring)
+  const allIndicatorValues = {
+    meanEmissions: dataset.map(d => d.mean_emissions).filter(v => v != null),
+    meanEnergyQual: dataset.map(d => d.mean_energy_qual).filter(v => v != null),
+    meanEmissionsQual: dataset.map(d => d.mean_emissions_qual).filter(v => v != null),
+    meanPrimaryEnergy: dataset.map(d => d.mean_primary_energy).filter(v => v != null),
+    meanSurface: dataset.map(d => d.mean_surface).filter(v => v != null),
+    meanCost: dataset.map(d => d.mean_cost).filter(v => v != null),
+    totalEmissions: dataset.map(d => d.total_emissions ? d.total_emissions / 1000000 : null).filter(v => v != null),
+    totalPrimaryEnergy: dataset.map(d => d.total_primary_energy).filter(v => v != null),
+    totalSurface: dataset.map(d => d.total_surface).filter(v => v != null),
+    totalCost: dataset.map(d => d.total_cost).filter(v => v != null),
+  };
+
+  // Define indicators with their keys, labels, values, and units
+  const indicatorsConfig = [
+    { key: 'meanEmissions', label: 'Emissions mitjanes', value: indicators.meanEmissions, maxValue: indicatorMaxValues.meanEmissions, units: 'kg CO₂' },
+    { key: 'meanEnergyQual', label: 'Qualificació mitjana d\'energia', value: indicators.meanEnergyQual, maxValue: indicatorMaxValues.meanEnergyQual, units: '(escala 1-7)' },
+    { key: 'meanEmissionsQual', label: 'Qualificació mitjana d\'emissions', value: indicators.meanEmissionsQual, maxValue: indicatorMaxValues.meanEmissionsQual, units: '(escala 1-7)' },
+    { key: 'meanPrimaryEnergy', label: 'Energia primària mitjana', value: indicators.meanPrimaryEnergy, maxValue: indicatorMaxValues.meanPrimaryEnergy, units: 'kWh' },
+    { key: 'meanSurface', label: 'Superfície mitjana', value: indicators.meanSurface, maxValue: indicatorMaxValues.meanSurface, units: 'm²' },
+    { key: 'meanCost', label: 'Cost anual mitjà', value: indicators.meanCost, maxValue: indicatorMaxValues.meanCost, units: '€' },
+    { key: 'totalEmissions', label: 'Emissions totals', value: indicators.totalEmissions ? indicators.totalEmissions / 1000000 : null, maxValue: indicatorMaxValues.totalEmissions, units: 'Gg CO₂' },
+    { key: 'totalPrimaryEnergy', label: 'Energia primària total', value: indicators.totalPrimaryEnergy, maxValue: indicatorMaxValues.totalPrimaryEnergy, units: 'kWh' },
+    { key: 'totalSurface', label: 'Superfície total', value: indicators.totalSurface, maxValue: indicatorMaxValues.totalSurface, units: 'm²' },
+    { key: 'totalCost', label: 'Cost anual total', value: indicators.totalCost, maxValue: indicatorMaxValues.totalCost, units: '€' },
+  ];
+
+  // Transform to table data
+  const tableData = indicatorsConfig.map(ind => ({
+    indicador: ind.label,
+    valor: ind.value,
+    _key: ind.key,
+    _maxValue: ind.maxValue,
+    _allValues: allIndicatorValues[ind.key],
+    unitat: ind.units
+  }));
+
+  const handleClose = () => {
+    setShowRegionCard(false);
+    setClickedPolygonId(null);
+    setClickedPolygonLevel(null);
+    map.clearClickedFeature();
+  };
+
+  return html`
+    <div class="card glass" style="width: 550px; max-width: 550px; box-sizing: border-box;"
+         onmouseenter=${() => setIsMouseOverUI(true)}
+         onmouseleave=${() => setIsMouseOverUI(false)}>
+      <!-- Header with title and close button -->
+      <div class="region-card-header">
+        <div>
+          <div class="mb-tip-title">
+          ${regionTitle}
+          </div>
+          <span>Nº certificats: ${indicators.count}</span>
+        </div>
+        <button
+          class="region-card-close"
+          onclick=${handleClose}
+          aria-label="Tancar"
+        >
+          ✕
+        </button>
+      </div>
+
+      <!-- Rankings section -->
+      ${rankings.emissions || rankings.income ? html`
+        <div class="region-card-section">
+          <div class="ranking-grid">
+            ${rankings.emissions ? html`
+              <div class="ranking-item">
+                <span class="ranking-label">${emissionsIndicator.name}</span>
+                <span>
+                  Posició <strong>${rankings.emissions.position}</strong> de ${rankings.emissions.total}
+                  <span class="ranking-percentile">(${fmt(rankings.emissions.percentile)}%)</span>
+                </span>
+              </div>
+            ` : ''}
+            ${rankings.income ? html`
+              <div class="ranking-item">
+                <span class="ranking-label">${incomeIndicator.name}</span>
+                <span>
+                  Posició <strong>${rankings.income.position}</strong> de ${rankings.income.total}
+                  <span class="ranking-percentile">(${fmt(rankings.income.percentile)}%)</span>
+                </span>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      ` : ''}
+
+      <!-- Indicators table with sparkbars -->
+      <div class="region-card-section">
+        <div class="card" style="padding: 0;">
+          ${Inputs.table(tableData, {
+            columns: ['indicador', 'valor', 'unitat'],
+            header: {
+              indicador: 'Indicador',
+              valor: 'Valor',
+              unitat: 'Unitat'
+            },
+            format: {
+              valor: (value, i, data) => {
+                const row = tableData[i];
+                return createSparkbarFormatter(row._key, row._maxValue, row._allValues)(value);
+              }
+            },
+            width: {
+              indicador: '45%',
+              valor: '35%',
+              unitat: '20%'
+            },
+            layout: 'auto',
+            rows: 7
+          })}
+        </div>
+      </div>
+    </div>
+  `;
+};
+```
+
+```js
 const informationPhrase = html`
-    <p class="indicadorText" style="font-size: 16px">
-      <span style="font-weight: bold;">${emissionsIndicator.name}</span>
-      dels edificis de 
+    <h3>
+      <span>
+      <strong>${emissionsIndicator.name}</strong>
+      dels edificis de ${valuesByLevel[currentDatasetIndex].censusLevel} amb <strong>${lowercaseFirstLetter(incomeIndicator.name)}</strong> entre ${formatNumber(incomeRange[0], '€')} i ${formatNumber(incomeRange[1], '€')}
       </span>
-      <span>${valuesByLevel[currentDatasetIndex].censusLevel}</span>
-      amb
-      <span style="font-weight: bold;">${lowercaseFirstLetter(incomeIndicator.name)}</span>
-      entre
-      <span>${formatNumber(incomeRange[0], '€')}</span>
-      i
-      <span>${formatNumber(incomeRange[1], '€')}</span>
-    </p>
+    </h3>
   `;
 ```
 
