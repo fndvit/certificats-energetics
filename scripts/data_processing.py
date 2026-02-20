@@ -387,6 +387,8 @@ def save_data(certificates, label_mapping, aggregated_datasets, municipi_dict):
     
     os.makedirs(data_dir, exist_ok=True)
 
+    str_cols = certificates.select_dtypes(include="string").columns
+    certificates[str_cols] = certificates[str_cols].astype(object)
     certificates.to_parquet(parquet_path, engine="fastparquet", compression="GZIP")
     print("✅ Data cleaned and saved to", parquet_path)
     
