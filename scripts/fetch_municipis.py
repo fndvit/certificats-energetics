@@ -44,8 +44,8 @@ def fetch_all_municipis():
 data = fetch_all_municipis()
 
 df = pd.DataFrame(data)
-df["nom"] = df["nom"].astype(str)
-df["codi"] = df["codi"].astype(str)
+df["nom"] = df["nom"].astype(object)
+df["codi"] = df["codi"].astype(object)
 df.to_parquet("src/data/municipis.parquet", engine="fastparquet", compression="GZIP")
 
 print(f"Saved municipis file")
