@@ -415,30 +415,22 @@ const indicatorMaxValues = (() => {
 ```js
 
 function createSparkbarFormatter(indicatorKey, maxValue, allValues) {
-  const minValue = d3.min(allValues) || 0;
-  const maxDataValue = d3.max(allValues) || 1;
-
-  const colorScale = d3.scaleSequential(d3.interpolateRgbBasis(emissionsIndicator.colors)).domain([minValue, maxDataValue]); 
-
   return (value) => {
     if (value == null) return html`<span>—</span>`;
 
-    const color = colorScale(value);
-    const borderColor = chroma(color).darken(1).hex();
     const widthPercent = Math.min((value / maxValue) * 100, 100);
 
     return html`<div style="
-      background: ${color};
-      border: 0.8px solid ${borderColor};
-      width: ${widthPercent}%;
-      float: right;
-      padding: 2px 6px;
-      box-sizing: border-box;
-      overflow: visible;
-      display: flex;
-      justify-content: end;
+      background: linear-gradient(to right, #555 ${widthPercent}%, #ddd ${widthPercent}%);
+      width: 100%;
       border-radius: 3px;
-      min-width: 40px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 0 6px;
+      box-sizing: border-box;
+      font-size: 0.85em;
     "><span class="halo">${value.toFixed(2)}</span></div>`;
   };
 }
