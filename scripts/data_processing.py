@@ -408,7 +408,6 @@ def save_data(certificates, label_mapping, aggregated_datasets, municipi_dict):
 
 df = pd.read_json("static/raw_data.json")
 print('Starting data processing...')
-print(df.columns)
 certificates, label_mapping = process_certificates_dataset(df, municipi_dict)
 sections = get_sections_dataset()
 rendes_datasets = get_rendes_dataset(sections)
