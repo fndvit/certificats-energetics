@@ -11,13 +11,14 @@ import { html } from 'npm:htl';
 import rangeSlider from 'npm:range-slider-input';
 import chroma from 'npm:chroma-js';
 import sliderState from './components/sliderState.js';
-import { ChoroplethMap } from './components/map/choropleth.js';
+import { MapManager } from './components/map/mapManager.js';
 import { emissionsIndicatorsMeta, socEcIndicatorsMeta } from './components/indicatorsMeta.js';
 import { getEmissionsIndicatorData, getIncomeIndicatorData, getEmissionsData } from './components/dataProcessing.js';
 import { getHoveredInfo, getTickColor, lowercaseFirstLetter, getRegionCardData } from './components/mapHelpers.js';
 import { mapColorScheme } from './components/colors.js';
 
 const municipisDict = FileAttachment('./data/municipisDict.json').json();
+const pointsData = await FileAttachment('./data/certificats-points.parquet').parquet();
 
 const datasets = [
   await FileAttachment('./data/seccen.json')
@@ -118,6 +119,11 @@ const setClickedPolygonLevel = (x) => (clickedPolygonLevel.value = x);
 ```js
 const showRegionCard = Mutable(false);
 const setShowRegionCard = (x) => (showRegionCard.value = x);
+```
+
+```js
+const mapMode = Mutable('choropleth');
+const setMapMode = (x) => (mapMode.value = x);
 ```
 
 <!--    Inputs    -->
@@ -241,6 +247,7 @@ document.addEventListener('map-loaded', () => {
   );
   setMapLoaded(true);
   sliderState.percentileRange = [0.25, 0.75];
+  map.setMode(mapMode);
 });
 
 document.addEventListener('zoom-level-changed', (event) => {
@@ -297,6 +304,13 @@ uiElements.forEach((element) => {
 ```
 
 <!--    Reactive listeners    -->
+
+<!-- Reactive: Toggles choropleth-specific controls visibility when map mode changes
+     Depends on: mapMode -->
+```js
+document.querySelector('.choropleth-controls')
+  ?.style.setProperty('display', mapMode === 'choropleth' ? '' : 'none');
+```
 
 <!-- Reactive: Updates slider bounds when dataset or income indicator changes
      Depends on: currentDatasetIndex, incomeIndicatorData -->
@@ -436,6 +450,19 @@ function createSparkbarFormatter(indicatorKey, maxValue, allValues) {
 }
 ```
 
+```js
+const modeToggle = html`<div style="display:flex; gap:8px; margin-bottom:16px;">
+  <button class="mode-toggle-btn ${mapMode === 'choropleth' ? 'active' : ''}"
+    onclick=${() => { setMapMode('choropleth'); if (mapLoaded) map.setMode('choropleth'); }}>
+    Coropletes
+  </button>
+  <button class="mode-toggle-btn ${mapMode === 'cluster' ? 'active' : ''}"
+    onclick=${() => { setMapMode('cluster'); if (mapLoaded) map.setMode('cluster'); }}>
+    Punts
+  </button>
+</div>`;
+```
+
 <!--    Map & HTML    -->
 ```js
 const mapContainer = display(document.createElement("div"));
@@ -446,16 +473,18 @@ Object.assign(mapContainer.style, {
   zIndex: "-5",
 });
 
-const map = ChoroplethMap.create(mapContainer, datasets);
+const map = MapManager.create(mapContainer, datasets, pointsData);
 invalidation.then(() => map.destroy());
 ```
 
-${hoveredPolygonId && !isMouseOverUI && !isMouseButtonPressed ? mapTooltip() : ''}
+${hoveredPolygonId && !isMouseOverUI && !isMouseButtonPressed && mapMode === 'choropleth' ? mapTooltip() : ''}
 
 <!-- Top Card -->
 
 <div class="card glass" style="margin-top: -25px; margin-bottom: 25px; width: 550px; max-width: 550px; box-sizing: border-box;">
     <div style="display: flex; flex-direction: column;">
+      <!-- Mode toggle -->
+      ${modeToggle}
       <!-- Top row -->
       <div style="flex: 0 0 35%; min-width: 0;">
         <div style="display: flex; flex-direction: column; justify-content: space-between; height: 100%">
@@ -475,7 +504,7 @@ ${hoveredPolygonId && !isMouseOverUI && !isMouseButtonPressed ? mapTooltip() : '
         </div>
       </div>
       <!-- Bottom row -->
-      <div class="card" style="flex: 1; min-width: 0; gap: 8px">
+      <div class="card choropleth-controls" style="flex: 1; min-width: 0; gap: 8px">
         <!-- Legend -->
         ${
           Plot.legend(
@@ -547,7 +576,7 @@ ${hoveredPolygonId && !isMouseOverUI && !isMouseButtonPressed ? mapTooltip() : '
 </div>
 
 <div id="region-card-wrapper" style="width: 550px;">
-  ${showRegionCard ? regionCard() : ''}
+  ${showRegionCard && mapMode === 'choropleth' ? regionCard() : ''}
 </div>
 
 ```js

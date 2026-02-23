@@ -45,6 +45,9 @@ COLUMNS_IN_USE = [
     "normativa",
     "energia_primaria",
     "cost_energia",
+    "latitud",
+    "longitud",
+    "referencia_cadastral",
 ]
 
 # Each entry: [column_name, canonical_value, [list of equivalent raw values]]
@@ -250,6 +253,7 @@ def cast_columns(df: pd.DataFrame) -> pd.DataFrame:
     df["MUNDISSEC"] = df["MUNDISSEC"].astype(str).str.zfill(11)
 
     df["qual_emissions"] = df["qual_emissions"].map(QUALIFICATIONS_NUMERICAL_EQUIVALENCE)
+    df["val"] = df["qual_energia"].map(QUALIFICATIONS_NUMERICAL_EQUIVALENCE)
     df["qual_energia"] = df["qual_energia"].map(QUALIFICATIONS_NUMERICAL_EQUIVALENCE)
 
     # A zero cost when primary energy is positive is a data entry error
@@ -680,6 +684,21 @@ def save_data(
     with open(municipi_dict_path, "w") as f:
         json.dump(municipi_dict, f)
     logger.info("Municipis dictionary saved to %s", municipi_dict_path)
+
+    # --- certificats-points.parquet ---
+    # Deduplicate by referencia_cadastral, keeping most recent data_entrada
+    dedup_df = certificates[["referencia_cadastral", "latitud", "longitud", "val", "data_entrada"]].copy()
+    dedup_df = dedup_df.sort_values("data_entrada", ascending=False)
+    dedup_df = dedup_df.drop_duplicates(subset=["referencia_cadastral"], keep="first")
+    dedup_df = dedup_df.drop(columns=["data_entrada"])
+    dedup_df["latitud"] = dedup_df["latitud"].round(6)
+    dedup_df["longitud"] = dedup_df["longitud"].round(6)
+    str_cols_pts = dedup_df.select_dtypes(include="string").columns
+    if len(str_cols_pts):
+        dedup_df[str_cols_pts] = dedup_df[str_cols_pts].astype(object)
+    points_path = os.path.join(data_dir, "certificats-points.parquet")
+    dedup_df.to_parquet(points_path, engine="fastparquet", compression="GZIP")
+    logger.info("Points dataset saved to %s", points_path)
 
     # --- Geographic aggregation files ---
     aggregate_files = ["seccen.json", "mun.json", "com.json"]

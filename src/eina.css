@@ -464,3 +464,23 @@ label {
     -0.5px 0.5px 3px #ffffff33,
     0.5px 0.5px 3px #ffffff33;
 }
+
+.mode-toggle-btn {
+  padding: 4px 12px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-family: var(--sans-serif);
+  transition: all 0.15s ease;
+}
+
+.mode-toggle-btn.active {
+  background: rgba(0, 0, 0, 0.12);
+  font-weight: 600;
+}
+
+.mode-toggle-btn:hover:not(.active) {
+  background: rgba(0, 0, 0, 0.06);
+}
