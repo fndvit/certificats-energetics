@@ -64,6 +64,10 @@ export class MapManager {
     this.choroplethLayer.updateMapOpacity(oldRange, newRange);
   }
 
+  setClusterIndicator(indicator) {
+    if (this.clusterLayer) this.clusterLayer.setIndicator(indicator);
+  }
+
   clearClickedFeature() {
     this.choroplethLayer.clearClickedFeature();
   }

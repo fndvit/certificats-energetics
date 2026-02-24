@@ -12,6 +12,7 @@ import rangeSlider from 'npm:range-slider-input';
 import chroma from 'npm:chroma-js';
 import sliderState from './components/sliderState.js';
 import { MapManager } from './components/map/mapManager.js';
+import { clusterIndicatorsMeta } from './components/map/clusterLayer.js';
 import { emissionsIndicatorsMeta, socEcIndicatorsMeta } from './components/indicatorsMeta.js';
 import { getEmissionsIndicatorData, getIncomeIndicatorData, getEmissionsData } from './components/dataProcessing.js';
 import { getHoveredInfo, getTickColor, lowercaseFirstLetter, getRegionCardData } from './components/mapHelpers.js';
@@ -216,6 +217,12 @@ function updateSliderBounds(newMin, newMax, indicatorValues) {
 }
 
 
+const clusterIndicatorInput = Inputs.select(clusterIndicatorsMeta, {
+  label: '',
+  format: (d) => d.name,
+  value: clusterIndicatorsMeta[0]
+});
+
 const emissionsIndicatorInput = Inputs.select(emissionsIndicatorsMeta, {
   label: "",
   format: (d) => d.name,
@@ -230,6 +237,7 @@ const incomeIndicatorInput = Inputs.select(socEcIndicatorsMeta, {
 ```
 
 ```js
+const clusterIndicator = Generators.input(clusterIndicatorInput);
 const emissionsIndicator = Generators.input(emissionsIndicatorInput);
 const incomeIndicator = Generators.input(incomeIndicatorInput);
 ```
@@ -336,6 +344,14 @@ updateSliderBounds(
   incomeIndicatorData[currentDatasetIndex].max,
   getIndicatorValues(incomeIndicatorData[currentDatasetIndex])
 );
+```
+
+<!-- Reactive: Updates cluster map colors when cluster indicator changes
+     Depends on: mapLoaded, clusterIndicator -->
+```js
+if (mapLoaded) {
+  map.setClusterIndicator(clusterIndicator);
+}
 ```
 
 <!-- Reactive: Updates map colors when emissions indicator changes
@@ -510,6 +526,12 @@ ${showClusterModal && clusterModalData ? clusterModal() : ''}
             ${informationPhrase}
           </div>
           <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px">
+            ${mapMode === 'cluster' ? html`
+            <div>
+              <p class="glassText" style="margin: 0px">Indicador</p>
+              ${clusterIndicatorInput}
+            </div>
+            ` : html`
             <div>
               <p class="glassText" style="margin: 0px">Indicador d'emissions</p>
               ${emissionsIndicatorInput}
@@ -518,6 +540,7 @@ ${showClusterModal && clusterModalData ? clusterModal() : ''}
               <p class="glassText" style="margin: 0px">Indicador sociodemogràfic</p>
               ${incomeIndicatorInput}
             </div>
+            `}
           </div>
         </div>
       </div>
@@ -775,7 +798,8 @@ const regionCard = () => {
 const QUAL_LABELS = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
 
 const clusterModal = () => {
-  const { refs, vals } = clusterModalData;
+  const { refs, vals, indicator } = clusterModalData;
+  const fmt = d3.format(',.2f');
   const handleClose = () => {
     setShowClusterModal(false);
     setClusterModalData(null);
@@ -784,14 +808,17 @@ const clusterModal = () => {
     <div class="cluster-modal-backdrop" onclick=${handleClose}>
       <div class="card glass cluster-modal" onclick=${(e) => e.stopPropagation()}>
         <div class="region-card-header">
-          <span>${refs.length} certificat${refs.length > 1 ? 's' : ''}</span>
+          <span>${refs.length} certificat${refs.length > 1 ? 's' : ''} — ${indicator.name}</span>
           <button class="region-card-close" onclick=${handleClose}>✕</button>
         </div>
         <ul class="cluster-modal-list">
           ${refs.map((ref, i) => html`
             <li>
               <span class="cluster-modal-ref">${ref}</span>
-              <span class="cluster-modal-qual qual-${vals[i]}">${QUAL_LABELS[vals[i] - 1]}</span>
+              ${indicator.type === 'qual'
+                ? html`<span class="cluster-modal-qual qual-${vals[i]}">${QUAL_LABELS[vals[i] - 1] ?? '—'}</span>`
+                : html`<span class="cluster-modal-value">${vals[i] != null ? fmt(vals[i]) : '—'} <small>${indicator.units}</small></span>`
+              }
             </li>
           `)}
         </ul>
