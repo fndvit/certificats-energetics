@@ -32,6 +32,8 @@ class DataManager {
 }
 
 export class ChoroplethLayer {
+  static MAX_ZOOM = 14;
+
   static SourceLayerZooms = [
     [11.5, 22],
     [8.5, 11.5],
@@ -309,7 +311,7 @@ export class ChoroplethLayer {
     }
 
     const center = bounds.getCenter();
-    const targetZoom = ChoroplethLayer.SourceLayerZooms[level][1] - 0.1;
+    const targetZoom = Math.min(ChoroplethLayer.SourceLayerZooms[level][1] - 0.1, ChoroplethLayer.MAX_ZOOM);
     const offsetX = ChoroplethLayer.defaults.clickedFeatureOffsetX;
     const offsetY = ChoroplethLayer.defaults.clickedFeatureOffsetY;
 

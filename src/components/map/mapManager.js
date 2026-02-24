@@ -33,6 +33,9 @@ export class MapManager {
     } else {
       this.clusterLayer.hide();
       this.choroplethLayer.show();
+      if (this.mapBase.map.getZoom() > ChoroplethLayer.MAX_ZOOM) {
+        this.mapBase.map.easeTo({ zoom: ChoroplethLayer.MAX_ZOOM });
+      }
     }
   }
 

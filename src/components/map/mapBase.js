@@ -4,7 +4,7 @@ export class MapBase {
   static defaults = {
     zoom: 7.6,
     minZoom: 7,
-    maxZoom: 14,
+    maxZoom: 18,
     center: [1.5, 41.7]
   };
 

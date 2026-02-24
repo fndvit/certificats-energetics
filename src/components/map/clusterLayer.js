@@ -11,30 +11,62 @@ const LAYER_IDS = [
 ];
 
 const belowRoadsOpacity = [
-  'interpolate', ['linear'], ['zoom'],
-  ZOOM_THRESHOLD - 1, 1,
-  ZOOM_THRESHOLD, 0
+  'interpolate',
+  ['linear'],
+  ['zoom'],
+  ZOOM_THRESHOLD - 1,
+  1,
+  ZOOM_THRESHOLD,
+  0
 ];
 const aboveRoadsOpacity = [
-  'interpolate', ['linear'], ['zoom'],
-  ZOOM_THRESHOLD - 1, 0,
-  ZOOM_THRESHOLD, 1
+  'interpolate',
+  ['linear'],
+  ['zoom'],
+  ZOOM_THRESHOLD - 1,
+  0,
+  ZOOM_THRESHOLD,
+  1
 ];
 
 function clusterPaint(opacity) {
   return {
     'circle-color': [
-      'step',
+      'interpolate',
+      ['linear'],
       ['/', ['get', 'sum'], ['get', 'point_count']],
+      1,
       qualifColorRange[0],
-      1.5, qualifColorRange[1],
-      2.5, qualifColorRange[2],
-      3.5, qualifColorRange[3],
-      4.5, qualifColorRange[4],
-      5.5, qualifColorRange[5],
-      6.5, qualifColorRange[6]
+      2,
+      qualifColorRange[1],
+      3,
+      qualifColorRange[2],
+      4,
+      qualifColorRange[3],
+      5,
+      qualifColorRange[4],
+      6,
+      qualifColorRange[5],
+      7,
+      qualifColorRange[6]
     ],
-    'circle-radius': ['step', ['get', 'point_count'], 15, 100, 20, 500, 25],
+    'circle-radius': [
+      'interpolate',
+      ['linear'],
+      ['sqrt', ['get', 'point_count']],
+      Math.sqrt(1),
+      4,
+      Math.sqrt(10),
+      8,
+      Math.sqrt(100),
+      16,
+      Math.sqrt(1000),
+      32,
+      Math.sqrt(10000),
+      64,
+      Math.sqrt(100000),
+      128
+    ],
     'circle-opacity': opacity,
     'circle-stroke-width': 1.5,
     'circle-stroke-color': '#fff',
@@ -45,14 +77,22 @@ function clusterPaint(opacity) {
 function pointPaint(opacity) {
   return {
     'circle-color': [
-      'match', ['get', 'val'],
-      1, qualifColorRange[0],
-      2, qualifColorRange[1],
-      3, qualifColorRange[2],
-      4, qualifColorRange[3],
-      5, qualifColorRange[4],
-      6, qualifColorRange[5],
-      7, qualifColorRange[6],
+      'match',
+      ['get', 'val'],
+      1,
+      qualifColorRange[0],
+      2,
+      qualifColorRange[1],
+      3,
+      qualifColorRange[2],
+      4,
+      qualifColorRange[3],
+      5,
+      qualifColorRange[4],
+      6,
+      qualifColorRange[5],
+      7,
+      qualifColorRange[6],
       '#d4d4d4'
     ],
     'circle-radius': 5,
@@ -94,7 +134,7 @@ export class ClusterLayer {
       data: { type: 'FeatureCollection', features: this.features },
       cluster: true,
       clusterRadius: 80,
-      clusterMaxZoom: 16,
+      clusterMaxZoom: 22,
       clusterProperties: { sum: ['+', ['get', 'val']] }
     });
 
