@@ -126,6 +126,16 @@ const mapMode = Mutable('choropleth');
 const setMapMode = (x) => (mapMode.value = x);
 ```
 
+```js
+const showClusterModal = Mutable(false);
+const setShowClusterModal = (x) => (showClusterModal.value = x);
+```
+
+```js
+const clusterModalData = Mutable(null);
+const setClusterModalData = (x) => (clusterModalData.value = x);
+```
+
 <!--    Inputs    -->
 
 ```js
@@ -281,6 +291,12 @@ document.addEventListener('polygon-click', (event) => {
     setClickedPolygonLevel(level);
     setShowRegionCard(true);
   }
+});
+
+// Handle cluster click events for cluster modal
+document.addEventListener('cluster-click', (e) => {
+  setClusterModalData(e.detail);
+  setShowClusterModal(true);
 });
 
 // Hide tooltip when hovering over UI elements
@@ -478,6 +494,8 @@ invalidation.then(() => map.destroy());
 ```
 
 ${hoveredPolygonId && !isMouseOverUI && !isMouseButtonPressed && mapMode === 'choropleth' ? mapTooltip() : ''}
+
+${showClusterModal && clusterModalData ? clusterModal() : ''}
 
 <!-- Top Card -->
 
@@ -747,6 +765,36 @@ const regionCard = () => {
             rows: 7
           })}
         </div>
+      </div>
+    </div>
+  `;
+};
+```
+
+```js
+const QUAL_LABELS = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+
+const clusterModal = () => {
+  const { refs, vals } = clusterModalData;
+  const handleClose = () => {
+    setShowClusterModal(false);
+    setClusterModalData(null);
+  };
+  return html`
+    <div class="cluster-modal-backdrop" onclick=${handleClose}>
+      <div class="card glass cluster-modal" onclick=${(e) => e.stopPropagation()}>
+        <div class="region-card-header">
+          <span>${refs.length} certificat${refs.length > 1 ? 's' : ''}</span>
+          <button class="region-card-close" onclick=${handleClose}>✕</button>
+        </div>
+        <ul class="cluster-modal-list">
+          ${refs.map((ref, i) => html`
+            <li>
+              <span class="cluster-modal-ref">${ref}</span>
+              <span class="cluster-modal-qual qual-${vals[i]}">${QUAL_LABELS[vals[i] - 1]}</span>
+            </li>
+          `)}
+        </ul>
       </div>
     </div>
   `;

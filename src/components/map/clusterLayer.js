@@ -188,6 +188,54 @@ export class ClusterLayer {
       },
       paint: { 'text-color': '#ffffff' }
     });
+
+    // Click: expand cluster or show modal
+    this.map.on('click', 'cluster-over', (e) => {
+      const feature = e.features[0];
+      const clusterId = feature.properties.cluster_id;
+      const coords = feature.geometry.coordinates;
+      const source = this.map.getSource(SOURCE_ID);
+
+      source.getClusterExpansionZoom(clusterId, (err, zoom) => {
+        if (err) return;
+        if (zoom > this.map.getMaxZoom()) {
+          source.getClusterLeaves(clusterId, Infinity, 0, (err, leaves) => {
+            if (err) return;
+            const refs = leaves.map(f => f.properties.referencia_cadastral);
+            const vals = leaves.map(f => f.properties.val);
+            document.dispatchEvent(new CustomEvent('cluster-click', {
+              detail: { refs, vals },
+              bubbles: true
+            }));
+          });
+        } else {
+          this.map.easeTo({ center: coords, zoom });
+        }
+      });
+    });
+
+    // Click: show modal for individual point
+    this.map.on('click', 'unclustered-over', (e) => {
+      const { referencia_cadastral, val } = e.features[0].properties;
+      document.dispatchEvent(new CustomEvent('cluster-click', {
+        detail: { refs: [referencia_cadastral], vals: [val] },
+        bubbles: true
+      }));
+    });
+
+    // Cursor: pointer on clusters and points
+    this.map.on('mouseenter', 'cluster-over', () => {
+      this.map.getCanvas().style.cursor = 'pointer';
+    });
+    this.map.on('mouseleave', 'cluster-over', () => {
+      this.map.getCanvas().style.cursor = '';
+    });
+    this.map.on('mouseenter', 'unclustered-over', () => {
+      this.map.getCanvas().style.cursor = 'pointer';
+    });
+    this.map.on('mouseleave', 'unclustered-over', () => {
+      this.map.getCanvas().style.cursor = '';
+    });
   }
 
   show() {

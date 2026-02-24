@@ -484,3 +484,73 @@ label {
 .mode-toggle-btn:hover:not(.active) {
   background: rgba(0, 0, 0, 0.06);
 }
+
+/* ========================================
+   Cluster Modal
+   ======================================== */
+
+.cluster-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.cluster-modal {
+  width: 380px;
+  max-width: 90vw;
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.cluster-modal-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.cluster-modal-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 4px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.07);
+  font-size: 0.85rem;
+}
+
+.cluster-modal-list li:last-child {
+  border-bottom: none;
+}
+
+.cluster-modal-ref {
+  font-family: var(--mono, monospace);
+  color: var(--glassText);
+}
+
+.cluster-modal-qual {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.qual-1 { background-color: #0083CF; }
+.qual-2 { background-color: #65A6C6; }
+.qual-3 { background-color: #A9C6BD; color: #333; }
+.qual-4 { background-color: #FFDEAB; color: #333; }
+.qual-5 { background-color: #FBAA91; color: #333; }
+.qual-6 { background-color: #F1727A; }
+.qual-7 { background-color: #E51E69; }
