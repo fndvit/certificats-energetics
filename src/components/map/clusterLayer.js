@@ -1,4 +1,4 @@
-import { qualifColorRange } from '../colors.js';
+import { qualifColorScheme, emissionsColorScheme } from '../colors.js';
 
 const ZOOM_THRESHOLD = 11;
 const SOURCE_ID = 'certificates-points';
@@ -12,7 +12,7 @@ const LAYER_IDS = [
 
 export const clusterIndicatorsMeta = [
   { key: 'qual_energia', name: 'Qualificació energètica', units: '(1–7)', type: 'qual' },
-  { key: 'qual_emissions', name: 'Qualificació d\'emissions', units: '(1–7)', type: 'qual' },
+  { key: 'qual_emissions', name: "Qualificació d'emissions", units: '(1–7)', type: 'qual' },
   { key: 'emissions_de_co2', name: 'Emissions de CO₂', units: 'kg CO₂/m²', type: 'continuous' }
 ];
 
@@ -39,12 +39,18 @@ const CLUSTER_RADIUS_EXPR = [
   'interpolate',
   ['linear'],
   ['sqrt', ['get', 'point_count']],
-  Math.sqrt(1), 4,
-  Math.sqrt(10), 8,
-  Math.sqrt(100), 16,
-  Math.sqrt(1000), 32,
-  Math.sqrt(10000), 64,
-  Math.sqrt(100000), 128
+  Math.sqrt(1),
+  4,
+  Math.sqrt(10),
+  8,
+  Math.sqrt(100),
+  16,
+  Math.sqrt(1000),
+  32,
+  Math.sqrt(10000),
+  64,
+  Math.sqrt(100000),
+  128
 ];
 
 function clusterPaint(colorExpr, opacity) {
@@ -116,23 +122,34 @@ export class ClusterLayer {
   _clusterColorExpr(indicator) {
     if (indicator.type === 'qual') {
       return [
-        'interpolate', ['linear'],
+        'interpolate',
+        ['linear'],
         ['/', ['get', `sum_${indicator.key}`], ['get', 'point_count']],
-        1, qualifColorRange[0],
-        2, qualifColorRange[1],
-        3, qualifColorRange[2],
-        4, qualifColorRange[3],
-        5, qualifColorRange[4],
-        6, qualifColorRange[5],
-        7, qualifColorRange[6]
+        1,
+        qualifColorScheme[0],
+        2,
+        qualifColorScheme[1],
+        3,
+        qualifColorScheme[2],
+        4,
+        qualifColorScheme[3],
+        5,
+        qualifColorScheme[4],
+        6,
+        qualifColorScheme[5],
+        7,
+        qualifColorScheme[6]
       ];
     } else {
       const { min, max } = this.emissionsRange;
       return [
-        'interpolate', ['linear'],
+        'interpolate',
+        ['linear'],
         ['/', ['get', 'sum_emissions_de_co2'], ['get', 'point_count']],
-        min, qualifColorRange[0],
-        max, qualifColorRange[6]
+        min,
+        emissionsColorScheme[0],
+        max,
+        emissionsColorScheme[6]
       ];
     }
   }
@@ -140,23 +157,34 @@ export class ClusterLayer {
   _pointColorExpr(indicator) {
     if (indicator.type === 'qual') {
       return [
-        'match', ['get', indicator.key],
-        1, qualifColorRange[0],
-        2, qualifColorRange[1],
-        3, qualifColorRange[2],
-        4, qualifColorRange[3],
-        5, qualifColorRange[4],
-        6, qualifColorRange[5],
-        7, qualifColorRange[6],
+        'match',
+        ['get', indicator.key],
+        1,
+        qualifColorScheme[0],
+        2,
+        qualifColorScheme[1],
+        3,
+        qualifColorScheme[2],
+        4,
+        qualifColorScheme[3],
+        5,
+        qualifColorScheme[4],
+        6,
+        qualifColorScheme[5],
+        7,
+        qualifColorScheme[6],
         '#d4d4d4'
       ];
     } else {
       const { min, max } = this.emissionsRange;
       return [
-        'interpolate', ['linear'],
+        'interpolate',
+        ['linear'],
         ['get', 'emissions_de_co2'],
-        min, qualifColorRange[0],
-        max, qualifColorRange[6]
+        min,
+        qualifColorScheme[0],
+        max,
+        qualifColorScheme[6]
       ];
     }
   }
@@ -241,12 +269,14 @@ export class ClusterLayer {
         if (zoom > this.map.getMaxZoom()) {
           source.getClusterLeaves(clusterId, Infinity, 0, (err, leaves) => {
             if (err) return;
-            const refs = leaves.map(f => f.properties.referencia_cadastral);
-            const vals = leaves.map(f => f.properties[this.currentIndicator.key]);
-            document.dispatchEvent(new CustomEvent('cluster-click', {
-              detail: { refs, vals, indicator: this.currentIndicator },
-              bubbles: true
-            }));
+            const refs = leaves.map((f) => f.properties.referencia_cadastral);
+            const vals = leaves.map((f) => f.properties[this.currentIndicator.key]);
+            document.dispatchEvent(
+              new CustomEvent('cluster-click', {
+                detail: { refs, vals, indicator: this.currentIndicator },
+                bubbles: true
+              })
+            );
           });
         } else {
           this.map.easeTo({ center: coords, zoom });
@@ -257,14 +287,16 @@ export class ClusterLayer {
     // Click: show modal for individual point
     this.map.on('click', 'unclustered-over', (e) => {
       const props = e.features[0].properties;
-      document.dispatchEvent(new CustomEvent('cluster-click', {
-        detail: {
-          refs: [props.referencia_cadastral],
-          vals: [props[this.currentIndicator.key]],
-          indicator: this.currentIndicator
-        },
-        bubbles: true
-      }));
+      document.dispatchEvent(
+        new CustomEvent('cluster-click', {
+          detail: {
+            refs: [props.referencia_cadastral],
+            vals: [props[this.currentIndicator.key]],
+            indicator: this.currentIndicator
+          },
+          bubbles: true
+        })
+      );
     });
 
     // Cursor: pointer on clusters and points

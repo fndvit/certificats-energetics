@@ -16,7 +16,6 @@ import { clusterIndicatorsMeta } from './components/map/clusterLayer.js';
 import { emissionsIndicatorsMeta, socEcIndicatorsMeta } from './components/indicatorsMeta.js';
 import { getEmissionsIndicatorData, getIncomeIndicatorData, getEmissionsData } from './components/dataProcessing.js';
 import { getHoveredInfo, getTickColor, lowercaseFirstLetter, getRegionCardData } from './components/mapHelpers.js';
-import { mapColorScheme } from './components/colors.js';
 
 const municipisDict = FileAttachment('./data/municipisDict.json').json();
 const pointsData = await FileAttachment('./data/certificats-points.parquet').parquet();

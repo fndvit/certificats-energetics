@@ -1,4 +1,4 @@
-export const qualifColorRange = [
+export const qualifColorScheme = [
   '#0083CF',
   '#65A6C6',
   '#A9C6BD',
@@ -21,7 +21,7 @@ export const categoricalScheme5 = [
   '#9498a0'
 ];
 
-export const mapColorScheme = [
+export const emissionsColorScheme = [
   '#FFDEAB',
   '#FDBC99',
   '#F89988',

@@ -8,7 +8,7 @@ style: ./dashboard.css
 import * as vgplot from "npm:@uwdata/vgplot";
 import { html } from "npm:htl";
 import {
-  qualifColorRange,
+  qualifColorScheme,
   categoricalScheme5,
 } from "./components/colors.js";
 import { zonaClimaticaBeeswarm } from "./components/zonaClimaticaBeeswarm.js";
@@ -40,7 +40,7 @@ const qualifLabelsLookup = {
 const qualifColorScheme = d3
   .scaleLinear()
   .domain(qualifColorDomain)
-  .range(qualifColorRange)
+  .range(qualifColorScheme)
   .interpolate();
 ```
 
@@ -155,7 +155,7 @@ const avg_climate_zone = Array.from(
         height: 300,
         marginLeft: 25,
         marginRight: 55,
-        color: { domain: qualifColorDomain, range: qualifColorRange},
+        color: { domain: qualifColorDomain, range: qualifColorScheme},
         x: { grid: true, label: "Nombre de certificats", labelOffset: 35 },
         y: { tickFormat: (d) => qualifLabelsLookup[d], label: null},
         marks: [
@@ -197,7 +197,7 @@ const avg_climate_zone = Array.from(
         height: 300,
         marginLeft: 25,
         marginRight: 55,
-        color: { domain: qualifColorDomain, range: qualifColorRange},
+        color: { domain: qualifColorDomain, range: qualifColorScheme},
         x: { grid: true, label: "Nombre de certificats", labelOffset: 35 },
         y: { tickFormat: (d) => qualifLabelsLookup[d], label: null},
         marks: [
@@ -509,7 +509,7 @@ const $mainFilter = vg.Selection.intersect({
               vg.marginRight(50),
               vg.yScale("band"),
               vg.colorDomain(qualifColorDomain),
-              vg.colorRange(qualifColorRange),
+              vg.colorRange(qualifColorScheme),
               vg.yTickFormat((d) => qualifLabelsLookup[d]),
               vg.highlight({
                 by: $qualEmissions
@@ -540,7 +540,7 @@ const $mainFilter = vg.Selection.intersect({
               vg.marginRight(50),
               vg.yScale("band"),
               vg.colorDomain(qualifColorDomain),
-              vg.colorRange(qualifColorRange),
+              vg.colorRange(qualifColorScheme),
               vg.yTickFormat((d) => qualifLabelsLookup[d]),
               vg.highlight({
                 by: $qualEnergia
@@ -742,7 +742,7 @@ ${vg.plot(
   ),
   vg.intervalXY({as: $raster}),
   vg.colorDomain(qualifColorDomain),
-  vg.colorRange(qualifColorRange),
+  vg.colorRange(qualifColorScheme),
   vg.yLabel('Superfície (m2)'),
   vg.xLabel('Emissions (Kg/CO2 * any)'),
 )}

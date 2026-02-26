@@ -1,11 +1,11 @@
-import { mapColorScheme, qualifColorRange } from './colors.js';
+import { emissionsColorScheme, qualifColorScheme } from './colors.js';
 
 export const emissionsIndicatorsMeta = [
   {
     name: "Mitjana d'emissions",
     value: 'mean_emissions',
     binOperation: 'ckmeans',
-    colors: mapColorScheme,
+    colors: emissionsColorScheme,
     colorScaleType: 'categoric',
     units: 'Kg C02'
   },
@@ -13,7 +13,7 @@ export const emissionsIndicatorsMeta = [
     name: 'Emissions totals',
     value: 'total_emissions',
     binOperation: 'logarithmic',
-    colors: mapColorScheme,
+    colors: emissionsColorScheme,
     colorScaleType: 'categoric',
     units: 'Gg C02'
   },
@@ -21,7 +21,7 @@ export const emissionsIndicatorsMeta = [
     name: "Qualificació mitjana d'energia",
     value: 'mean_energy_qual',
     binOperation: 'ckmeans',
-    colors: qualifColorRange,
+    colors: qualifColorScheme,
     colorScaleType: 'categoric',
     units: '1-7'
   },
@@ -29,7 +29,7 @@ export const emissionsIndicatorsMeta = [
     name: "Qualificació mitjana d'emissions",
     value: 'mean_emissions_qual',
     binOperation: 'ckmeans',
-    colors: qualifColorRange,
+    colors: qualifColorScheme,
     colorScaleType: 'categoric',
     units: '1-7'
   }
