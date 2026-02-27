@@ -79,6 +79,7 @@ export class ClusterLayer {
   constructor(mapBase, pointsData) {
     this.map = mapBase.map;
     this.currentIndicator = clusterIndicatorsMeta[0];
+    this._analysisRect = null;
     const { features, emissionsRange } = this._parseData(pointsData);
     this.features = features;
     this.emissionsRange = emissionsRange;
@@ -91,6 +92,7 @@ export class ClusterLayer {
     const qualEmissionsCol = pointsData.getChild('qual_emissions');
     const emissionsCol = pointsData.getChild('emissions_de_co2');
     const refCol = pointsData.getChild('referencia_cadastral');
+    const metresCol = pointsData.getChild('metres_cadastre');
 
     let emissionsMin = Infinity;
     let emissionsMax = -Infinity;
@@ -107,7 +109,8 @@ export class ClusterLayer {
           referencia_cadastral: refCol.get(i),
           qual_energia: Number(qualEnergiaCol.get(i)),
           qual_emissions: Number(qualEmissionsCol.get(i)),
-          emissions_de_co2: isFinite(emissions) ? emissions : null
+          emissions_de_co2: isFinite(emissions) ? emissions : null,
+          metres_cadastre: metresCol ? (Number(metresCol.get(i)) || null) : null
         },
         geometry: {
           type: 'Point',
@@ -199,7 +202,8 @@ export class ClusterLayer {
       clusterProperties: {
         sum_qual_energia: ['+', ['get', 'qual_energia']],
         sum_qual_emissions: ['+', ['get', 'qual_emissions']],
-        sum_emissions_de_co2: ['+', ['coalesce', ['get', 'emissions_de_co2'], 0]]
+        sum_emissions_de_co2: ['+', ['coalesce', ['get', 'emissions_de_co2'], 0]],
+        sum_metres_cadastre: ['+', ['coalesce', ['get', 'metres_cadastre'], 0]]
       }
     });
 
@@ -312,6 +316,10 @@ export class ClusterLayer {
     this.map.on('mouseleave', 'unclustered-over', () => {
       this.map.getCanvas().style.cursor = '';
     });
+
+    // Recompute viewport stats after pan/zoom
+    this.map.on('moveend', () => this._computeAndDispatchStats());
+    this.map.on('zoomend', () => this._computeAndDispatchStats());
   }
 
   setIndicator(indicator) {
@@ -325,6 +333,45 @@ export class ClusterLayer {
     for (const id of ['unclustered-over', 'unclustered-under']) {
       if (this.map.getLayer(id)) this.map.setPaintProperty(id, 'circle-color', pointColor);
     }
+  }
+
+  /** Receives { top, left, right, bottom } in screen pixels and triggers stats recompute */
+  setAnalysisRect(pixelBounds) {
+    this._analysisRect = pixelBounds;
+    this._computeAndDispatchStats();
+  }
+
+  _computeAndDispatchStats() {
+    if (!this._analysisRect) return;
+    const { top, left, right, bottom } = this._analysisRect;
+    const sw = this.map.unproject([left, bottom]);
+    const ne = this.map.unproject([right, top]);
+
+    const inside = this.features.filter(({ geometry: { coordinates: [lng, lat] } }) =>
+      lng >= sw.lng && lng <= ne.lng && lat >= sw.lat && lat <= ne.lat
+    );
+
+    const count = inside.length;
+    let sumQE = 0, nQE = 0, sumQEm = 0, nQEm = 0, sumCO2 = 0, nCO2 = 0, sumM2 = 0, nullM2 = 0;
+
+    for (const { properties: p } of inside) {
+      if (p.qual_energia != null) { sumQE += p.qual_energia; nQE++; }
+      if (p.qual_emissions != null) { sumQEm += p.qual_emissions; nQEm++; }
+      if (p.emissions_de_co2 != null) { sumCO2 += p.emissions_de_co2; nCO2++; }
+      if (p.metres_cadastre != null) { sumM2 += p.metres_cadastre; } else { nullM2++; }
+    }
+
+    document.dispatchEvent(new CustomEvent('cluster-viewport-stats', {
+      detail: {
+        count,
+        meanQualEnergia:   nQE  > 0 ? sumQE  / nQE  : null,
+        meanQualEmissions: nQEm > 0 ? sumQEm / nQEm : null,
+        meanEmissionsCo2:  nCO2 > 0 ? sumCO2 / nCO2 : null,
+        sumMetresCadastre: sumM2,
+        nullMetresCount:   nullM2
+      },
+      bubbles: true
+    }));
   }
 
   show() {

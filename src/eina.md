@@ -136,6 +136,11 @@ const clusterModalData = Mutable(null);
 const setClusterModalData = (x) => (clusterModalData.value = x);
 ```
 
+```js
+const viewportStats = Mutable(null);
+const setViewportStats = (x) => (viewportStats.value = x);
+```
+
 <!--    Inputs    -->
 
 ```js
@@ -263,6 +268,7 @@ document.addEventListener('map-loaded', () => {
     getIndicatorValues(incomeIndicatorData[1])
   );
   setMapLoaded(true);
+  updateAnalysisZone();
   sliderState.percentileRange = [0.25, 0.75];
   map.setMode(mapMode);
 });
@@ -306,6 +312,10 @@ document.addEventListener('cluster-click', (e) => {
   setShowClusterModal(true);
 });
 
+document.addEventListener('cluster-viewport-stats', (e) => {
+  setViewportStats(e.detail);
+});
+
 // Hide tooltip when hovering over UI elements
 // Attach listeners to all UI cards and Observable's sidebar
 const uiElements = document.querySelectorAll('.card, .observablehq-sidebar, nav');
@@ -333,6 +343,19 @@ uiElements.forEach((element) => {
 ```js
 document.querySelector('.choropleth-controls')
   ?.style.setProperty('display', mapMode === 'choropleth' ? '' : 'none');
+```
+
+<!-- Reactive: Shows/hides analysis zone overlay when map mode changes
+     Depends on: mapMode, mapLoaded -->
+```js
+if (mapLoaded) {
+  if (mapMode === 'cluster') {
+    analysisZoneEl.classList.remove('hidden');
+    updateAnalysisZone();
+  } else {
+    analysisZoneEl.classList.add('hidden');
+  }
+}
 ```
 
 <!-- Reactive: Updates slider bounds when dataset or income indicator changes
@@ -506,6 +529,24 @@ Object.assign(mapContainer.style, {
 
 const map = MapManager.create(mapContainer, datasets, pointsData);
 invalidation.then(() => map.destroy());
+
+const analysisZoneEl = display(document.createElement('div'));
+analysisZoneEl.className = 'cluster-analysis-zone hidden';
+
+function updateAnalysisZone() {
+  const topCard = document.querySelector('.card.glass');
+  if (!topCard || !mapLoaded) return;
+  const r = topCard.getBoundingClientRect();
+  const vw = window.innerWidth, vh = window.innerHeight;
+  const top = r.bottom + 12, left = 12, right = vw - 12, bottom = vh - 12;
+  Object.assign(analysisZoneEl.style, {
+    top: `${top}px`, left: `${left}px`,
+    width: `${right - left}px`, height: `${bottom - top}px`
+  });
+  map.setClusterAnalysisRect({ top, left, right, bottom });
+}
+
+window.addEventListener('resize', updateAnalysisZone);
 ```
 
 ${hoveredPolygonId && !isMouseOverUI && !isMouseButtonPressed && mapMode === 'choropleth' ? mapTooltip() : ''}
@@ -529,6 +570,30 @@ ${showClusterModal && clusterModalData ? clusterModal() : ''}
             <div>
               <p class="glassText" style="margin: 0px">Indicador</p>
               ${clusterIndicatorInput}
+              ${viewportStats && viewportStats.count > 0 ? html`
+              <div class="cluster-zone-stats">
+                <p class="glassText" style="margin: 8px 0 6px; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.05em; opacity:0.6;">
+                  Zona d'anàlisi — ${viewportStats.count} certificats
+                </p>
+                <div class="cluster-zone-stats-grid">
+                  <div class="cluster-stat-item">
+                    <span class="cluster-stat-label">Qualif. energètica mitjana</span>
+                    <span class="cluster-stat-value">${viewportStats.meanQualEnergia != null ? viewportStats.meanQualEnergia.toFixed(2) : '—'}</span>
+                  </div>
+                  <div class="cluster-stat-item">
+                    <span class="cluster-stat-label">Qualif. d'emissions mitjana</span>
+                    <span class="cluster-stat-value">${viewportStats.meanQualEmissions != null ? viewportStats.meanQualEmissions.toFixed(2) : '—'}</span>
+                  </div>
+                  <div class="cluster-stat-item">
+                    <span class="cluster-stat-label">Emissions CO₂ mitjanes</span>
+                    <span class="cluster-stat-value">${viewportStats.meanEmissionsCo2 != null ? `${viewportStats.meanEmissionsCo2.toFixed(1)} kg CO₂/m²` : '—'}</span>
+                  </div>
+                  <div class="cluster-stat-item">
+                    <span class="cluster-stat-label">Superfície cadastral total</span>
+                    <span class="cluster-stat-value">${d3.format(',.0f')(viewportStats.sumMetresCadastre)} m²</span>
+                  </div>
+                </div>
+              </div>` : ''}
             </div>
             ` : html`
             <div>

@@ -68,6 +68,10 @@ export class MapManager {
     if (this.clusterLayer) this.clusterLayer.setIndicator(indicator);
   }
 
+  setClusterAnalysisRect(pixelBounds) {
+    if (this.clusterLayer) this.clusterLayer.setAnalysisRect(pixelBounds);
+  }
+
   clearClickedFeature() {
     this.choroplethLayer.clearClickedFeature();
   }

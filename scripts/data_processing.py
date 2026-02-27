@@ -686,7 +686,7 @@ def save_data(
 
     # --- certificats-points.parquet ---
     # Deduplicate by referencia_cadastral, keeping most recent data_entrada
-    dedup_df = certificates[["referencia_cadastral", "latitud", "longitud", "qual_energia", "qual_emissions", "emissions_de_co2", "data_entrada"]].copy()
+    dedup_df = certificates[["referencia_cadastral", "latitud", "longitud", "qual_energia", "qual_emissions", "emissions_de_co2", "metres_cadastre", "data_entrada"]].copy()
     dedup_df = dedup_df.sort_values("data_entrada", ascending=False)
     dedup_df = dedup_df.drop_duplicates(subset=["referencia_cadastral"], keep="first")
     dedup_df = dedup_df.drop(columns=["data_entrada"])
