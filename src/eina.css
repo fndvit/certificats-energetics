@@ -553,13 +553,30 @@ label {
   flex-shrink: 0;
 }
 
-.qual-1 { background-color: #0083CF; }
-.qual-2 { background-color: #65A6C6; }
-.qual-3 { background-color: #A9C6BD; color: #333; }
-.qual-4 { background-color: #FFDEAB; color: #333; }
-.qual-5 { background-color: #FBAA91; color: #333; }
-.qual-6 { background-color: #F1727A; }
-.qual-7 { background-color: #E51E69; }
+.qual-1 {
+  background-color: #0083cf;
+}
+.qual-2 {
+  background-color: #65a6c6;
+}
+.qual-3 {
+  background-color: #a9c6bd;
+  color: #333;
+}
+.qual-4 {
+  background-color: #ffdeab;
+  color: #333;
+}
+.qual-5 {
+  background-color: #fbaa91;
+  color: #333;
+}
+.qual-6 {
+  background-color: #f1727a;
+}
+.qual-7 {
+  background-color: #e51e69;
+}
 
 /* Analysis zone overlay */
 .cluster-analysis-zone {
@@ -569,17 +586,24 @@ label {
   border: 1.5px dashed rgba(0, 0, 0, 0.3);
   border-radius: 4px;
   box-sizing: border-box;
+  box-shadow: 0 0 0 9999px rgba(255, 255, 255, 0.6);
   transition: opacity 0.25s ease;
 }
-.cluster-analysis-zone.hidden { opacity: 0; }
+.cluster-analysis-zone.hidden {
+  opacity: 0;
+}
 
 /* Viewport stats panel inside Top Card */
 .cluster-zone-stats {
-  border-top: 1px solid rgba(0,0,0,0.08);
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
   padding-top: 8px;
   margin-top: 4px;
 }
-.cluster-zone-stats-grid { display: flex; flex-direction: column; gap: 3px; }
+.cluster-zone-stats-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
 .cluster-stat-item {
   display: flex;
   justify-content: space-between;
@@ -588,5 +612,12 @@ label {
   font-size: 0.82rem;
   padding: 2px 0;
 }
-.cluster-stat-label { color: var(--theme-foreground-muted); flex: 1; }
-.cluster-stat-value { font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.cluster-stat-label {
+  color: var(--theme-foreground-muted);
+  flex: 1;
+}
+.cluster-stat-value {
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}

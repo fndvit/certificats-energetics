@@ -532,13 +532,15 @@ invalidation.then(() => map.destroy());
 
 const analysisZoneEl = display(document.createElement('div'));
 analysisZoneEl.className = 'cluster-analysis-zone hidden';
+```
 
+```js
 function updateAnalysisZone() {
   const topCard = document.querySelector('.card.glass');
   if (!topCard || !mapLoaded) return;
   const r = topCard.getBoundingClientRect();
   const vw = window.innerWidth, vh = window.innerHeight;
-  const top = r.bottom + 12, left = 12, right = vw - 12, bottom = vh - 12;
+  const top = 46, left = r.right + 46, right = vw - 46, bottom = vh - 46;
   Object.assign(analysisZoneEl.style, {
     top: `${top}px`, left: `${left}px`,
     width: `${right - left}px`, height: `${bottom - top}px`
