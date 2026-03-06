@@ -36,6 +36,6 @@ jobs:
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
-          git add src/data/certificats.parquet src/data/municipis.parquet src/data/labels.json src/data/municipisDict.json src/data/seccen.json src/data/mun.json src/data/com.json src/data/certificats-points.parquet
+          git add src/data/certificats.parquet src/data/municipis.parquet src/data/labels.json src/data/municipisDict.json src/data/seccen_aggregates.json src/data/mun_aggregates.json src/data/com_aggregates.json src/data/certificats-points.parquet
           git diff --cached --quiet || git commit -m "Update processed data [$(date -u +%Y-%m-%d)]"
           git push

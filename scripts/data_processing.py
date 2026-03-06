@@ -653,7 +653,7 @@ def save_data(
     - ``certificats.parquet`` — full cleaned certificates dataset.
     - ``labels.json`` — label encoder mapping for categorical columns.
     - ``municipisDict.json`` — municipality/comarca hierarchy lookup.
-    - ``seccen.json``, ``mun.json``, ``com.json`` — geographic aggregations.
+    - ``seccen_aggregates.json``, ``mun_aggregates.json``, ``com_aggregates.json`` — geographic aggregations.
 
     Note:
         pandas >= 2.2 uses Arrow-backed strings by default.  fastparquet
@@ -700,7 +700,7 @@ def save_data(
     logger.info("Points dataset saved to %s", points_path)
 
     # --- Geographic aggregation files ---
-    aggregate_files = ["seccen.json", "mun.json", "com.json"]
+    aggregate_files = ["seccen_aggregates.json", "mun_aggregates.json", "com_aggregates.json"]
     for df, name in zip(aggregated_datasets, aggregate_files):
         out_path = os.path.join(data_dir, name)
         df.round(3).to_json(out_path, orient="records", indent=2)

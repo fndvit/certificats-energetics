@@ -23,7 +23,7 @@ npm run deploy     # Deploy to Observable
 
 1. **Raw data** in `src/data/` (generated weekly by `.github/workflows/data-processing.yml`):
    - `certificats-points.parquet` — Individual certificates with coordinates and qualifications
-   - Aggregated JSON by level: `seccen.json` (census sections), `mun.json` (municipalities), `com.json` (regions)
+   - Aggregated JSON by level: `seccen_aggregates.json` (census sections), `mun_aggregates.json` (municipalities), `com_aggregates.json` (regions)
 
 2. **Components** in `src/components/`:
    - `map/mapBase.js` — `MapBase` class: initializes Mapbox GL map instance

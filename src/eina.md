@@ -21,17 +21,17 @@ const municipisDict = FileAttachment('./data/municipisDict.json').json();
 const pointsData = await FileAttachment('./data/certificats-points.parquet').parquet();
 
 const datasets = [
-  await FileAttachment('./data/seccen.json')
+  await FileAttachment('./data/seccen_aggregates.json')
     .json()
     .then((data) => {
       return data.filter((d) => d.mean_emissions);
     }),
-  await FileAttachment('./data/mun.json')
+  await FileAttachment('./data/mun_aggregates.json')
     .json()
     .then((data) => {
       return data.filter((d) => d.mean_emissions);
     }),
-  await FileAttachment('./data/com.json')
+  await FileAttachment('./data/com_aggregates.json')
     .json()
     .then((data) => {
       return data.filter((d) => d.mean_emissions);
