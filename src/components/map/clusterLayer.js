@@ -145,15 +145,11 @@ export class ClusterLayer {
       ];
     } else {
       const { min, max } = this.emissionsRange;
-      return [
-        'interpolate',
-        ['linear'],
-        ['/', ['get', 'sum_emissions_de_co2'], ['get', 'point_count']],
-        min,
-        emissionsColorScheme[0],
-        max,
-        emissionsColorScheme[6]
-      ];
+      const stops = emissionsColorScheme.flatMap((color, i) => [
+        min + (max - min) * i / (emissionsColorScheme.length - 1),
+        color
+      ]);
+      return ['interpolate', ['linear'], ['/', ['get', 'sum_emissions_de_co2'], ['get', 'point_count']], ...stops];
     }
   }
 
@@ -180,15 +176,11 @@ export class ClusterLayer {
       ];
     } else {
       const { min, max } = this.emissionsRange;
-      return [
-        'interpolate',
-        ['linear'],
-        ['get', 'emissions_de_co2'],
-        min,
-        qualifColorScheme[0],
-        max,
-        qualifColorScheme[6]
-      ];
+      const stops = emissionsColorScheme.flatMap((color, i) => [
+        min + (max - min) * i / (emissionsColorScheme.length - 1),
+        color
+      ]);
+      return ['interpolate', ['linear'], ['get', 'emissions_de_co2'], ...stops];
     }
   }
 

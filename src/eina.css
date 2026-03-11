@@ -599,25 +599,207 @@ label {
   padding-top: 8px;
   margin-top: 4px;
 }
-.cluster-zone-stats-grid {
+
+/* ========================================
+   Cluster Card — Header Row
+   ======================================== */
+
+.cluster-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 2px;
+  flex-wrap: wrap;
+}
+
+.cluster-pintar-per {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: black;
+}
+
+.cluster-pintar-label {
+  white-space: nowrap;
+}
+
+/* ========================================
+   Cluster Zone Stats
+   ======================================== */
+
+/* Default (medium): zone info on top, 3-col stats+ramps below */
+.cluster-zone-layout {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 8px;
 }
-.cluster-stat-item {
+
+.cluster-zone-info {
+  color: black;
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  gap: 8px;
-  font-size: 0.82rem;
-  padding: 2px 0;
+  flex-wrap: wrap;
+  gap: 2px 10px;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
-.cluster-stat-label {
-  color: var(--theme-foreground-muted);
+
+/* Stats area: 3 equal columns, stretches to fill parent height */
+.cluster-stats-area {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 4px 10px;
+  align-self: stretch;
+}
+
+/* Each stat column: stat cell grows, ramp pins to bottom */
+.cluster-stat-col {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.cluster-stat-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
   flex: 1;
 }
-.cluster-stat-value {
-  font-weight: 500;
+
+.cluster-ramp-bar {
+  margin-top: auto;
+}
+
+.cluster-stat-value-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.cluster-stat-label {
+  font-size: 0.78rem;
+}
+
+.cluster-stat-cell .cluster-stat-value {
+  font-weight: 600;
+  font-size: 0.92rem;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+}
+
+.cluster-stat-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+/* ========================================
+   Color Ramps
+   ======================================== */
+
+.cluster-ramp-bar {
+  height: 6px;
+  border-radius: 3px;
+  position: relative;
+  overflow: visible;
+  margin-top: 12px;
+}
+
+.cluster-ramp-dot {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1.5px solid rgba(0, 0, 0, 0.5);
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* ========================================
+   Large screens (≥800px): single row
+   zone info left + 3 stat cols right
+   ======================================== */
+
+@media (min-width: 800px) {
+  .cluster-top-card {
+    width: 550px !important;
+    max-width: 550px !important;
+  }
+
+  .cluster-top-card.cluster-mode {
+    width: auto !important;
+    max-width: calc(70vw - 2rem) !important;
+  }
+
+  .cluster-zone-layout {
+    flex-direction: row;
+    align-items: stretch;
+    gap: 16px;
+  }
+
+  .cluster-zone-info {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 4px;
+    flex: 1;
+    flex-shrink: 0;
+    min-width: 160px;
+  }
+
+  .cluster-stats-area {
+    flex: 3;
+    gap: 24px;
+  }
+}
+
+/* ========================================
+   Small screens (≤600px): stacked, single-col stats
+   ======================================== */
+
+@media (max-width: 600px) {
+  .cluster-top-card {
+    width: auto !important;
+    max-width: calc(100vw - 2rem) !important;
+  }
+
+  .cluster-card-header {
+    gap: 2px;
+    margin-bottom: 0px;
+  }
+
+  /* Single column stats, each as a horizontal label + value row */
+  .cluster-stats-area {
+    grid-template-columns: 1fr;
+    gap: 3px;
+  }
+
+  .cluster-stat-col {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* Hide ramps on small screens */
+  .cluster-ramp-bar {
+    display: none;
+  }
+
+  /* Stat cell: label left, value+dot right */
+  .cluster-stat-cell {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+  }
 }
