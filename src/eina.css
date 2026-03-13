@@ -436,10 +436,20 @@ label {
 }
 
 /* Responsive Design */
-@media (max-width: 912px) {
-  .region-card {
-    width: 100%;
-    max-width: 100%;
+#region-card-wrapper {
+  pointer-events: none;
+}
+
+.region-card-wrapper {
+  width: auto;
+  max-width: calc(100vw - 2rem);
+  pointer-events: auto;
+}
+
+@media (min-width: 800px) {
+  .region-card-wrapper {
+    width: 550px;
+    max-width: 550px;
   }
 }
 
@@ -801,5 +811,83 @@ label {
     align-items: center;
     gap: 8px;
     flex: 1;
+  }
+
+  /* Smaller info phrase heading */
+  .card h3 {
+    font-size: 13px;
+  }
+
+  /* Tighter selector gap + less bottom margin */
+  .choropleth-selectors-wrapper {
+    gap: 4px !important;
+    margin-bottom: 8px !important;
+  }
+
+  /* Label and input side-by-side */
+  .choropleth-selector {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .choropleth-selector p {
+    white-space: nowrap;
+    flex-shrink: 0;
+    font-size: 0.78rem;
+  }
+
+  /* Reduce space between top card and region card */
+  .cluster-top-card {
+    margin-bottom: 8px !important;
+  }
+
+  .region-card {
+    margin-top: 8px;
+  }
+
+  /* Truncate ranking labels at ~20 chars */
+  .ranking-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 20ch;
+  }
+
+  /* Hide ranking positions on small screens */
+  .ranking-grid {
+    display: none;
+  }
+
+  /* Tighter region card padding (1.5rem → 0.75rem) and gaps */
+  .region-card {
+    padding: 0.75rem;
+    gap: 0.5rem;
+  }
+
+  /* Smaller region card title */
+  .region-card-title {
+    font-size: 1rem;
+  }
+
+  /* Tighter section gaps and header margin */
+  .region-card-header {
+    margin-bottom: 0.2rem;
+    gap: 0.5rem;
+  }
+
+  .region-card-section {
+    gap: 0.3rem;
+  }
+
+  /* Compact ranking items (0.75rem 1rem → 4px 8px) */
+  .ranking-item {
+    padding: 4px 8px;
+  }
+
+  /* Smaller select inputs inside choropleth selectors */
+  .choropleth-selector select {
+    font-size: 0.78rem;
   }
 }

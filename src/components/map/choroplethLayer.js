@@ -40,10 +40,7 @@ export class ChoroplethLayer {
     [0, 8.5]
   ];
 
-  static defaults = {
-    clickedFeatureOffsetX: 0,
-    clickedFeatureOffsetY: 0
-  };
+  static BREAKPOINTS = { sm: 768, md: 1024, lg: 1820 };
 
   noDataColor = '#d4d4d4';
 
@@ -310,15 +307,17 @@ export class ChoroplethLayer {
       });
     }
 
-    const center = bounds.getCenter();
-    const targetZoom = Math.min(ChoroplethLayer.SourceLayerZooms[level][1] - 0.1, ChoroplethLayer.MAX_ZOOM);
-    const offsetX = ChoroplethLayer.defaults.clickedFeatureOffsetX;
-    const offsetY = ChoroplethLayer.defaults.clickedFeatureOffsetY;
+    const maxZoom = Math.min(
+      ChoroplethLayer.SourceLayerZooms[level][1] - 0.1,
+      ChoroplethLayer.MAX_ZOOM
+    );
+    const offset = this.getClickOffset();
+    const camera = this.map.cameraForBounds(bounds, { padding: 40, maxZoom, offset });
+
+    if (!camera) return;
 
     this.map.flyTo({
-      center: center,
-      zoom: targetZoom,
-      offset: [offsetX, offsetY],
+      ...camera,
       duration: 1000,
       essential: true
     });
@@ -362,13 +361,7 @@ export class ChoroplethLayer {
     });
     matchExpression.push(0);
 
-    const colorExpression = [
-      'step',
-      matchExpression,
-      this.noDataColor,
-      1,
-      ...colors
-    ];
+    const colorExpression = ['step', matchExpression, this.noDataColor, 1, ...colors];
 
     return colorExpression;
   }
@@ -649,6 +642,14 @@ export class ChoroplethLayer {
         console.warn('No visible layers!');
         return [];
     }
+  }
+
+  getClickOffset() {
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    if (w >= ChoroplethLayer.BREAKPOINTS.lg) return [0, 0];
+    if (w >= ChoroplethLayer.BREAKPOINTS.sm) return [w / 4, 0];
+    return [0, h / 4];
   }
 
   isBetweenRange(val, range) {

@@ -684,12 +684,12 @@ ${showClusterModal && clusterModalData ? clusterModal() : ''}
         <div class="glassText">
           ${informationPhrase}
         </div>
-        <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
-          <div>
+        <div class="choropleth-selectors-wrapper" style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
+          <div class="choropleth-selector">
             <p class="glassText" style="margin:0;">Indicador d'emissions</p>
             ${emissionsIndicatorInput}
           </div>
-          <div>
+          <div class="choropleth-selector">
             <p class="glassText" style="margin:0;">Indicador sociodemogràfic</p>
             ${incomeIndicatorInput}
           </div>
@@ -765,7 +765,7 @@ ${showClusterModal && clusterModalData ? clusterModal() : ''}
     </div>
   </div>
 
-<div id="region-card-wrapper" style="width: 550px;">
+<div id="region-card-wrapper">
   ${showRegionCard && mapMode === 'choropleth' ? regionCard() : ''}
 </div>
 
@@ -866,7 +866,7 @@ const regionCard = () => {
   };
 
   return html`
-    <div class="card glass" style="width: 550px; max-width: 550px; box-sizing: border-box;"
+    <div class="card glass region-card-wrapper" style="box-sizing: border-box;"
          onmouseenter=${() => setIsMouseOverUI(true)}
          onmouseleave=${() => setIsMouseOverUI(false)}>
       <!-- Header with title and close button -->
@@ -934,7 +934,7 @@ const regionCard = () => {
               unitat: '20%'
             },
             layout: 'auto',
-            rows: 7
+            rows: window.innerWidth < 600 ? 2 : 7
           })}
         </div>
       </div>

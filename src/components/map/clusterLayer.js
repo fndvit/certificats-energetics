@@ -110,7 +110,7 @@ export class ClusterLayer {
           qual_energia: Number(qualEnergiaCol.get(i)),
           qual_emissions: Number(qualEmissionsCol.get(i)),
           emissions_de_co2: isFinite(emissions) ? emissions : null,
-          metres_cadastre: metresCol ? (Number(metresCol.get(i)) || null) : null
+          metres_cadastre: metresCol ? Number(metresCol.get(i)) || null : null
         },
         geometry: {
           type: 'Point',
@@ -146,10 +146,15 @@ export class ClusterLayer {
     } else {
       const { min, max } = this.emissionsRange;
       const stops = emissionsColorScheme.flatMap((color, i) => [
-        min + (max - min) * i / (emissionsColorScheme.length - 1),
+        min + ((max - min) * i) / (emissionsColorScheme.length - 1),
         color
       ]);
-      return ['interpolate', ['linear'], ['/', ['get', 'sum_emissions_de_co2'], ['get', 'point_count']], ...stops];
+      return [
+        'interpolate',
+        ['linear'],
+        ['/', ['get', 'sum_emissions_de_co2'], ['get', 'point_count']],
+        ...stops
+      ];
     }
   }
 
@@ -177,7 +182,7 @@ export class ClusterLayer {
     } else {
       const { min, max } = this.emissionsRange;
       const stops = emissionsColorScheme.flatMap((color, i) => [
-        min + (max - min) * i / (emissionsColorScheme.length - 1),
+        min + ((max - min) * i) / (emissionsColorScheme.length - 1),
         color
       ]);
       return ['interpolate', ['linear'], ['get', 'emissions_de_co2'], ...stops];
@@ -339,31 +344,57 @@ export class ClusterLayer {
     const sw = this.map.unproject([left, bottom]);
     const ne = this.map.unproject([right, top]);
 
-    const inside = this.features.filter(({ geometry: { coordinates: [lng, lat] } }) =>
-      lng >= sw.lng && lng <= ne.lng && lat >= sw.lat && lat <= ne.lat
+    const inside = this.features.filter(
+      ({
+        geometry: {
+          coordinates: [lng, lat]
+        }
+      }) => lng >= sw.lng && lng <= ne.lng && lat >= sw.lat && lat <= ne.lat
     );
 
     const count = inside.length;
-    let sumQE = 0, nQE = 0, sumQEm = 0, nQEm = 0, sumCO2 = 0, nCO2 = 0, sumM2 = 0, nullM2 = 0;
+    let sumQE = 0,
+      nQE = 0,
+      sumQEm = 0,
+      nQEm = 0,
+      sumCO2 = 0,
+      nCO2 = 0,
+      sumM2 = 0,
+      nullM2 = 0;
 
     for (const { properties: p } of inside) {
-      if (p.qual_energia != null) { sumQE += p.qual_energia; nQE++; }
-      if (p.qual_emissions != null) { sumQEm += p.qual_emissions; nQEm++; }
-      if (p.emissions_de_co2 != null) { sumCO2 += p.emissions_de_co2; nCO2++; }
-      if (p.metres_cadastre != null) { sumM2 += p.metres_cadastre; } else { nullM2++; }
+      if (p.qual_energia != null) {
+        sumQE += p.qual_energia;
+        nQE++;
+      }
+      if (p.qual_emissions != null) {
+        sumQEm += p.qual_emissions;
+        nQEm++;
+      }
+      if (p.emissions_de_co2 != null) {
+        sumCO2 += p.emissions_de_co2;
+        nCO2++;
+      }
+      if (p.metres_cadastre != null) {
+        sumM2 += p.metres_cadastre;
+      } else {
+        nullM2++;
+      }
     }
 
-    document.dispatchEvent(new CustomEvent('cluster-viewport-stats', {
-      detail: {
-        count,
-        meanQualEnergia:   nQE  > 0 ? sumQE  / nQE  : null,
-        meanQualEmissions: nQEm > 0 ? sumQEm / nQEm : null,
-        meanEmissionsCo2:  nCO2 > 0 ? sumCO2 / nCO2 : null,
-        sumMetresCadastre: sumM2,
-        nullMetresCount:   nullM2
-      },
-      bubbles: true
-    }));
+    document.dispatchEvent(
+      new CustomEvent('cluster-viewport-stats', {
+        detail: {
+          count,
+          meanQualEnergia: nQE > 0 ? sumQE / nQE : null,
+          meanQualEmissions: nQEm > 0 ? sumQEm / nQEm : null,
+          meanEmissionsCo2: nCO2 > 0 ? sumCO2 / nCO2 : null,
+          sumMetresCadastre: sumM2,
+          nullMetresCount: nullM2
+        },
+        bubbles: true
+      })
+    );
   }
 
   show() {
