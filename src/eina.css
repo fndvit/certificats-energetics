@@ -436,10 +436,20 @@ label {
 }
 
 /* Responsive Design */
-@media (max-width: 912px) {
-  .region-card {
-    width: 100%;
-    max-width: 100%;
+#region-card-wrapper {
+  pointer-events: none;
+}
+
+.region-card-wrapper {
+  width: auto;
+  max-width: calc(100vw - 2rem);
+  pointer-events: auto;
+}
+
+@media (min-width: 800px) {
+  .region-card-wrapper {
+    width: 550px;
+    max-width: 550px;
   }
 }
 
@@ -463,4 +473,421 @@ label {
     0.5px -0.5px 3px #ffffff33,
     -0.5px 0.5px 3px #ffffff33,
     0.5px 0.5px 3px #ffffff33;
+}
+
+.mode-toggle-btn {
+  padding: 4px 12px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-family: var(--sans-serif);
+  transition: all 0.15s ease;
+}
+
+.mode-toggle-btn.active {
+  background: rgba(0, 0, 0, 0.12);
+  font-weight: 600;
+}
+
+.mode-toggle-btn:hover:not(.active) {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+/* ========================================
+   Cluster Modal
+   ======================================== */
+
+.cluster-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.cluster-modal {
+  width: 380px;
+  max-width: 90vw;
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.cluster-modal-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.cluster-modal-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 4px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.07);
+  font-size: 0.85rem;
+}
+
+.cluster-modal-list li:last-child {
+  border-bottom: none;
+}
+
+.cluster-modal-ref {
+  font-family: var(--mono, monospace);
+  color: var(--glassText);
+}
+
+.cluster-modal-qual {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.cluster-modal-value {
+  font-size: 0.85rem;
+  color: var(--glassText);
+  flex-shrink: 0;
+}
+
+.qual-1 {
+  background-color: #0083cf;
+}
+.qual-2 {
+  background-color: #65a6c6;
+}
+.qual-3 {
+  background-color: #a9c6bd;
+  color: #333;
+}
+.qual-4 {
+  background-color: #ffdeab;
+  color: #333;
+}
+.qual-5 {
+  background-color: #fbaa91;
+  color: #333;
+}
+.qual-6 {
+  background-color: #f1727a;
+}
+.qual-7 {
+  background-color: #e51e69;
+}
+
+/* Analysis zone overlay */
+.cluster-analysis-zone {
+  position: fixed;
+  pointer-events: none;
+  z-index: -1;
+  border: 1.5px dashed rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+  box-sizing: border-box;
+  box-shadow: 0 0 0 9999px rgba(255, 255, 255, 0.6);
+  transition: opacity 0.25s ease;
+}
+.cluster-analysis-zone.hidden {
+  opacity: 0;
+}
+
+/* Viewport stats panel inside Top Card */
+.cluster-zone-stats {
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  padding-top: 8px;
+  margin-top: 4px;
+}
+
+/* ========================================
+   Cluster Card — Header Row
+   ======================================== */
+
+.cluster-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 2px;
+  flex-wrap: wrap;
+}
+
+.cluster-pintar-per {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: black;
+}
+
+.cluster-pintar-label {
+  white-space: nowrap;
+}
+
+/* ========================================
+   Cluster Zone Stats
+   ======================================== */
+
+/* Default (medium): zone info on top, 3-col stats+ramps below */
+.cluster-zone-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cluster-zone-info {
+  color: black;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 2px 10px;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Stats area: 3 equal columns, stretches to fill parent height */
+.cluster-stats-area {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 4px 10px;
+  align-self: stretch;
+}
+
+/* Each stat column: stat cell grows, ramp pins to bottom */
+.cluster-stat-col {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.cluster-stat-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  flex: 1;
+}
+
+.cluster-ramp-bar {
+  margin-top: auto;
+}
+
+.cluster-stat-value-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.cluster-stat-label {
+  font-size: 0.78rem;
+}
+
+.cluster-stat-cell .cluster-stat-value {
+  font-weight: 600;
+  font-size: 0.92rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.cluster-stat-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+/* ========================================
+   Color Ramps
+   ======================================== */
+
+.cluster-ramp-bar {
+  height: 6px;
+  border-radius: 3px;
+  position: relative;
+  overflow: visible;
+  margin-top: 12px;
+}
+
+.cluster-ramp-dot {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1.5px solid rgba(0, 0, 0, 0.5);
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* ========================================
+   Large screens (≥800px): single row
+   zone info left + 3 stat cols right
+   ======================================== */
+
+@media (min-width: 800px) {
+  .cluster-top-card {
+    width: 550px !important;
+    max-width: 550px !important;
+  }
+
+  .cluster-top-card.cluster-mode {
+    width: auto !important;
+    max-width: calc(70vw - 2rem) !important;
+  }
+
+  .cluster-zone-layout {
+    flex-direction: row;
+    align-items: stretch;
+    gap: 16px;
+  }
+
+  .cluster-zone-info {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 4px;
+    flex: 1;
+    flex-shrink: 0;
+    min-width: 160px;
+  }
+
+  .cluster-stats-area {
+    flex: 3;
+    gap: 24px;
+  }
+}
+
+/* ========================================
+   Small screens (≤600px): stacked, single-col stats
+   ======================================== */
+
+@media (max-width: 600px) {
+  .cluster-top-card {
+    width: auto !important;
+    max-width: calc(100vw - 2rem) !important;
+  }
+
+  .cluster-card-header {
+    gap: 2px;
+    margin-bottom: 0px;
+  }
+
+  /* Single column stats, each as a horizontal label + value row */
+  .cluster-stats-area {
+    grid-template-columns: 1fr;
+    gap: 3px;
+  }
+
+  .cluster-stat-col {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* Hide ramps on small screens */
+  .cluster-ramp-bar {
+    display: none;
+  }
+
+  /* Stat cell: label left, value+dot right */
+  .cluster-stat-cell {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+  }
+
+  /* Smaller info phrase heading */
+  .card h3 {
+    font-size: 13px;
+  }
+
+  /* Tighter selector gap + less bottom margin */
+  .choropleth-selectors-wrapper {
+    gap: 4px !important;
+    margin-bottom: 8px !important;
+  }
+
+  /* Label and input side-by-side */
+  .choropleth-selector {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .choropleth-selector p {
+    white-space: nowrap;
+    flex-shrink: 0;
+    font-size: 0.78rem;
+  }
+
+  /* Reduce space between top card and region card */
+  .cluster-top-card {
+    margin-bottom: 8px !important;
+  }
+
+  .region-card {
+    margin-top: 8px;
+  }
+
+  /* Truncate ranking labels at ~20 chars */
+  .ranking-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 20ch;
+  }
+
+  /* Hide ranking positions on small screens */
+  .ranking-grid {
+    display: none;
+  }
+
+  /* Tighter region card padding (1.5rem → 0.75rem) and gaps */
+  .region-card {
+    padding: 0.75rem;
+    gap: 0.5rem;
+  }
+
+  /* Smaller region card title */
+  .region-card-title {
+    font-size: 1rem;
+  }
+
+  /* Tighter section gaps and header margin */
+  .region-card-header {
+    margin-bottom: 0.2rem;
+    gap: 0.5rem;
+  }
+
+  .region-card-section {
+    gap: 0.3rem;
+  }
+
+  /* Compact ranking items (0.75rem 1rem → 4px 8px) */
+  .ranking-item {
+    padding: 4px 8px;
+  }
+
+  /* Smaller select inputs inside choropleth selectors */
+  .choropleth-selector select {
+    font-size: 0.78rem;
+  }
 }

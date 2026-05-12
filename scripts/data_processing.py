@@ -45,6 +45,9 @@ COLUMNS_IN_USE = [
     "normativa",
     "energia_primaria",
     "cost_energia",
+    "latitud",
+    "longitud",
+    "referencia_cadastral",
 ]
 
 # Each entry: [column_name, canonical_value, [list of equivalent raw values]]
@@ -650,7 +653,7 @@ def save_data(
     - ``certificats.parquet`` — full cleaned certificates dataset.
     - ``labels.json`` — label encoder mapping for categorical columns.
     - ``municipisDict.json`` — municipality/comarca hierarchy lookup.
-    - ``seccen.json``, ``mun.json``, ``com.json`` — geographic aggregations.
+    - ``seccen_aggregates.json``, ``mun_aggregates.json``, ``com_aggregates.json`` — geographic aggregations.
 
     Note:
         pandas >= 2.2 uses Arrow-backed strings by default.  fastparquet
@@ -681,8 +684,23 @@ def save_data(
         json.dump(municipi_dict, f)
     logger.info("Municipis dictionary saved to %s", municipi_dict_path)
 
+    # --- certificats-points.parquet ---
+    # Deduplicate by referencia_cadastral, keeping most recent data_entrada
+    dedup_df = certificates[["referencia_cadastral", "latitud", "longitud", "qual_energia", "qual_emissions", "emissions_de_co2", "metres_cadastre", "data_entrada"]].copy()
+    dedup_df = dedup_df.sort_values("data_entrada", ascending=False)
+    dedup_df = dedup_df.drop_duplicates(subset=["referencia_cadastral"], keep="first")
+    dedup_df = dedup_df.drop(columns=["data_entrada"])
+    dedup_df["latitud"] = dedup_df["latitud"].round(6)
+    dedup_df["longitud"] = dedup_df["longitud"].round(6)
+    str_cols_pts = dedup_df.select_dtypes(include="string").columns
+    if len(str_cols_pts):
+        dedup_df[str_cols_pts] = dedup_df[str_cols_pts].astype(object)
+    points_path = os.path.join(data_dir, "certificats-points.parquet")
+    dedup_df.to_parquet(points_path, engine="fastparquet", compression="GZIP")
+    logger.info("Points dataset saved to %s", points_path)
+
     # --- Geographic aggregation files ---
-    aggregate_files = ["seccen.json", "mun.json", "com.json"]
+    aggregate_files = ["seccen_aggregates.json", "mun_aggregates.json", "com_aggregates.json"]
     for df, name in zip(aggregated_datasets, aggregate_files):
         out_path = os.path.join(data_dir, name)
         df.round(3).to_json(out_path, orient="records", indent=2)

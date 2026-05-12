@@ -11,26 +11,32 @@ import { html } from 'npm:htl';
 import rangeSlider from 'npm:range-slider-input';
 import chroma from 'npm:chroma-js';
 import sliderState from './components/sliderState.js';
-import { ChoroplethMap } from './components/map/choropleth.js';
+import { MapManager } from './components/map/mapManager.js';
+import { clusterIndicatorsMeta } from './components/map/clusterLayer.js';
 import { emissionsIndicatorsMeta, socEcIndicatorsMeta } from './components/indicatorsMeta.js';
 import { getEmissionsIndicatorData, getIncomeIndicatorData, getEmissionsData } from './components/dataProcessing.js';
 import { getHoveredInfo, getTickColor, lowercaseFirstLetter, getRegionCardData } from './components/mapHelpers.js';
-import { mapColorScheme } from './components/colors.js';
+import { qualifColorScheme, emissionsColorScheme } from './components/colors.js';
 
 const municipisDict = FileAttachment('./data/municipisDict.json').json();
+const pointsData = await FileAttachment('./data/certificats-points.parquet').parquet();
+
+const emissionsCol = pointsData.getChild('emissions_de_co2');
+const _emVals = Array.from({length: pointsData.numRows}, (_, i) => Number(emissionsCol.get(i))).filter(v => isFinite(v) && v >= 0).sort(d3.ascending);
+const emissionsRangeDomain = [d3.quantile(_emVals, 0.02), d3.quantile(_emVals, 0.98)];
 
 const datasets = [
-  await FileAttachment('./data/seccen.json')
+  await FileAttachment('./data/seccen_aggregates.json')
     .json()
     .then((data) => {
       return data.filter((d) => d.mean_emissions);
     }),
-  await FileAttachment('./data/mun.json')
+  await FileAttachment('./data/mun_aggregates.json')
     .json()
     .then((data) => {
       return data.filter((d) => d.mean_emissions);
     }),
-  await FileAttachment('./data/com.json')
+  await FileAttachment('./data/com_aggregates.json')
     .json()
     .then((data) => {
       return data.filter((d) => d.mean_emissions);
@@ -120,6 +126,26 @@ const showRegionCard = Mutable(false);
 const setShowRegionCard = (x) => (showRegionCard.value = x);
 ```
 
+```js
+const mapMode = Mutable('choropleth');
+const setMapMode = (x) => (mapMode.value = x);
+```
+
+```js
+const showClusterModal = Mutable(false);
+const setShowClusterModal = (x) => (showClusterModal.value = x);
+```
+
+```js
+const clusterModalData = Mutable(null);
+const setClusterModalData = (x) => (clusterModalData.value = x);
+```
+
+```js
+const viewportStats = Mutable(null);
+const setViewportStats = (x) => (viewportStats.value = x);
+```
+
 <!--    Inputs    -->
 
 ```js
@@ -200,6 +226,43 @@ function updateSliderBounds(newMin, newMax, indicatorValues) {
 }
 
 
+const clusterIndicatorInput = Inputs.select(clusterIndicatorsMeta, {
+  label: '',
+  format: (d) => d.name,
+  value: clusterIndicatorsMeta[0]
+});
+
+// Qualification color: clamp to 1-7 integer then look up scheme
+const qualifColor = (v) =>
+  v != null ? qualifColorScheme[Math.min(6, Math.max(0, Math.round(v) - 1))] : '#d4d4d4';
+
+// Emissions: continuous scale over domain
+const emissionsColorScale = d3.scaleSequential(
+  d3.interpolateRgbBasis(emissionsColorScheme)
+).domain(emissionsRangeDomain);
+const emissionsColor = (v) => v != null ? emissionsColorScale(v) : '#d4d4d4';
+
+function clusterColorRamp(meanValue, type) {
+  let gradient, pct;
+  if (type === 'qual') {
+    gradient = `linear-gradient(to right, ${qualifColorScheme.join(', ')})`;
+    pct = meanValue != null ? ((meanValue - 1) / 6) * 100 : null;
+  } else {
+    const [lo, hi] = emissionsRangeDomain;
+    const stops = Array.from({length: 12}, (_, i) =>
+      emissionsColorScale(lo + (hi - lo) * i / 11)
+    );
+    gradient = `linear-gradient(to right, ${stops.join(', ')})`;
+    pct = meanValue != null
+      ? Math.min(100, Math.max(0, ((meanValue - lo) / (hi - lo)) * 100))
+      : null;
+  }
+  return html`
+    <div class="cluster-ramp-bar" style="background: ${gradient};">
+      ${pct != null ? html`<div class="cluster-ramp-dot" style="left:${pct.toFixed(1)}%;"></div>` : ''}
+    </div>`;
+}
+
 const emissionsIndicatorInput = Inputs.select(emissionsIndicatorsMeta, {
   label: "",
   format: (d) => d.name,
@@ -214,6 +277,7 @@ const incomeIndicatorInput = Inputs.select(socEcIndicatorsMeta, {
 ```
 
 ```js
+const clusterIndicator = Generators.input(clusterIndicatorInput);
 const emissionsIndicator = Generators.input(emissionsIndicatorInput);
 const incomeIndicator = Generators.input(incomeIndicatorInput);
 ```
@@ -240,7 +304,9 @@ document.addEventListener('map-loaded', () => {
     getIndicatorValues(incomeIndicatorData[1])
   );
   setMapLoaded(true);
+  updateAnalysisZone();
   sliderState.percentileRange = [0.25, 0.75];
+  map.setMode(mapMode);
 });
 
 document.addEventListener('zoom-level-changed', (event) => {
@@ -276,6 +342,16 @@ document.addEventListener('polygon-click', (event) => {
   }
 });
 
+// Handle cluster click events for cluster modal
+document.addEventListener('cluster-click', (e) => {
+  setClusterModalData(e.detail);
+  setShowClusterModal(true);
+});
+
+document.addEventListener('cluster-viewport-stats', (e) => {
+  setViewportStats(e.detail);
+});
+
 // Hide tooltip when hovering over UI elements
 // Attach listeners to all UI cards and Observable's sidebar
 const uiElements = document.querySelectorAll('.card, .observablehq-sidebar, nav');
@@ -298,6 +374,33 @@ uiElements.forEach((element) => {
 
 <!--    Reactive listeners    -->
 
+<!-- Reactive: Toggles choropleth-specific controls visibility when map mode changes
+     Depends on: mapMode -->
+```js
+document.querySelector('.choropleth-controls')
+  ?.style.setProperty('display', mapMode === 'choropleth' ? '' : 'none');
+```
+
+<!-- Reactive: Toggles cluster-mode class on top card when map mode changes
+     Depends on: mapMode -->
+```js
+document.querySelector('.cluster-top-card')
+  ?.classList.toggle('cluster-mode', mapMode === 'cluster');
+```
+
+<!-- Reactive: Shows/hides analysis zone overlay when map mode changes
+     Depends on: mapMode, mapLoaded -->
+```js
+if (mapLoaded) {
+  if (mapMode === 'cluster') {
+    analysisZoneEl.classList.remove('hidden');
+    updateAnalysisZone();
+  } else {
+    analysisZoneEl.classList.add('hidden');
+  }
+}
+```
+
 <!-- Reactive: Updates slider bounds when dataset or income indicator changes
      Depends on: currentDatasetIndex, incomeIndicatorData -->
 ```js
@@ -306,6 +409,14 @@ updateSliderBounds(
   incomeIndicatorData[currentDatasetIndex].max,
   getIndicatorValues(incomeIndicatorData[currentDatasetIndex])
 );
+```
+
+<!-- Reactive: Updates cluster map colors when cluster indicator changes
+     Depends on: mapLoaded, clusterIndicator -->
+```js
+if (mapLoaded) {
+  map.setClusterIndicator(clusterIndicator);
+}
 ```
 
 <!-- Reactive: Updates map colors when emissions indicator changes
@@ -436,6 +547,27 @@ function createSparkbarFormatter(indicatorKey, maxValue, allValues) {
 }
 ```
 
+```js
+const modeToggleButtons = html`
+  <button class="mode-toggle-btn ${mapMode === 'choropleth' ? 'active' : ''}"
+    onclick=${() => { setMapMode('choropleth'); if (mapLoaded) map.setMode('choropleth'); }}>
+    Coropletes
+  </button>
+  <button class="mode-toggle-btn ${mapMode === 'cluster' ? 'active' : ''}"
+    onclick=${() => { setMapMode('cluster'); if (mapLoaded) map.setMode('cluster'); }}>
+    Clústers
+  </button>`;
+```
+
+```js
+// Re-run whenever mapMode changes; double-rAF waits for Observable's reactive
+// DOM updates to finish before measuring the card's new dimensions.
+{
+  mapMode;
+  requestAnimationFrame(() => requestAnimationFrame(updateAnalysisZone));
+}
+```
+
 <!--    Map & HTML    -->
 ```js
 const mapContainer = display(document.createElement("div"));
@@ -446,108 +578,212 @@ Object.assign(mapContainer.style, {
   zIndex: "-5",
 });
 
-const map = ChoroplethMap.create(mapContainer, datasets);
+const map = MapManager.create(mapContainer, datasets, pointsData);
 invalidation.then(() => map.destroy());
+
+const analysisZoneEl = display(document.createElement('div'));
+analysisZoneEl.className = 'cluster-analysis-zone hidden';
 ```
 
-${hoveredPolygonId && !isMouseOverUI && !isMouseButtonPressed ? mapTooltip() : ''}
+```js
+function updateAnalysisZone() {
+  const topCard = document.querySelector('.card.glass');
+  if (!topCard || !mapLoaded) return;
+  const r = topCard.getBoundingClientRect();
+  const vw = window.innerWidth, vh = window.innerHeight;
+  const top = r.bottom + 16, left = 46, right = vw - 46, bottom = vh - 46;
+  Object.assign(analysisZoneEl.style, {
+    top: `${top}px`, left: `${left}px`,
+    width: `${right - left}px`, height: `${bottom - top}px`
+  });
+  map.setClusterAnalysisRect({ top, left, right, bottom });
+}
+
+window.addEventListener('resize', updateAnalysisZone);
+```
+
+${hoveredPolygonId && !isMouseOverUI && !isMouseButtonPressed && mapMode === 'choropleth' ? mapTooltip() : ''}
+
+${showClusterModal && clusterModalData ? clusterModal() : ''}
+
+```js
+const headerExtra = mapMode === 'cluster'
+  ? html`
+      <div class="cluster-pintar-per">
+        <span class="cluster-pintar-label">Pintar per:</span>
+        ${clusterIndicatorInput}
+      </div>`
+  : '';
+
+  const clusterBody = viewportStats && viewportStats.count > 0
+  ? html`
+      <div class="cluster-zone-stats">
+        <div class="cluster-zone-layout">
+          <!-- Zone info: count + surface -->
+          <div class="cluster-zone-info">
+            <span class="cluster-zone-title">
+              ZONA D'ANÀLISI — <strong>${viewportStats.count} CERTIFICATS</strong>
+            </span>
+            <span class="cluster-zone-surface">
+              Superfície total <strong>${d3.format(',.0f')(viewportStats.sumMetresCadastre)} m²</strong>
+            </span>
+          </div>
+          <!-- Stats area: each stat paired with its ramp -->
+          <div class="cluster-stats-area">
+            <div class="cluster-stat-col">
+              <div class="cluster-stat-cell">
+                <span class="cluster-stat-label">Qualif. energètica mitjana</span>
+                <div class="cluster-stat-value-row">
+                  <span class="cluster-stat-value">
+                    ${viewportStats.meanQualEnergia != null ? viewportStats.meanQualEnergia.toFixed(2) : '—'}
+                  </span>
+                  <span class="cluster-stat-dot"
+                    style="background:${qualifColor(viewportStats.meanQualEnergia)};"></span>
+                </div>
+              </div>
+              ${clusterColorRamp(viewportStats.meanQualEnergia, 'qual')}
+            </div>
+            <div class="cluster-stat-col">
+              <div class="cluster-stat-cell">
+                <span class="cluster-stat-label">Qualif. d'emissions mitjana</span>
+                <div class="cluster-stat-value-row">
+                  <span class="cluster-stat-value">
+                    ${viewportStats.meanQualEmissions != null ? viewportStats.meanQualEmissions.toFixed(2) : '—'}
+                  </span>
+                  <span class="cluster-stat-dot"
+                    style="background:${qualifColor(viewportStats.meanQualEmissions)};"></span>
+                </div>
+              </div>
+              ${clusterColorRamp(viewportStats.meanQualEmissions, 'qual')}
+            </div>
+            <div class="cluster-stat-col">
+              <div class="cluster-stat-cell">
+                <span class="cluster-stat-label">Emissions</span>
+                <div class="cluster-stat-value-row">
+                  <span class="cluster-stat-value">
+                    ${viewportStats.meanEmissionsCo2 != null
+                      ? `${viewportStats.meanEmissionsCo2.toFixed(1)} kg CO₂/m²`
+                      : '—'}
+                  </span>
+                  <span class="cluster-stat-dot"
+                    style="background:${emissionsColor(viewportStats.meanEmissionsCo2)};"></span>
+                </div>
+              </div>
+              ${clusterColorRamp(viewportStats.meanEmissionsCo2, 'emissions')}
+            </div>
+          </div><!-- /cluster-stats-area -->
+        </div><!-- /cluster-zone-layout -->
+      </div>`
+  : '';
+
+const choroplethBody = html`
+  <!-- CHOROPLETH MODE -->
+  <div class="glassText">
+    ${informationPhrase}
+  </div>
+  <div class="choropleth-selectors-wrapper" style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
+    <div class="choropleth-selector">
+      <p class="glassText" style="margin:0;">Indicador d'emissions</p>
+      ${emissionsIndicatorInput}
+    </div>
+    <div class="choropleth-selector">
+      <p class="glassText" style="margin:0;">Indicador sociodemogràfic</p>
+      ${incomeIndicatorInput}
+    </div>
+  </div>
+  <!-- Choropleth controls: legend, histogram, slider, tick plot -->
+  <div class="card choropleth-controls" style="flex:1; min-width:0; gap:8px;">
+    <!-- Legend -->
+    ${Plot.legend({
+      color: {
+        type: "threshold",
+        domain: emissionsIndicatorData[currentDatasetIndex].thresholds,
+        range: emissionsIndicatorData[currentDatasetIndex].range,
+        tickFormat: (d) => {
+          const value = emissionsIndicator.value === 'total_emissions' ? d / 1000000 : d;
+          return formatNumber(value);
+        },
+        label: `${emissionsIndicator.name} (${emissionsIndicator.units})`,
+      }
+    })}
+    <!-- Histogram -->
+    ${resize((width) =>
+      Plot.plot({
+        height: 150,
+        color: {
+          type: "categorical",
+          domain: Array.from({ length: 7 }, (_, i) => i.toString()),
+          range: emissionsIndicator.colors
+        },
+        y: {
+          grid: true,
+          label: `Nombre de ${valuesByLevel[currentDatasetIndex].censusLevel}`,
+        },
+        x: {
+          domain: Array.from({ length: 7 }, (_, i) => i.toString()),
+          tickFormat: null,
+          tickSize: 0,
+          label: null
+        },
+        marks: [
+          Plot.barY(
+            histogramData,
+            Plot.groupX({
+              y: "count",
+              title: (d) => {
+                const bins = emissionsIndicatorData[currentDatasetIndex].bins;
+                const bin = bins[parseInt(d[0]?.class)];
+                if (!bin) return '';
+                const scale = emissionsIndicator.value === 'total_emissions' ? 1 / 1000000 : 1;
+                return `${formatNumber(bin.x0 * scale)} – ${formatNumber(bin.x1 * scale)} ${emissionsIndicator.units}\n${d.length} ${valuesByLevel[currentDatasetIndex].censusLevel}`;
+              }
+            }, { x: "class", fill: "class", tip: true })
+          ),
+          Plot.ruleY([0])
+        ]
+      })
+    )}
+    <!-- Slider -->
+    ${sliderElement}
+    <!-- Tick plot -->
+    ${resize((width) =>
+      Plot.plot({
+        height: 80,
+        x: {
+          label: "Mitjana de la renda per unitat de consum (2022)"
+        },
+        marks: [
+          Plot.tickX(emissionsData, {
+            x: "incomeValue",
+            strokeOpacity: 0.5,
+            stroke: (d) =>
+              d.incomeValue >= incomeRange[0] && d.incomeValue <= incomeRange[1]
+                ? getTickColor(d.class, emissionsIndicator)
+                : "#d9d9d9"
+          })
+        ]
+      })
+    )}
+  </div>`;
+
+const bodyContent = mapMode === 'cluster' ? clusterBody : choroplethBody;
+```
 
 <!-- Top Card -->
 
-<div class="card glass" style="margin-top: -25px; margin-bottom: 25px; width: 550px; max-width: 550px; box-sizing: border-box;">
-    <div style="display: flex; flex-direction: column;">
-      <!-- Top row -->
-      <div style="flex: 0 0 35%; min-width: 0;">
-        <div style="display: flex; flex-direction: column; justify-content: space-between; height: 100%">
-          <div class="glassText">
-            ${informationPhrase}
-          </div>
-          <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px">
-            <div>
-              <p class="glassText" style="margin: 0px">Indicador d'emissions</p>
-              ${emissionsIndicatorInput}
-            </div>
-            <div>
-              <p class="glassText" style="margin: 0px">Indicador sociodemogràfic</p>
-              ${incomeIndicatorInput}
-            </div>
-          </div>
-        </div>
-      </div>
-      <!-- Bottom row -->
-      <div class="card" style="flex: 1; min-width: 0; gap: 8px">
-        <!-- Legend -->
-        ${
-          Plot.legend(
-            {color: 
-              {
-                type: "threshold",
-                domain: emissionsIndicatorData[currentDatasetIndex].thresholds,
-                range: emissionsIndicatorData[currentDatasetIndex].range,
-                tickFormat: (d) => {
-                  const value = emissionsIndicator.value === 'total_emissions' ? d / 1000000 : d;
-                  return formatNumber(value);
-                },
-                label: `${emissionsIndicator.name} (${emissionsIndicator.units})`,
-              }
-            }
-          )
-        }
-        <!-- Histogram -->
-        ${resize((width) => 
-          Plot.plot({
-            height: 150,
-            color: {
-              type: "categorical",
-              domain: Array.from({ length: 7 }, (_, i) => i.toString()),
-              range: emissionsIndicator.colors
-            },
-            y: { 
-              grid: true, 
-              label: `Nombre de ${valuesByLevel[currentDatasetIndex].censusLevel}`,
-            }, // Per mantenir escala -> domain: [0, mostFrequentClass[1]] 
-            x: { 
-              domain: Array.from({ length: 7 }, (_, i) => i.toString()), 
-              tickFormat: null, 
-              tickSize: 0, 
-              label: null
-            },
-            marks: [
-              Plot.barY(
-                histogramData,
-                Plot.groupX({ y: "count" }, { x: "class", fill: "class", tip:true })
-              ),
-              Plot.ruleY([0])
-            ]
-          })
-        )}
-        <!-- Slider -->
-        ${sliderElement}
-        <!-- Tick plot -->
-        ${resize((width) =>
-          Plot.plot({
-            height: 80,
-            x: {
-              label: "Mitjana de la renda per unitat de consum (2022)"
-            },
-            marks: [
-              Plot.tickX(emissionsData, {
-                x: "incomeValue",
-                strokeOpacity: 0.5,
-                stroke: (d) =>
-                  d.incomeValue >= incomeRange[0] && d.incomeValue <= incomeRange[1] ? getTickColor(d.class, emissionsIndicator) : "#d9d9d9"
-              })
-            ]
-          })
-        )}
-      </div>
+<div class="card glass cluster-top-card" style="margin-top:-25px; margin-bottom:25px; box-sizing:border-box;">
+  <div style="display:flex; flex-direction:column;">
+    <!-- HEADER ROW: tabs + conditional pintar-per -->
+    <div class="cluster-card-header">
+      <div style="display:flex; gap:8px;">${modeToggleButtons}</div>
+      ${headerExtra}
     </div>
+    ${bodyContent}
   </div>
-
 </div>
 
-<div id="region-card-wrapper" style="width: 550px;">
-  ${showRegionCard ? regionCard() : ''}
+<div id="region-card-wrapper">
+  ${showRegionCard && mapMode === 'choropleth' ? regionCard() : ''}
 </div>
 
 ```js
@@ -647,7 +883,7 @@ const regionCard = () => {
   };
 
   return html`
-    <div class="card glass" style="width: 550px; max-width: 550px; box-sizing: border-box;"
+    <div class="card glass region-card-wrapper" style="box-sizing: border-box;"
          onmouseenter=${() => setIsMouseOverUI(true)}
          onmouseleave=${() => setIsMouseOverUI(false)}>
       <!-- Header with title and close button -->
@@ -715,9 +951,43 @@ const regionCard = () => {
               unitat: '20%'
             },
             layout: 'auto',
-            rows: 7
+            rows: window.innerWidth < 600 ? 2 : 7
           })}
         </div>
+      </div>
+    </div>
+  `;
+};
+```
+
+```js
+const QUAL_LABELS = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+
+const clusterModal = () => {
+  const { refs, vals, indicator } = clusterModalData;
+  const fmt = d3.format(',.2f');
+  const handleClose = () => {
+    setShowClusterModal(false);
+    setClusterModalData(null);
+  };
+  return html`
+    <div class="cluster-modal-backdrop" onclick=${handleClose}>
+      <div class="card glass cluster-modal" onclick=${(e) => e.stopPropagation()}>
+        <div class="region-card-header">
+          <span>${refs.length} certificat${refs.length > 1 ? 's' : ''} — ${indicator.name}</span>
+          <button class="region-card-close" onclick=${handleClose}>✕</button>
+        </div>
+        <ul class="cluster-modal-list">
+          ${refs.map((ref, i) => html`
+            <li>
+              <span class="cluster-modal-ref">${ref}</span>
+              ${indicator.type === 'qual'
+                ? html`<span class="cluster-modal-qual qual-${vals[i]}">${QUAL_LABELS[vals[i] - 1] ?? '—'}</span>`
+                : html`<span class="cluster-modal-value">${vals[i] != null ? fmt(vals[i]) : '—'} <small>${indicator.units}</small></span>`
+              }
+            </li>
+          `)}
+        </ul>
       </div>
     </div>
   `;
