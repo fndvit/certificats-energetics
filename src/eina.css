@@ -52,6 +52,46 @@ main h2 {
 
 /* Observable layout overrides */
 
+/* Sidebar toggle: show a subtle strip when collapsed */
+#observablehq-sidebar-toggle {
+  background: var(--theme-background-alt);
+  opacity: 0.6;
+  border-right: 1px solid rgba(0, 0, 0, 0.08);
+  transition: opacity 150ms ease;
+}
+#observablehq-sidebar-toggle:hover {
+  opacity: 1;
+}
+#observablehq-sidebar-toggle:checked {
+  background: none;
+  border-right: none;
+  opacity: 1;
+}
+
+/* Pin sidebar to 200px — matches the --observablehq-inset-left: calc(200px + 1rem)
+   override below. Without this the width falls to auto (the framework's calc is
+   invalid because --observablehq-max-width: none), causing unpredictable layout. */
+#observablehq-sidebar {
+  width: 200px;
+}
+
+/* Close button: position:fixed to escape the position:sticky <ol> containing block,
+   then centre it in the sidebar. left = sidebar-width − button-width. */
+#observablehq-sidebar-close {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  left: calc(200px - 2rem);
+  right: auto;
+  height: 2rem;
+  visibility: hidden; /* position:fixed escapes the sidebar's visibility:hidden */
+}
+/* Reveal only while the sidebar is actually open */
+#observablehq-sidebar-toggle:checked ~ #observablehq-sidebar #observablehq-sidebar-close,
+#observablehq-sidebar-toggle:indeterminate ~ #observablehq-sidebar #observablehq-sidebar-close {
+  visibility: visible;
+}
+
 #observablehq-center {
   margin: 2rem 2rem 2rem;
   overflow: visible;
@@ -227,9 +267,9 @@ label {
 @media (min-width: calc(912px + 6rem)) {
   #observablehq-sidebar-toggle:checked ~ #observablehq-center,
   #observablehq-sidebar-toggle:indeterminate ~ #observablehq-center {
-    --observablehq-inset-left: calc(200px + 1rem); /* adjust as needed */
+    --observablehq-inset-left: calc(200px + 1rem);
     padding-left: var(--observablehq-inset-left);
-    /* padding-right stays as default 1rem */
+    margin-left: 0; /* cancel the base 2rem so the gap from sidebar is just 1rem */
   }
 }
 
@@ -240,7 +280,8 @@ label {
   position: fixed;
   z-index: 10;
   pointer-events: none;
-  width: 240px;
+  width: max-content;
+  max-width: 340px;
   padding: 10px 12px;
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.4);
@@ -270,6 +311,7 @@ label {
 }
 .mb-tip-row span:last-child {
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 /* ========================================
@@ -444,6 +486,7 @@ label {
   width: auto;
   max-width: calc(100vw - 2rem);
   pointer-events: auto;
+  margin-bottom: 2rem;
 }
 
 @media (min-width: 800px) {
@@ -541,7 +584,39 @@ label {
 
 .cluster-modal-ref {
   font-family: var(--mono, monospace);
+  font-size: inherit;
   color: var(--glassText);
+  background: none;
+  border: none;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.cluster-modal-ref:hover {
+  text-decoration-thickness: 2px;
+}
+
+.copy-toast {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  translate: -50% 0;
+  background: var(--theme-foreground);
+  color: var(--theme-background);
+  font-size: 0.8rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  pointer-events: none;
+  z-index: 9999;
+  animation: copy-toast-fade 1.4s ease forwards;
+}
+
+@keyframes copy-toast-fade {
+  0%   { opacity: 0; translate: -50% 4px; }
+  15%  { opacity: 1; translate: -50% 0; }
+  70%  { opacity: 1; }
+  100% { opacity: 0; }
 }
 
 .cluster-modal-qual {
@@ -847,6 +922,10 @@ label {
     margin-top: 8px;
   }
 
+  .region-card-wrapper {
+    margin-bottom: 1rem;
+  }
+
   /* Truncate ranking labels at ~20 chars */
   .ranking-label {
     overflow: hidden;
@@ -889,5 +968,10 @@ label {
   /* Smaller select inputs inside choropleth selectors */
   .choropleth-selector select {
     font-size: 0.78rem;
+  }
+
+  /* Remove Observable default margins on Inputs.select inside choropleth selectors */
+  .choropleth-selector form[class^="inputs-"] {
+    margin: 0;
   }
 }
