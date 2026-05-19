@@ -18,6 +18,8 @@ import { getEmissionsIndicatorData, getIncomeIndicatorData, getEmissionsData } f
 import { getHoveredInfo, getTickColor, lowercaseFirstLetter, getRegionCardData } from './components/mapHelpers.js';
 import { qualifColorScheme, emissionsColorScheme } from './components/colors.js';
 
+const REGION_CARD_TABLE_ROWS = 5;
+
 const municipisDict = FileAttachment('./data/municipisDict.json').json();
 const pointsData = await FileAttachment('./data/certificats-points.parquet').parquet();
 
@@ -591,7 +593,10 @@ function updateAnalysisZone() {
   if (!topCard || !mapLoaded) return;
   const r = topCard.getBoundingClientRect();
   const vw = window.innerWidth, vh = window.innerHeight;
-  const top = r.bottom + 16, left = 46, right = vw - 46, bottom = vh - 46;
+  const sidebarEl = document.getElementById('observablehq-sidebar');
+  const sidebarRight = sidebarEl ? Math.max(0, sidebarEl.getBoundingClientRect().right) : 0;
+  const left = Math.max(sidebarRight + 8, 46);
+  const top = r.bottom + 16, right = vw - 46, bottom = vh - 46;
   Object.assign(analysisZoneEl.style, {
     top: `${top}px`, left: `${left}px`,
     width: `${right - left}px`, height: `${bottom - top}px`
@@ -600,6 +605,8 @@ function updateAnalysisZone() {
 }
 
 window.addEventListener('resize', updateAnalysisZone);
+document.getElementById('observablehq-sidebar-toggle')
+  ?.addEventListener('change', () => requestAnimationFrame(updateAnalysisZone));
 ```
 
 ${hoveredPolygonId && !isMouseOverUI && !isMouseButtonPressed && mapMode === 'choropleth' ? mapTooltip() : ''}
@@ -808,13 +815,13 @@ const mapTooltip = () => {
       <div class="mb-tip-row">
         <span>${emissionsIndicator.name}</span>
         <span>
-          ${hoveredInfo.emissionsData.value == null ? "—" : fmt(hoveredInfo.emissionsData.value)}
+          ${hoveredInfo.emissionsData.value == null ? "—" : `${fmt(hoveredInfo.emissionsData.value)} ${emissionsIndicator.units}`}
         </span>
       </div>
       <div class="mb-tip-row">
         <span>${incomeIndicator.name}</span>
         <span>
-          ${hoveredInfo.incomeData.value == null ? "—" : fmt(hoveredInfo.incomeData.value)}
+          ${hoveredInfo.incomeData.value == null ? "—" : `${fmt(hoveredInfo.incomeData.value)} ${incomeIndicator.units}`}
         </span>
       </div>
     </div>`;
@@ -951,7 +958,7 @@ const regionCard = () => {
               unitat: '20%'
             },
             layout: 'auto',
-            rows: window.innerWidth < 600 ? 2 : 7
+            rows: window.innerWidth < 600 ? 2 : REGION_CARD_TABLE_ROWS
           })}
         </div>
       </div>
@@ -962,6 +969,15 @@ const regionCard = () => {
 
 ```js
 const QUAL_LABELS = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+
+const copyRef = async (ref) => {
+  await navigator.clipboard.writeText(ref);
+  const toast = document.createElement('div');
+  toast.className = 'copy-toast';
+  toast.textContent = 'Codi copiat';
+  document.body.appendChild(toast);
+  toast.addEventListener('animationend', () => toast.remove());
+};
 
 const clusterModal = () => {
   const { refs, vals, indicator } = clusterModalData;
@@ -980,7 +996,7 @@ const clusterModal = () => {
         <ul class="cluster-modal-list">
           ${refs.map((ref, i) => html`
             <li>
-              <span class="cluster-modal-ref">${ref}</span>
+              <button class="cluster-modal-ref" onclick=${() => copyRef(ref)} title="Copia la referència cadastral">${ref}</button>
               ${indicator.type === 'qual'
                 ? html`<span class="cluster-modal-qual qual-${vals[i]}">${QUAL_LABELS[vals[i] - 1] ?? '—'}</span>`
                 : html`<span class="cluster-modal-value">${vals[i] != null ? fmt(vals[i]) : '—'} <small>${indicator.units}</small></span>`

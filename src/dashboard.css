@@ -78,6 +78,37 @@ label {
   padding-top: 1rem;
 }
 
+/* Sidebar toggle: show a subtle strip when collapsed */
+#observablehq-sidebar-toggle {
+  background: var(--theme-background-alt);
+  opacity: 0.6;
+  border-right: 1px solid rgba(0, 0, 0, 0.08);
+  transition: opacity 150ms ease;
+}
+#observablehq-sidebar-toggle:hover {
+  opacity: 1;
+}
+#observablehq-sidebar-toggle:checked {
+  background: none;
+  border-right: none;
+  opacity: 1;
+}
+
+/* Close button: position:fixed to escape the position:sticky <ol> containing block */
+#observablehq-sidebar-close {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  left: calc(272px + var(--observablehq-sidebar-padding-left) - 2rem);
+  right: auto;
+  height: 2rem;
+  visibility: hidden;
+}
+#observablehq-sidebar-toggle:checked ~ #observablehq-sidebar #observablehq-sidebar-close,
+#observablehq-sidebar-toggle:indeterminate ~ #observablehq-sidebar #observablehq-sidebar-close {
+  visibility: visible;
+}
+
 #observablehq-main,
 #observablehq-header,
 #observablehq-footer {
