@@ -37,11 +37,11 @@ const qualifLabelsLookup = {
   7: "G",
 };
 
-const qualifColorScheme = d3
-  .scaleLinear()
-  .domain(qualifColorDomain)
-  .range(qualifColorScheme)
-  .interpolate();
+// const qualifColorScheme = d3
+//   .scaleLinear()
+//   .domain(qualifColorDomain)
+//   .range(qualifColorScheme)
+//   .interpolate();
 ```
 
 ```js
@@ -67,12 +67,7 @@ await sql`
     normativa,
     motiu
   FROM certificats
-  WHERE emissions_de_co2 IS NOT NULL 
-    AND metres_cadastre IS NOT NULL 
-    AND size < 200
-    AND size > 15
-    AND emissions < 80
-    AND emissions > 5
+  WHERE emissions_de_co2 IS NOT NULL
 `;
 
 // VG Client
@@ -128,6 +123,18 @@ ORDER BY avg_emissions ASC;
 ```
 
 ```js
+const zoneImageUrls = {
+  "B3": await FileAttachment("./images/zones-climatiques/b3.png").url(),
+  "C2": await FileAttachment("./images/zones-climatiques/c2.png").url(),
+  "C3": await FileAttachment("./images/zones-climatiques/c3.png").url(),
+  "D1": await FileAttachment("./images/zones-climatiques/d1.png").url(),
+  "D2": await FileAttachment("./images/zones-climatiques/d2.png").url(),
+  "D3": await FileAttachment("./images/zones-climatiques/d3.png").url(),
+  "E1": await FileAttachment("./images/zones-climatiques/e1.png").url(),
+};
+```
+
+```js
 const avg_climate_zone = Array.from(
   [...grouped_poblacio]
     .filter((d) => d.poblacio >= populationThreshold && d.zona_climatica)
@@ -144,6 +151,35 @@ const avg_climate_zone = Array.from(
   avg_emissions: totalSum / totalCount,
 }));
 ```
+
+```sql id=avg_by_zona
+SELECT
+  zona_climatica,
+  SUM(emissions_de_co2) / COUNT(*) AS avg_emissions
+FROM certificats
+WHERE emissions_de_co2 IS NOT NULL AND zona_climatica IS NOT NULL
+GROUP BY zona_climatica
+```
+
+```sql id=total_certificats
+SELECT COUNT(*) AS n FROM certificats WHERE emissions_de_co2 IS NOT NULL
+```
+
+```js
+const totalEmissions = d3.sum([...qualif_emissions_grouped], d => d.frequency);
+const pctWorst3 = (d3.sum([...qualif_emissions_grouped].filter(d => d.qual_emissions >= 5), d => d.frequency) / totalEmissions * 100).toFixed(1);
+const pctBest3 = (d3.sum([...qualif_emissions_grouped].filter(d => d.qual_emissions <= 3), d => d.frequency) / totalEmissions * 100).toFixed(1);
+
+const avgByZona = Object.fromEntries([...avg_by_zona].map(d => [d.zona_climatica, d.avg_emissions]));
+const pctDiffB3E1 = ((avgByZona["E1"] - avgByZona["B3"]) / avgByZona["B3"] * 100).toFixed(0);
+
+const totalCertificats = [...total_certificats][0].n.toLocaleString('ca-ES');
+```
+
+<div class="section-intro">
+  <h2>Visió general del parc d'edificis</h2>
+  <p>Més d'un <strong class="stat">${pctWorst3}%</strong> dels edificis a Catalunya estan qualificats amb una de les 3 pitjors categories en quant a emissions. Pel contrari, només un <strong class="stat">${pctBest3}%</strong> formen part de les 3 millors qualificacions.</p>
+</div>
 
 <!-- FIRST: QUALIFICATIONS HISTOGRAMS -------------------------------------------------------------------------- -->
 
@@ -234,6 +270,11 @@ const avg_climate_zone = Array.from(
   </div>
 </div>
 
+<div class="section-intro">
+  <h2>La importància de la zona climàtica</h2>
+  <p>La zona climàtica és un factor determinant per posar en context la despesa energètica i la generació d'emissions dels edificis. Els municipis situats a zones més fredes (zona E1) emeten de mitjana un <strong class="stat">${pctDiffB3E1}%</strong> més que els de zones litorals (zona B3). A continuació es mostren les emissions mitjanes dels edificis de cada municipi. Explora quins municipis s'allunyen més de la mitjana d'emissions de la seva zona climàtica.</p>
+</div>
+
 <!-- THIRD: CLIMATE ZONES -------------------------------------------------------------------------- -->
 
 ```js
@@ -317,7 +358,7 @@ const threshold_poblacio = [...grouped_poblacio].filter(
       height: 800,
       width,
       margin: 30,
-      marginLeft: 70,
+      marginLeft: 160,
       marginBottom: 50,
       color: {
         scheme: "YlOrRd",
@@ -379,8 +420,8 @@ const threshold_poblacio = [...grouped_poblacio].filter(
         Plot.dotX(
           avg_climate_zone, {x: "avg_emissions", fy: "zona_climatica", stroke: "#750000", fill:"white", r:4}
         ),
-        Plot.text(
-          avg_climate_zone, {x: beeswarmXDomain[0], text: (d) => d.zona_climatica, fy: "zona_climatica", dx: -30, fontSize: 14, fontWeight: "bold"  }
+        Plot.image(
+          avg_climate_zone, {x: beeswarmXDomain[0], src: (d) => zoneImageUrls[d.zona_climatica], fy: "zona_climatica", dx: -100, width: 100, height: 100, preserveAspectRatio: "xMidYMid meet"}
         )
       ]
     })}
@@ -416,7 +457,6 @@ const $normativa = vg.Selection.single();
 const $qualEmissions = vg.Selection.single();
 const $qualEnergia = vg.Selection.single();
 const $date = vg.Selection.intersect();
-const $raster = vg.Selection.intersect();
 
 const $mainFilter = vg.Selection.intersect({
   include: [
@@ -429,13 +469,15 @@ const $mainFilter = vg.Selection.intersect({
     $qualEmissions,
     $qualEnergia,
     $date,
-    $raster,
   ],
   cross: true,
 });
 ```
 
-<h2 style="margin-bottom: 20px; font-weight: 600"> Multivista interactiva </h2>
+<div class="section-intro">
+  <h2>Observatori interactiu</h2>
+  <p>Explora lliurement el dataset amb <strong class="stat">${totalCertificats}</strong> edificis. Per a filtrar, clica les barres (utilitza Shift per sel·leccionar varies categories alhora), cerca per àmbit geogràfic, o clica i arrossega a la línia temporal.</p>
+</div>
 <div id="multiview" class="grid grid-cols-3" style="grid-auto-rows: min-content;">
   <div class="card grid-colspan-1">
     <div style="display:flex; flex-direction:column;">
@@ -725,28 +767,6 @@ function exploratoryCommonBarplot(column, height) {
 }
 ```
 
-<div class="card">
-${vg.plot(
-  vg.frame({fill: "black"}),
-  vg.width(1500),
-  vg.height(250),
-  vg.raster(
-    vg.from("emissions_vs_size", {filterBy: $mainFilter}),
-    {
-      x: "emissions",
-      y: "size",
-      fill: "qual_energia",
-      pixelSize: 5,
-      imageRendering: "pixelated",
-    }
-  ),
-  vg.intervalXY({as: $raster}),
-  vg.colorDomain(qualifColorDomain),
-  vg.colorRange(qualifColorScheme),
-  vg.yLabel('Superfície (m2)'),
-  vg.xLabel('Emissions (Kg/CO2 * any)'),
-)}
-</div>
 
 ```js
 function truncateLabel(label, maxChars) {
@@ -757,5 +777,26 @@ function truncateLabel(label, maxChars) {
 <style>
 .barplot-xs text {
   font-size: 15px;
+}
+.section-intro {
+  font-family: var(--sans-serif);
+  margin-top: 60px;
+  margin-bottom: 20px;
+}
+.section-intro h2 {
+  font-size: 2.1rem;
+  font-weight: 400;
+  font-style: normal;
+  margin-bottom: 8px;
+}
+.section-intro p {
+  max-width: 70ch;
+  font-size: 1rem;
+  font-weight: 300;
+  line-height: 1.8rem;
+}
+.section-intro .stat {
+  font-weight: 700;
+  color: var(--theme-foreground-focus);
 }
 </style>
