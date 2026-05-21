@@ -70,12 +70,26 @@ SAME_MEANING_VALUES = [
         ["Vivienda individual en bloque de viviendas"],
     ],
     ["motiu", "Lloguer", ["Alquiler"]],
-    ["motiu", "Sol·licitud d'ajuts", ["Solicitud de ayudas", "Sollicitut d'ajuts"]],
+    [
+        "motiu",
+        "Sol·licitud d'ajuts",
+        [
+            "Solicitud de ayudas",
+            "Sollicitut d'ajuts",
+            "Sol·licitut d'ajuts",
+            "Sol�licitut d'ajuts",
+        ],
+    ],
     ["motiu", "Compravenda", ["Compra o Venda", "Compra o Venta", "Compraventa"]],
     [
         "motiu",
         "Certificació voluntària",
-        ["Certificación voluntaria", "Certificació voluntaria"],
+        [
+            "Certificación voluntaria",
+            "Certificació voluntaria",
+            "Certificaci� volunt�ria",
+            "Certificaci�n voluntaria",
+        ],
     ],
     [
         "motiu",
@@ -106,17 +120,16 @@ SAME_MEANING_VALUES = [
             "Edificis o parts d'edificis (+500 m2) amb ús administratiu, sanitari, comercial, docent, restauració",
             "Informe d'avaluació de l'Edifici (IEE)",
             "Informe de evaluación del Edificio (IEE)",
-        ],
-    ],
-    [
-        "motiu",
-        "Complement a informe d’avaluació de l’edifici (IEE) o a inspecció tècnica de l’edifici (ITE)",
-        [
-            "Complement a informe davaluació de l’edifici (IEE) o a inspecció tècnica de l’edifici (ITE)",
+            "Edifici existent de l'Administració pública",
+            "Edificio existente de la Administración pública",
+            "Edificios o partes de edificios (+500 m²) con uso administrativo, sanitario, comercial, docente, restauración",
+            "Edificios o partes de edificios donde se realizan reformas o ampliaciones",
+            "Edificis o parts d'edificis (+500 m²) amb ús administratiu, sanitari, comercial, docent, restauració",
+            "Complemento a informe de avaluación del edificio (IEE) o a inspección técnica del edificio (ITE)",
         ],
     ],
     ["normativa", "Abans de 1979", ["Antes de 1979"]],
-    ["normativa", "Altres", ["0", "anterior a la NBE-CT79"]],
+    ["normativa", "Altres", ["0", "anterior a la NBE-CT79", "Anterior a la NBE-CT-79"]],
 ]
 
 CATEGORICAL_COLUMNS_TO_ENCODE = ["eina", "motiu", "us_edifici", "normativa"]
@@ -271,6 +284,27 @@ def cast_columns(df: pd.DataFrame) -> pd.DataFrame:
         "cost_energia",
     ] = pd.NA
 
+    return df
+
+
+def normalize_text_encoding(df: pd.DataFrame) -> pd.DataFrame:
+    """Normalize encoding artifacts in string columns before label grouping.
+
+    Converts typographic apostrophes (U+2018/U+2019), the corrupted-apostrophe
+    artifact (¿), and double-encoded replacement characters (ï¿½ → U+FFFD) so
+    that SAME_MEANING_VALUES matching works regardless of source encoding.
+    """
+    logger.info("Normalizing text encoding in string columns...")
+    df = df.copy()
+    replacements = {
+        "’": "'",          # RIGHT SINGLE QUOTATION MARK → apostrophe
+        "‘": "'",          # LEFT SINGLE QUOTATION MARK → apostrophe
+        "¿": "'",          # ¿ (corrupted apostrophe artifact) → apostrophe
+        "ï¿½": "�",  # ï¿½ (double-encoded REPLACEMENT CHAR) → U+FFFD
+    }
+    for col in df.select_dtypes(include="object").columns:
+        for bad, good in replacements.items():
+            df[col] = df[col].str.replace(bad, good, regex=False)
     return df
 
 
@@ -607,6 +641,7 @@ def process_certificates_dataset(
         .pipe(reduce_columns, COLUMNS_IN_USE)
         .pipe(cast_columns)
         .pipe(regenerate_codes, municipi_dict, PROVINCIES_DICT)
+        .pipe(normalize_text_encoding)
         .pipe(group_same_meaning_values, SAME_MEANING_VALUES)
         .pipe(remove_outliers)
     )
