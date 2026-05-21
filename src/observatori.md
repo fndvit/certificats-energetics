@@ -286,10 +286,10 @@ const threshold_poblacio = [...grouped_poblacio].filter(
 );
 ```
 
-<div class="card">
+<div class="card" style="overflow-x: auto;">
   ${populationRangeInput}
   </br>
-  <div style="display:flex; flex-direction:row; justify-content: space-between">
+  <div style="display:flex; flex-direction:row; flex-wrap:wrap; justify-content: space-between">
     <div>
       <h2>Emissions mitjanes dels edificis dels municipis amb més de ${populationThreshold} habitants</h2><h3> Classificades per zona climàtica </h3></span>
     </div>
@@ -354,9 +354,10 @@ const threshold_poblacio = [...grouped_poblacio].filter(
     </div>
     
   </div>
+  <div style="overflow-x: auto;">
     ${Plot.plot({
       height: 800,
-      width,
+      width: Math.max(width, 1000),
       margin: 30,
       marginLeft: 160,
       marginBottom: 50,
@@ -425,6 +426,7 @@ const threshold_poblacio = [...grouped_poblacio].filter(
         )
       ]
     })}
+  </div>
 </div>
 
 ```js
@@ -771,6 +773,23 @@ function exploratoryCommonBarplot(column, height) {
 ```js
 function truncateLabel(label, maxChars) {
   return label.length > maxChars ? label.slice(0, maxChars) + "..." : label;
+}
+```
+
+```js
+{
+  const _sidebarCloseBtn = document.getElementById('observablehq-sidebar-close');
+  function _syncCloseBtn() {
+    if (!_sidebarCloseBtn) return;
+    const isDesktop = window.matchMedia('(min-width: calc(640px + 6rem + 272px))').matches;
+    const toggle = document.getElementById('observablehq-sidebar-toggle');
+    _sidebarCloseBtn.style.visibility =
+      toggle?.checked || (toggle?.indeterminate && isDesktop) ? 'visible' : 'hidden';
+  }
+  document.getElementById('observablehq-sidebar-toggle')
+    ?.addEventListener('change', _syncCloseBtn);
+  window.addEventListener('resize', _syncCloseBtn);
+  requestAnimationFrame(_syncCloseBtn);
 }
 ```
 

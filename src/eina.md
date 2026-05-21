@@ -607,6 +607,19 @@ function updateAnalysisZone() {
 window.addEventListener('resize', updateAnalysisZone);
 document.getElementById('observablehq-sidebar-toggle')
   ?.addEventListener('change', () => requestAnimationFrame(updateAnalysisZone));
+
+const _sidebarCloseBtn = document.getElementById('observablehq-sidebar-close');
+function _syncCloseBtn() {
+  if (!_sidebarCloseBtn) return;
+  const isDesktop = window.matchMedia('(min-width: calc(912px + 6rem))').matches;
+  const toggle = document.getElementById('observablehq-sidebar-toggle');
+  _sidebarCloseBtn.style.visibility =
+    toggle?.checked || (toggle?.indeterminate && isDesktop) ? 'visible' : 'hidden';
+}
+document.getElementById('observablehq-sidebar-toggle')
+  ?.addEventListener('change', _syncCloseBtn);
+window.addEventListener('resize', _syncCloseBtn);
+requestAnimationFrame(_syncCloseBtn);
 ```
 
 ${hoveredPolygonId && !isMouseOverUI && !isMouseButtonPressed && mapMode === 'choropleth' ? mapTooltip() : ''}
@@ -629,7 +642,7 @@ const headerExtra = mapMode === 'cluster'
           <!-- Zone info: count + surface -->
           <div class="cluster-zone-info">
             <span class="cluster-zone-title">
-              ZONA D'ANÀLISI — <strong>${viewportStats.count} CERTIFICATS</strong>
+              Zona d'anàlisi — <strong>${viewportStats.count} certificats</strong>
             </span>
             <span class="cluster-zone-surface">
               Superfície total <strong>${d3.format(',.0f')(viewportStats.sumMetresCadastre)} m²</strong>
@@ -683,95 +696,123 @@ const headerExtra = mapMode === 'cluster'
       </div>`
   : '';
 
-const choroplethBody = html`
-  <!-- CHOROPLETH MODE -->
-  <div class="glassText">
-    ${informationPhrase}
-  </div>
-  <div class="choropleth-selectors-wrapper" style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
-    <div class="choropleth-selector">
-      <p class="glassText" style="margin:0;">Indicador d'emissions</p>
-      ${emissionsIndicatorInput}
+const choroplethBody = (() => {
+  if (window._choroplethCollapsed === undefined) window._choroplethCollapsed = false;
+
+  const el = html`
+    <!-- CHOROPLETH MODE -->
+    <div class="glassText">
+      ${informationPhrase}
     </div>
-    <div class="choropleth-selector">
-      <p class="glassText" style="margin:0;">Indicador sociodemogràfic</p>
-      ${incomeIndicatorInput}
-    </div>
-  </div>
-  <!-- Choropleth controls: legend, histogram, slider, tick plot -->
-  <div class="card choropleth-controls" style="flex:1; min-width:0; gap:8px;">
-    <!-- Legend -->
-    ${Plot.legend({
-      color: {
-        type: "threshold",
-        domain: emissionsIndicatorData[currentDatasetIndex].thresholds,
-        range: emissionsIndicatorData[currentDatasetIndex].range,
-        tickFormat: (d) => {
-          const value = emissionsIndicator.value === 'total_emissions' ? d / 1000000 : d;
-          return formatNumber(value);
-        },
-        label: `${emissionsIndicator.name} (${emissionsIndicator.units})`,
-      }
-    })}
-    <!-- Histogram -->
-    ${resize((width) =>
-      Plot.plot({
-        height: 150,
-        color: {
-          type: "categorical",
-          domain: Array.from({ length: 7 }, (_, i) => i.toString()),
-          range: emissionsIndicator.colors
-        },
-        y: {
-          grid: true,
-          label: `Nombre de ${valuesByLevel[currentDatasetIndex].censusLevel}`,
-        },
-        x: {
-          domain: Array.from({ length: 7 }, (_, i) => i.toString()),
-          tickFormat: null,
-          tickSize: 0,
-          label: null
-        },
-        marks: [
-          Plot.barY(
-            histogramData,
-            Plot.groupX({
-              y: "count",
-              title: (d) => {
-                const bins = emissionsIndicatorData[currentDatasetIndex].bins;
-                const bin = bins[parseInt(d[0]?.class)];
-                if (!bin) return '';
-                const scale = emissionsIndicator.value === 'total_emissions' ? 1 / 1000000 : 1;
-                return `${formatNumber(bin.x0 * scale)} – ${formatNumber(bin.x1 * scale)} ${emissionsIndicator.units}\n${d.length} ${valuesByLevel[currentDatasetIndex].censusLevel}`;
-              }
-            }, { x: "class", fill: "class", tip: true })
-          ),
-          Plot.ruleY([0])
-        ]
-      })
-    )}
-    <!-- Slider -->
-    ${sliderElement}
-    <!-- Tick plot -->
-    ${resize((width) =>
-      Plot.plot({
-        height: 80,
-        x: {
-          label: "Mitjana de la renda per unitat de consum (2022)"
-        },
-        marks: [
-          Plot.tickX(emissionsData, {
-            x: "incomeValue",
-            strokeOpacity: 0.5,
-            stroke: (d) =>
-              d.incomeValue >= incomeRange[0] && d.incomeValue <= incomeRange[1]
-                ? getTickColor(d.class, emissionsIndicator)
-                : "#d9d9d9"
+    <button class="choropleth-collapse-toggle" aria-expanded="true">
+      <span class="choropleth-collapse-label">Filtres i llegenda</span>
+      <span class="choropleth-collapse-icon">▲</span>
+    </button>
+    <div class="choropleth-collapsible">
+      <div class="choropleth-selectors-wrapper" style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
+        <div class="choropleth-selector">
+          <p class="glassText" style="margin:0;">Indicador d'emissions</p>
+          ${emissionsIndicatorInput}
+        </div>
+        <div class="choropleth-selector">
+          <p class="glassText" style="margin:0;">Indicador sociodemogràfic</p>
+          ${incomeIndicatorInput}
+        </div>
+      </div>
+      <!-- Choropleth controls: legend, histogram, slider, tick plot -->
+      <div class="card choropleth-controls" style="flex:1; min-width:0; gap:8px;">
+        <!-- Legend -->
+        ${Plot.legend({
+          color: {
+            type: "threshold",
+            domain: emissionsIndicatorData[currentDatasetIndex].thresholds,
+            range: emissionsIndicatorData[currentDatasetIndex].range,
+            tickFormat: (d) => {
+              const value = emissionsIndicator.value === 'total_emissions' ? d / 1000000 : d;
+              return formatNumber(value);
+            },
+            label: `${emissionsIndicator.name} (${emissionsIndicator.units})`,
+          }
+        })}
+        <!-- Histogram -->
+        ${resize((width) =>
+          Plot.plot({
+            height: 150,
+            color: {
+              type: "categorical",
+              domain: Array.from({ length: 7 }, (_, i) => i.toString()),
+              range: emissionsIndicator.colors
+            },
+            y: {
+              grid: true,
+              label: `Nombre de ${valuesByLevel[currentDatasetIndex].censusLevel}`,
+            },
+            x: {
+              domain: Array.from({ length: 7 }, (_, i) => i.toString()),
+              tickFormat: null,
+              tickSize: 0,
+              label: null
+            },
+            marks: [
+              Plot.barY(
+                histogramData,
+                Plot.groupX({
+                  y: "count",
+                  title: (d) => {
+                    const bins = emissionsIndicatorData[currentDatasetIndex].bins;
+                    const bin = bins[parseInt(d[0]?.class)];
+                    if (!bin) return '';
+                    const scale = emissionsIndicator.value === 'total_emissions' ? 1 / 1000000 : 1;
+                    return `${formatNumber(bin.x0 * scale)} – ${formatNumber(bin.x1 * scale)} ${emissionsIndicator.units}\n${d.length} ${valuesByLevel[currentDatasetIndex].censusLevel}`;
+                  }
+                }, { x: "class", fill: "class", tip: true })
+              ),
+              Plot.ruleY([0])
+            ]
           })
-        ]
-      })
-    )}
-  </div>`;
+        )}
+        <!-- Slider -->
+        ${sliderElement}
+        <!-- Tick plot -->
+        ${resize((width) =>
+          Plot.plot({
+            height: 80,
+            x: {
+              label: "Mitjana de la renda per unitat de consum (2022)"
+            },
+            marks: [
+              Plot.tickX(emissionsData, {
+                x: "incomeValue",
+                strokeOpacity: 0.5,
+                stroke: (d) =>
+                  d.incomeValue >= incomeRange[0] && d.incomeValue <= incomeRange[1]
+                    ? getTickColor(d.class, emissionsIndicator)
+                    : "#d9d9d9"
+              })
+            ]
+          })
+        )}
+      </div>
+    </div>`;
+
+  const btn = el.querySelector('.choropleth-collapse-toggle');
+  const collapsible = el.querySelector('.choropleth-collapsible');
+
+  if (window._choroplethCollapsed) {
+    btn.setAttribute('aria-expanded', 'false');
+    btn.classList.add('is-collapsed');
+    collapsible.classList.add('is-collapsed');
+  }
+
+  btn.addEventListener('click', () => {
+    const expanded = btn.getAttribute('aria-expanded') === 'true';
+    window._choroplethCollapsed = expanded;
+    btn.setAttribute('aria-expanded', String(!expanded));
+    btn.classList.toggle('is-collapsed', expanded);
+    collapsible.classList.toggle('is-collapsed', expanded);
+  });
+  return el;
+})();
 
 const bodyContent = mapMode === 'cluster' ? clusterBody : choroplethBody;
 ```
@@ -958,7 +999,7 @@ const regionCard = () => {
               unitat: '20%'
             },
             layout: 'auto',
-            rows: window.innerWidth < 600 ? 2 : REGION_CARD_TABLE_ROWS
+            rows: window.innerWidth < 600 ? 4 : REGION_CARD_TABLE_ROWS
           })}
         </div>
       </div>
@@ -980,7 +1021,7 @@ const copyRef = async (ref) => {
 };
 
 const clusterModal = () => {
-  const { refs, vals, indicator } = clusterModalData;
+  const { refs, vals, coords, indicator } = clusterModalData;
   const fmt = d3.format(',.2f');
   const handleClose = () => {
     setShowClusterModal(false);
@@ -994,15 +1035,27 @@ const clusterModal = () => {
           <button class="region-card-close" onclick=${handleClose}>✕</button>
         </div>
         <ul class="cluster-modal-list">
-          ${refs.map((ref, i) => html`
-            <li>
-              <button class="cluster-modal-ref" onclick=${() => copyRef(ref)} title="Copia la referència cadastral">${ref}</button>
-              ${indicator.type === 'qual'
-                ? html`<span class="cluster-modal-qual qual-${vals[i]}">${QUAL_LABELS[vals[i] - 1] ?? '—'}</span>`
-                : html`<span class="cluster-modal-value">${vals[i] != null ? fmt(vals[i]) : '—'} <small>${indicator.units}</small></span>`
-              }
-            </li>
-          `)}
+          ${refs.map((ref, i) => {
+            const [lon, lat] = coords[i] ?? [];
+            const mapsUrl = lat != null
+              ? `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lon}`
+              : null;
+            return html`
+              <li>
+                <span class="cluster-modal-ref-group">
+                  ${mapsUrl
+                    ? html`<a class="cluster-modal-ref" href=${mapsUrl} target="_blank" rel="noopener" title="Obre a Google Maps Street View">${ref}</a>`
+                    : html`<span class="cluster-modal-ref">${ref}</span>`
+                  }
+                  <button class="cluster-modal-copy" onclick=${() => copyRef(ref)} title="Copia la referència cadastral">Copia</button>
+                </span>
+                ${indicator.type === 'qual'
+                  ? html`<span class="cluster-modal-qual qual-${vals[i]}">${QUAL_LABELS[vals[i] - 1] ?? '—'}</span>`
+                  : html`<span class="cluster-modal-value">${vals[i] != null ? fmt(vals[i]) : '—'} <small>${indicator.units}</small></span>`
+                }
+              </li>
+            `;
+          })}
         </ul>
       </div>
     </div>

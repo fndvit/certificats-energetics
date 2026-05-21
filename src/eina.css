@@ -87,9 +87,14 @@ main h2 {
   visibility: hidden; /* position:fixed escapes the sidebar's visibility:hidden */
 }
 /* Reveal only while the sidebar is actually open */
-#observablehq-sidebar-toggle:checked ~ #observablehq-sidebar #observablehq-sidebar-close,
-#observablehq-sidebar-toggle:indeterminate ~ #observablehq-sidebar #observablehq-sidebar-close {
+#observablehq-sidebar-toggle:checked ~ #observablehq-sidebar #observablehq-sidebar-close {
   visibility: visible;
+}
+/* On desktop, indeterminate also means the sidebar is open (shown inline) */
+@media (min-width: calc(912px + 6rem)) {
+  #observablehq-sidebar-toggle:indeterminate ~ #observablehq-sidebar #observablehq-sidebar-close {
+    visibility: visible;
+  }
 }
 
 #observablehq-center {
@@ -582,19 +587,45 @@ label {
   border-bottom: none;
 }
 
+.cluster-modal-ref-group {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
 .cluster-modal-ref {
   font-family: var(--mono, monospace);
   font-size: inherit;
   color: var(--glassText);
-  background: none;
-  border: none;
-  padding: 0;
   text-decoration: underline;
   text-underline-offset: 2px;
   cursor: pointer;
+  white-space: nowrap;
+}
+a.cluster-modal-ref {
+  text-decoration-color: var(--glassText);
 }
 .cluster-modal-ref:hover {
   text-decoration-thickness: 2px;
+}
+
+.cluster-modal-copy {
+  font-family: var(--mono, monospace);
+  font-size: 0.72rem;
+  color: var(--glassText);
+  opacity: 0.55;
+  background: none;
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  padding: 1px 5px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  line-height: 1.4;
+}
+.cluster-modal-copy:hover {
+  opacity: 1;
 }
 
 .copy-toast {
@@ -613,10 +644,20 @@ label {
 }
 
 @keyframes copy-toast-fade {
-  0%   { opacity: 0; translate: -50% 4px; }
-  15%  { opacity: 1; translate: -50% 0; }
-  70%  { opacity: 1; }
-  100% { opacity: 0; }
+  0% {
+    opacity: 0;
+    translate: -50% 4px;
+  }
+  15% {
+    opacity: 1;
+    translate: -50% 0;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
 }
 
 .cluster-modal-qual {
@@ -729,7 +770,6 @@ label {
   flex-wrap: wrap;
   gap: 2px 10px;
   font-size: 0.78rem;
-  text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
@@ -844,6 +884,11 @@ label {
     flex: 3;
     gap: 24px;
   }
+}
+
+/* Collapse toggle hidden on desktop; shown only on mobile via media query below */
+.choropleth-collapse-toggle {
+  display: none;
 }
 
 /* ========================================
@@ -971,7 +1016,42 @@ label {
   }
 
   /* Remove Observable default margins on Inputs.select inside choropleth selectors */
-  .choropleth-selector form[class^="inputs-"] {
+  .choropleth-selector form[class^='inputs-'] {
     margin: 0;
+  }
+
+  /* Collapsible toggle button */
+  .choropleth-collapse-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    background: none;
+    border: none;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    padding: 6px 0;
+    margin-top: 4px;
+    cursor: pointer;
+    font-size: 0.82rem;
+    color: var(--glassText);
+  }
+
+  .choropleth-collapse-icon {
+    font-size: 0.7rem;
+    transition: transform 0.25s ease;
+  }
+
+  .choropleth-collapse-toggle.is-collapsed .choropleth-collapse-icon {
+    transform: rotate(180deg);
+  }
+
+  .choropleth-collapsible {
+    overflow: hidden;
+    max-height: 2000px;
+    transition: max-height 0.3s ease;
+  }
+
+  .choropleth-collapsible.is-collapsed {
+    max-height: 0;
   }
 }

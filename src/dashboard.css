@@ -104,9 +104,13 @@ label {
   height: 2rem;
   visibility: hidden;
 }
-#observablehq-sidebar-toggle:checked ~ #observablehq-sidebar #observablehq-sidebar-close,
-#observablehq-sidebar-toggle:indeterminate ~ #observablehq-sidebar #observablehq-sidebar-close {
+#observablehq-sidebar-toggle:checked ~ #observablehq-sidebar #observablehq-sidebar-close {
   visibility: visible;
+}
+@media (min-width: calc(640px + 6rem + 272px)) {
+  #observablehq-sidebar-toggle:indeterminate ~ #observablehq-sidebar #observablehq-sidebar-close {
+    visibility: visible;
+  }
 }
 
 #observablehq-main,
