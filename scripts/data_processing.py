@@ -70,8 +70,8 @@ SAME_MEANING_VALUES = [
         ["Vivienda individual en bloque de viviendas"],
     ],
     ["motiu", "Lloguer", ["Alquiler"]],
-    ["motiu", "Sol·licitud d'ajuts", ["Solicitud de ayudas"]],
-    ["motiu", "Compravenda", ["Compra o Venda", "Compra o Venta"]],
+    ["motiu", "Sol·licitud d'ajuts", ["Solicitud de ayudas", "Sollicitut d'ajuts"]],
+    ["motiu", "Compravenda", ["Compra o Venda", "Compra o Venta", "Compraventa"]],
     [
         "motiu",
         "Certificació voluntària",
@@ -108,7 +108,15 @@ SAME_MEANING_VALUES = [
             "Informe de evaluación del Edificio (IEE)",
         ],
     ],
+    [
+        "motiu",
+        "Complement a informe d’avaluació de l’edifici (IEE) o a inspecció tècnica de l’edifici (ITE)",
+        [
+            "Complement a informe davaluació de l’edifici (IEE) o a inspecció tècnica de l’edifici (ITE)",
+        ],
+    ],
     ["normativa", "Abans de 1979", ["Antes de 1979"]],
+    ["normativa", "Altres", ["0", "anterior a la NBE-CT79"]],
 ]
 
 CATEGORICAL_COLUMNS_TO_ENCODE = ["eina", "motiu", "us_edifici", "normativa"]
