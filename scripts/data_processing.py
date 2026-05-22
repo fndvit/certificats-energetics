@@ -266,8 +266,12 @@ def cast_columns(df: pd.DataFrame) -> pd.DataFrame:
     logger.info("Casting columns to their correct types...")
     df = df.copy()
 
-    df["data_entrada"] = pd.to_datetime(df["data_entrada"], errors="coerce", dayfirst=True)
+    # format="mixed" is required for pandas 2.x: without it, pandas infers a
+    # single format from the first row and silently coerces all non-matching
+    # rows to NaT, producing ~800k null dates from the raw API data.
+    df["data_entrada"] = pd.to_datetime(df["data_entrada"], format="mixed", dayfirst=True, errors="coerce")
     df["data_entrada"] = df["data_entrada"].apply(pd.offsets.MonthBegin().rollback)
+    df = df.dropna(subset=["data_entrada"])
 
     # Drop the ~24 records that did not match any census section polygon
     df = df.dropna(subset=["MUNDISSEC"])
