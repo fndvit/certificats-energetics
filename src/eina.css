@@ -660,6 +660,21 @@ a.cluster-modal-ref {
   }
 }
 
+.income-range-value {
+  display: inline-block;
+  transform-origin: center bottom;
+}
+
+@keyframes income-value-flash {
+  0%   { transform: scale(1);    font-weight: inherit; }
+  25%  { transform: scale(1.08); font-weight: 700; }
+  100% { transform: scale(1);    font-weight: inherit; }
+}
+
+.income-value--flash {
+  animation: income-value-flash 0.4s ease-out forwards;
+}
+
 .cluster-modal-qual {
   display: inline-flex;
   align-items: center;

@@ -169,6 +169,9 @@ const slider = rangeSlider(sliderElement, {
 
       sliderElement.dispatchEvent(new Event('input', { bubbles: true }));
 
+      _rangeTracker.lowerShouldFlash = v[0] !== sliderState.currentRange[0];
+      _rangeTracker.upperShouldFlash = v[1] !== sliderState.currentRange[1];
+
       map.updateMapOpacity(sliderState.currentRange, v);
 
       sliderState.currentRange = v;
@@ -187,6 +190,8 @@ function formatNumber(value, suffix = '') {
   const formatted = Number.isInteger(value) ? value.toString() : value.toFixed(2);
   return suffix ? `${formatted} ${suffix}` : formatted;
 }
+
+const _rangeTracker = { lowerShouldFlash: false, upperShouldFlash: false };
 
 /**
  * Extracts just the numeric values from income indicator data for slider use.
@@ -1064,14 +1069,20 @@ const clusterModal = () => {
 ```
 
 ```js
-const informationPhrase = html`
+const informationPhrase = (() => {
+  const lowerFlash = _rangeTracker.lowerShouldFlash;
+  const upperFlash = _rangeTracker.upperShouldFlash;
+  _rangeTracker.lowerShouldFlash = false;
+  _rangeTracker.upperShouldFlash = false;
+  return html`
     <h3>
       <span>
       <strong>${emissionsIndicator.name}</strong>
-      dels edificis de ${valuesByLevel[currentDatasetIndex].censusLevel} amb <strong>${lowercaseFirstLetter(incomeIndicator.name)}</strong> entre ${formatNumber(incomeRange[0], '€')} i ${formatNumber(incomeRange[1], '€')}
+      dels edificis de ${valuesByLevel[currentDatasetIndex].censusLevel} amb <strong>${lowercaseFirstLetter(incomeIndicator.name)}</strong> entre <span class="income-range-value income-range-lower${lowerFlash ? ' income-value--flash' : ''}">${formatNumber(incomeRange[0], '€')}</span> i <span class="income-range-value income-range-upper${upperFlash ? ' income-value--flash' : ''}">${formatNumber(incomeRange[1], '€')}</span>
       </span>
     </h3>
   `;
+})();
 ```
 
 <!--    Functions & Helpers    -->
