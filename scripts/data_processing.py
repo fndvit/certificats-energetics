@@ -78,6 +78,7 @@ SAME_MEANING_VALUES = [
             "Sollicitut d'ajuts",
             "Sol·licitut d'ajuts",
             "Sol�licitut d'ajuts",
+            "Solï'½licitut d'ajuts",
         ],
     ],
     ["motiu", "Compravenda", ["Compra o Venda", "Compra o Venta", "Compraventa"]],
@@ -89,6 +90,8 @@ SAME_MEANING_VALUES = [
             "Certificació voluntaria",
             "Certificaci� volunt�ria",
             "Certificaci�n voluntaria",
+            "Certificaciï'½ voluntï'½ria",
+            "Certificaciï'½n voluntaria",
         ],
     ],
     [
@@ -301,10 +304,10 @@ def normalize_text_encoding(df: pd.DataFrame) -> pd.DataFrame:
     logger.info("Normalizing text encoding in string columns...")
     df = df.copy()
     replacements = {
-        "’": "'",          # RIGHT SINGLE QUOTATION MARK → apostrophe
-        "‘": "'",          # LEFT SINGLE QUOTATION MARK → apostrophe
-        "¿": "'",          # ¿ (corrupted apostrophe artifact) → apostrophe
-        "ï¿½": "�",  # ï¿½ (double-encoded REPLACEMENT CHAR) → U+FFFD
+        "ï¿½": "�",  # ï¿½ (double-encoded REPLACEMENT CHAR) → U+FFFD — must precede ¿ replacement
+        "’": "’",          # RIGHT SINGLE QUOTATION MARK → apostrophe
+        "’": "’",          # LEFT SINGLE QUOTATION MARK → apostrophe
+        "¿": "’",          # ¿ (corrupted apostrophe artifact) → apostrophe
     }
     for col in df.select_dtypes(include="object").columns:
         for bad, good in replacements.items():
