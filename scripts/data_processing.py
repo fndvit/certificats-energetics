@@ -96,8 +96,9 @@ SAME_MEANING_VALUES = [
     ],
     [
         "motiu",
-        "Altres (cap de les anteriores opcions)",
+        "Altres",
         [
+            "Altres (cap de les anteriores opcions)",
             "Otros (ninguna de las anteriores opciones)",
             "Nova construcció o gran rehabilitació",
             "Nova construcció",
@@ -136,6 +137,12 @@ SAME_MEANING_VALUES = [
 ]
 
 CATEGORICAL_COLUMNS_TO_ENCODE = ["eina", "motiu", "us_edifici", "normativa"]
+
+COLLAPSE_TO_TOP_N = 6
+COLLAPSE_ALTRES_VALUES = {
+    "motiu": "Altres",
+    "normativa": "Altres",
+}
 
 QUALIFICATIONS_NUMERICAL_EQUIVALENCE = {
     "A": 1,
@@ -328,6 +335,23 @@ def group_same_meaning_values(
     df = df.copy()
     for column, canonical, variants in same_meaning_values:
         df[column] = df[column].replace(dict.fromkeys(variants, canonical))
+    return df
+
+
+def collapse_to_top_n(
+    df: pd.DataFrame, column_altres: dict, n: int = 6
+) -> pd.DataFrame:
+    """Remap rare categories to 'Altres' so each column has at most n distinct values.
+
+    Categories outside the top-n by frequency are reassigned to the canonical
+    'Altres' string for that column before label encoding.
+    """
+    df = df.copy()
+    for col, altres_value in column_altres.items():
+        if col not in df.columns:
+            continue
+        top_n = df[col].value_counts().nlargest(n).index
+        df[col] = df[col].where(df[col].isin(top_n), other=altres_value)
     return df
 
 
@@ -650,6 +674,7 @@ def process_certificates_dataset(
         .pipe(regenerate_codes, municipi_dict, PROVINCIES_DICT)
         .pipe(normalize_text_encoding)
         .pipe(group_same_meaning_values, SAME_MEANING_VALUES)
+        .pipe(collapse_to_top_n, COLLAPSE_ALTRES_VALUES, COLLAPSE_TO_TOP_N)
         .pipe(remove_outliers)
     )
 
