@@ -286,26 +286,34 @@ export class ChoroplethLayer {
   }
 
   /**
-   * Flies to a clicked feature, positioning its center with a configurable offset.
-   * @param {Object} feature - The clicked Mapbox feature with geometry
+   * Flies to a clicked feature, centering it in the available canvas area.
+   * Uses querySourceFeatures to collect all tile fragments for the feature so the
+   * bounding box is stable regardless of where inside the polygon the user clicked.
+   * @param {Object} feature - The clicked Mapbox feature (needs .id)
    * @param {number} level - Geographic level index (0=census, 1=muni, 2=regions)
    */
   flyToFeature(feature, level) {
-    if (!feature || !feature.geometry) return;
+    if (!feature || feature.id == null) return;
+
+    const source = sources[level];
+    const fragments = this.map.querySourceFeatures(source.id, {
+      sourceLayer: sourceLayerIds[level],
+      filter: ['==', ['get', source.promoteId], feature.id]
+    });
+
+    if (!fragments.length) return;
 
     const bounds = new mapboxgl.LngLatBounds();
+    fragments.forEach((f) => {
+      if (!f.geometry) return;
+      if (f.geometry.type === 'Polygon') {
+        f.geometry.coordinates[0].forEach((c) => bounds.extend(c));
+      } else if (f.geometry.type === 'MultiPolygon') {
+        f.geometry.coordinates.forEach((poly) => poly[0].forEach((c) => bounds.extend(c)));
+      }
+    });
 
-    if (feature.geometry.type === 'Polygon') {
-      feature.geometry.coordinates[0].forEach((coord) => {
-        bounds.extend(coord);
-      });
-    } else if (feature.geometry.type === 'MultiPolygon') {
-      feature.geometry.coordinates.forEach((polygon) => {
-        polygon[0].forEach((coord) => {
-          bounds.extend(coord);
-        });
-      });
-    }
+    if (bounds.isEmpty()) return;
 
     const maxZoom = Math.min(
       ChoroplethLayer.SourceLayerZooms[level][1] - 0.1,
@@ -645,11 +653,27 @@ export class ChoroplethLayer {
   }
 
   getClickOffset() {
+    const BASE = 40;
     const w = window.innerWidth;
     const h = window.innerHeight;
-    if (w >= ChoroplethLayer.BREAKPOINTS.lg) return [0, 0];
-    if (w >= ChoroplethLayer.BREAKPOINTS.sm) return [w / 4, 0];
-    return [0, h / 4];
+
+    if (w < ChoroplethLayer.BREAKPOINTS.sm) {
+      // Mobile: cards stack at top. Use last .card.glass — the region card when
+      // already in DOM from a prior click, or the control card on first click.
+      const cards = document.querySelectorAll('.card.glass');
+      const lastCard = cards[cards.length - 1];
+      const cardBottom = lastCard ? lastCard.getBoundingClientRect().bottom : 0;
+      // Centre the feature in the area from cardBottom to vh−BASE.
+      // Offset from map-canvas-centre: (cardBottom + vh−BASE)/2 − vh/2 = (cardBottom − BASE)/2
+      return [0, (cardBottom - BASE) / 2];
+    } else {
+      // Desktop: card panel on left. Both cards share the same right edge.
+      const topCard = document.querySelector('.card.glass');
+      const cardRight = topCard ? topCard.getBoundingClientRect().right : 0;
+      // Centre the feature in the area from cardRight to vw−BASE.
+      // Offset from map-canvas-centre: (cardRight + vw−BASE)/2 − vw/2 = (cardRight − BASE)/2
+      return [(cardRight - BASE) / 2, 0];
+    }
   }
 
   isBetweenRange(val, range) {
