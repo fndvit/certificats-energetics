@@ -228,7 +228,10 @@ function updateSliderBounds(newMin, newMax, indicatorValues) {
   slider.min(newMinExtended - 1);
   slider.max(newMaxExtended + 1);
   slider.value([roundedLowHandle, roundedHighHandle]);
-  
+
+  // Keep currentRange in step with the handles, so the next user drag only
+  // flashes the number that actually changed.
+  sliderState.currentRange = [roundedLowHandle, roundedHighHandle];
   setIncomeRange([roundedLowHandle, roundedHighHandle]);
 }
 
@@ -593,6 +596,10 @@ analysisZoneEl.className = 'cluster-analysis-zone hidden';
 ```
 
 ```js
+// This cell re-runs when mapLoaded flips, so tear down its listeners first.
+const _ac = new AbortController();
+invalidation.then(() => _ac.abort());
+
 function updateAnalysisZone() {
   const topCard = document.querySelector('.card.glass');
   if (!topCard || !mapLoaded) return;
@@ -609,9 +616,9 @@ function updateAnalysisZone() {
   map.setClusterAnalysisRect({ top, left, right, bottom });
 }
 
-window.addEventListener('resize', updateAnalysisZone);
+window.addEventListener('resize', updateAnalysisZone, { signal: _ac.signal });
 document.getElementById('observablehq-sidebar-toggle')
-  ?.addEventListener('change', () => requestAnimationFrame(updateAnalysisZone));
+  ?.addEventListener('change', () => requestAnimationFrame(updateAnalysisZone), { signal: _ac.signal });
 
 const _sidebarCloseBtn = document.getElementById('observablehq-sidebar-close');
 function _syncCloseBtn() {
@@ -622,8 +629,8 @@ function _syncCloseBtn() {
     toggle?.checked || (toggle?.indeterminate && isDesktop) ? 'visible' : 'hidden';
 }
 document.getElementById('observablehq-sidebar-toggle')
-  ?.addEventListener('change', _syncCloseBtn);
-window.addEventListener('resize', _syncCloseBtn);
+  ?.addEventListener('change', _syncCloseBtn, { signal: _ac.signal });
+window.addEventListener('resize', _syncCloseBtn, { signal: _ac.signal });
 requestAnimationFrame(_syncCloseBtn);
 ```
 
@@ -1041,7 +1048,7 @@ const clusterModal = () => {
         </div>
         <ul class="cluster-modal-list">
           ${refs.map((ref, i) => {
-            const [lon, lat] = coords[i] ?? [];
+            const [lon, lat] = coords?.[i] ?? [];
             const mapsUrl = lat != null
               ? `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lon}`
               : null;

@@ -778,6 +778,9 @@ function truncateLabel(label, maxChars) {
 
 ```js
 {
+  const _ac = new AbortController();
+  invalidation.then(() => _ac.abort());
+
   const _sidebarCloseBtn = document.getElementById('observablehq-sidebar-close');
   function _syncCloseBtn() {
     if (!_sidebarCloseBtn) return;
@@ -787,8 +790,8 @@ function truncateLabel(label, maxChars) {
       toggle?.checked || (toggle?.indeterminate && isDesktop) ? 'visible' : 'hidden';
   }
   document.getElementById('observablehq-sidebar-toggle')
-    ?.addEventListener('change', _syncCloseBtn);
-  window.addEventListener('resize', _syncCloseBtn);
+    ?.addEventListener('change', _syncCloseBtn, { signal: _ac.signal });
+  window.addEventListener('resize', _syncCloseBtn, { signal: _ac.signal });
   requestAnimationFrame(_syncCloseBtn);
 }
 ```
