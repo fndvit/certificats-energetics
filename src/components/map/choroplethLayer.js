@@ -1,6 +1,9 @@
 import mapboxgl from 'npm:mapbox-gl';
 import { sources, layers, sourceLayerIds } from './meta.js';
 
+/** Restricts a value to the [min, max] interval. */
+const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+
 class DataManager {
   static DatasetKeys = [
     { dfId: 'MUNDISSEC', tilesetId: 'MUNDISSEC' },
@@ -40,7 +43,7 @@ export class ChoroplethLayer {
     [0, 8.5]
   ];
 
-  static BREAKPOINTS = { sm: 768, md: 1024, lg: 1820 };
+  static BREAKPOINTS = { sm: 768, cards: 800, md: 1024, lg: 1820 };
 
   noDataColor = '#d4d4d4';
 
@@ -286,26 +289,44 @@ export class ChoroplethLayer {
   }
 
   /**
-   * Flies to a clicked feature, positioning its center with a configurable offset.
-   * @param {Object} feature - The clicked Mapbox feature with geometry
+   * Flies to a clicked feature, centering it in the available canvas area.
+   * Uses querySourceFeatures to union the loaded tile fragments of the feature so
+   * the bounding box is stable regardless of where inside the polygon the user
+   * clicked; falls back to the clicked feature's own geometry when the source
+   * cache returns nothing.
+   * @param {Object} feature - The clicked Mapbox feature (needs .id)
    * @param {number} level - Geographic level index (0=census, 1=muni, 2=regions)
    */
   flyToFeature(feature, level) {
-    if (!feature || !feature.geometry) return;
+    if (!feature || feature.id == null) return;
+
+    const source = sources[level];
+    const fragments = this.map.querySourceFeatures(source.id, {
+      sourceLayer: sourceLayerIds[level],
+      filter: ['==', ['get', source.promoteId], feature.id]
+    });
+
+    // querySourceFeatures only sees currently-renderable tiles, so it can come
+    // back empty (tiles evicted, cache not ready). Fall back to the clicked
+    // feature's geometry so the map always moves.
+    const geoms = fragments.length
+      ? fragments.map((f) => f.geometry).filter(Boolean)
+      : feature.geometry
+        ? [feature.geometry]
+        : [];
+
+    if (!geoms.length) return;
 
     const bounds = new mapboxgl.LngLatBounds();
+    geoms.forEach((g) => {
+      if (g.type === 'Polygon') {
+        g.coordinates[0].forEach((c) => bounds.extend(c));
+      } else if (g.type === 'MultiPolygon') {
+        g.coordinates.forEach((poly) => poly[0].forEach((c) => bounds.extend(c)));
+      }
+    });
 
-    if (feature.geometry.type === 'Polygon') {
-      feature.geometry.coordinates[0].forEach((coord) => {
-        bounds.extend(coord);
-      });
-    } else if (feature.geometry.type === 'MultiPolygon') {
-      feature.geometry.coordinates.forEach((polygon) => {
-        polygon[0].forEach((coord) => {
-          bounds.extend(coord);
-        });
-      });
-    }
+    if (bounds.isEmpty()) return;
 
     const maxZoom = Math.min(
       ChoroplethLayer.SourceLayerZooms[level][1] - 0.1,
@@ -645,11 +666,34 @@ export class ChoroplethLayer {
   }
 
   getClickOffset() {
+    const BASE = 40;
+    const MAX_FRACTION = 0.6; // Never give the cards more than 60% of the axis
     const w = window.innerWidth;
     const h = window.innerHeight;
-    if (w >= ChoroplethLayer.BREAKPOINTS.lg) return [0, 0];
-    if (w >= ChoroplethLayer.BREAKPOINTS.sm) return [w / 4, 0];
-    return [0, h / 4];
+
+    // Cards only collapse to a narrow left panel at 800px (see eina.css), so the
+    // stacked-cards branch has to use the same breakpoint the CSS does.
+    if (w < ChoroplethLayer.BREAKPOINTS.cards) {
+      // Mobile: cards stack at top. Use last .card.glass — the region card when
+      // already in DOM from a prior click, or the control card on first click.
+      const cards = document.querySelectorAll('.card.glass');
+      const lastCard = cards[cards.length - 1];
+      if (!lastCard) return [0, 0];
+      // The cards are in normal flow while the map is fixed, so the measured edge
+      // can fall outside the viewport (tall card, or a scrolled page). Clamp it.
+      const cardBottom = clamp(lastCard.getBoundingClientRect().bottom, 0, h * MAX_FRACTION);
+      // Centre the feature in the area from cardBottom to vh−BASE.
+      // Offset from map-canvas-centre: (cardBottom + vh−BASE)/2 − vh/2 = (cardBottom − BASE)/2
+      return [0, (cardBottom - BASE) / 2];
+    } else {
+      // Desktop: card panel on left. Both cards share the same right edge.
+      const topCard = document.querySelector('.card.glass');
+      if (!topCard) return [0, 0];
+      const cardRight = clamp(topCard.getBoundingClientRect().right, 0, w * MAX_FRACTION);
+      // Centre the feature in the area from cardRight to vw−BASE.
+      // Offset from map-canvas-centre: (cardRight + vw−BASE)/2 − vw/2 = (cardRight − BASE)/2
+      return [(cardRight - BASE) / 2, 0];
+    }
   }
 
   isBetweenRange(val, range) {

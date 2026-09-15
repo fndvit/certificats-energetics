@@ -272,9 +272,10 @@ export class ClusterLayer {
             if (err) return;
             const refs = leaves.map((f) => f.properties.referencia_cadastral);
             const vals = leaves.map((f) => f.properties[this.currentIndicator.key]);
+            const coords = leaves.map((f) => f.geometry.coordinates);
             document.dispatchEvent(
               new CustomEvent('cluster-click', {
-                detail: { refs, vals, indicator: this.currentIndicator },
+                detail: { refs, vals, coords, indicator: this.currentIndicator },
                 bubbles: true
               })
             );
@@ -288,11 +289,13 @@ export class ClusterLayer {
     // Click: show modal for individual point
     this.map.on('click', 'unclustered-over', (e) => {
       const props = e.features[0].properties;
+      const coords = [e.features[0].geometry.coordinates];
       document.dispatchEvent(
         new CustomEvent('cluster-click', {
           detail: {
             refs: [props.referencia_cadastral],
             vals: [props[this.currentIndicator.key]],
+            coords,
             indicator: this.currentIndicator
           },
           bubbles: true
