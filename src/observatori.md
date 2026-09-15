@@ -383,7 +383,7 @@ const threshold_poblacio = [...grouped_poblacio].filter(
               },
               emissions_totals: {
                 value: "sum_emissions",
-                label: "Emissions totals (Kg CO₂/Any)"
+                label: "Emissions totals (T CO₂/Any)"
               },
               zona: {
                 value: "zona_climatica",
@@ -407,7 +407,7 @@ const threshold_poblacio = [...grouped_poblacio].filter(
                 fill: false,
                 municipi: (d) => municipisDict[d]?.municipi ?? 'Unknown',
                 poblacio: (d) => municipiLookup.get(d)?.poblacio ?? 0,
-                emissions_totals: true,
+                emissions_totals: (d) => `${(d / 1000).toLocaleString('ca-ES', { maximumFractionDigits: 1 })}`,
                 emissions_mitjanes: true
               }
             },
@@ -717,7 +717,15 @@ const $mainFilter = vg.Selection.intersect({
               x: vg.bin("data_entrada", {
                 interval: 'month',
               }),
-              tip: true,
+              tip: {
+                format: {
+                  x: (d) => {
+                    const date = d instanceof Date ? d : new Date(d);
+                    return `${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
+                  },
+                  x2: false,
+                }
+              },
               y: vg.count(),
               fill: "#6e6e6e",
               fillOpacity: 1,
@@ -725,7 +733,7 @@ const $mainFilter = vg.Selection.intersect({
           ),
           vg.intervalX({as: $date}),
           vg.xTickSize(0),
-          vg.xLabel(null),
+          vg.xLabel("Data"),
           vg.yTickSize(0),
           vg.yLabel('Nombre de certificats')
         )
