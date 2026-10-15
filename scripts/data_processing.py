@@ -132,8 +132,12 @@ SAME_MEANING_VALUES = [
             "Complemento a informe de avaluación del edificio (IEE) o a inspección técnica del edificio (ITE)",
         ],
     ],
-    ["normativa", "Abans de 1979", ["Antes de 1979"]],
-    ["normativa", "Altres", ["0", "anterior a la NBE-CT79", "Anterior a la NBE-CT-79"]],
+    [
+        "normativa",
+        "Abans de 1979",
+        ["Antes de 1979", "anterior a la NBE-CT79", "Anterior a la NBE-CT-79"],
+    ],
+    ["normativa", "Altres", ["0"]],
 ]
 
 CATEGORICAL_COLUMNS_TO_ENCODE = ["eina", "motiu", "us_edifici", "normativa"]
@@ -276,10 +280,11 @@ def cast_columns(df: pd.DataFrame) -> pd.DataFrame:
     logger.info("Casting columns to their correct types...")
     df = df.copy()
 
-    # format="mixed" is required for pandas 2.x: without it, pandas infers a
-    # single format from the first row and silently coerces all non-matching
-    # rows to NaT, producing ~800k null dates from the raw API data.
-    df["data_entrada"] = pd.to_datetime(df["data_entrada"], format="mixed", dayfirst=True, errors="coerce")
+    # The API returns ISO timestamps with varying precision (with or without
+    # time / milliseconds). format="ISO8601" accepts all of them; inferring a
+    # single format from the first row would coerce the rest to NaT, and
+    # dayfirst=True would swap day and month whenever the day is <= 12.
+    df["data_entrada"] = pd.to_datetime(df["data_entrada"], format="ISO8601", errors="coerce")
     df["data_entrada"] = df["data_entrada"].apply(pd.offsets.MonthBegin().rollback)
     df = df.dropna(subset=["data_entrada"])
 
@@ -302,23 +307,30 @@ def cast_columns(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def normalize_text_encoding(df: pd.DataFrame) -> pd.DataFrame:
-    """Normalize encoding artifacts in string columns before label grouping.
+    """Normalize encoding artifacts in categorical columns before label grouping.
 
-    Converts typographic apostrophes (U+2018/U+2019), the corrupted-apostrophe
-    artifact (¿), and double-encoded replacement characters (ï¿½ → U+FFFD) so
-    that SAME_MEANING_VALUES matching works regardless of source encoding.
+    Converts typographic apostrophes (U+2018/U+2019) and the corrupted-apostrophe
+    artifact (¿) to the ASCII apostrophe used in SAME_MEANING_VALUES, and
+    double-encoded replacement characters (ï¿½) to U+FFFD.
+
+    Only CATEGORICAL_COLUMNS_TO_ENCODE are touched: other columns are never
+    grouped, and may hold non-string values that ``.str`` would turn into NaN.
     """
-    logger.info("Normalizing text encoding in string columns...")
+    logger.info("Normalizing text encoding in categorical columns...")
     df = df.copy()
     replacements = {
-        "ï¿½": "�",  # ï¿½ (double-encoded REPLACEMENT CHAR) → U+FFFD — must precede ¿ replacement
-        "’": "’",          # RIGHT SINGLE QUOTATION MARK → apostrophe
-        "’": "’",          # LEFT SINGLE QUOTATION MARK → apostrophe
-        "¿": "’",          # ¿ (corrupted apostrophe artifact) → apostrophe
+        "ï¿½": "�",  # double-encoded REPLACEMENT CHAR — must precede ¿ replacement
+        "’": "'",   # RIGHT SINGLE QUOTATION MARK → apostrophe
+        "‘": "'",   # LEFT SINGLE QUOTATION MARK → apostrophe
+        "¿": "'",        # corrupted apostrophe artifact → apostrophe
     }
-    for col in df.select_dtypes(include="object").columns:
+    for col in CATEGORICAL_COLUMNS_TO_ENCODE:
+        if col not in df.columns:
+            continue
+        values = df[col].astype("string")
         for bad, good in replacements.items():
-            df[col] = df[col].str.replace(bad, good, regex=False)
+            values = values.str.replace(bad, good, regex=False)
+        df[col] = values.astype(object).where(values.notna(), None)
     return df
 
 
@@ -343,15 +355,20 @@ def collapse_to_top_n(
 ) -> pd.DataFrame:
     """Remap rare categories to 'Altres' so each column has at most n distinct values.
 
-    Categories outside the top-n by frequency are reassigned to the canonical
-    'Altres' string for that column before label encoding.
+    If a column has more than n distinct non-null values, the n-1 most frequent
+    ones (other than 'Altres') are kept and the rest become the canonical
+    'Altres' string, leaving room for 'Altres' itself. Missing values are left
+    as NaN so ``encode_categorical_columns`` labels them 'No definit'.
     """
     df = df.copy()
     for col, altres_value in column_altres.items():
         if col not in df.columns:
             continue
-        top_n = df[col].value_counts().nlargest(n).index
-        df[col] = df[col].where(df[col].isin(top_n), other=altres_value)
+        values = df[col].dropna()
+        if values.nunique() <= n:
+            continue
+        keep = values[values != altres_value].value_counts().nlargest(n - 1).index
+        df[col] = df[col].where(df[col].isin(keep) | df[col].isna(), other=altres_value)
     return df
 
 
