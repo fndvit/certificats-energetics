@@ -2,8 +2,10 @@ import io
 import json
 import logging
 import os
+import re
 import sys
 import time
+import unicodedata
 import zipfile
 
 import geopandas as gpd
@@ -22,6 +24,8 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 # Each entry: [column_name, canonical_value, [list of equivalent raw values]]
+# Values are matched by _category_key, so variants that only differ in case,
+# accents, punctuation, apostrophes, "m2"/"m²" or whitespace need not be listed.
 SAME_MEANING_VALUES = [
     ["us_edifici", "Terciari", ["Terciario"]],
     ["us_edifici", "Bloc d'habitatges", ["Bloque de viviendas"]],
@@ -30,11 +34,7 @@ SAME_MEANING_VALUES = [
         "Bloc d'habitatges plurifamiliar",
         ["Bloque de viviendas plurifamiliar"],
     ],
-    [
-        "us_edifici",
-        "Habitatge unifamiliar",
-        ["Vivienda unifamiliar", "Habitatge Unifamiliar"],
-    ],
+    ["us_edifici", "Habitatge unifamiliar", ["Vivienda unifamiliar"]],
     [
         "us_edifici",
         "Habitatge individual en bloc d'habitatges",
@@ -44,13 +44,7 @@ SAME_MEANING_VALUES = [
     [
         "motiu",
         "Sol·licitud d'ajuts",
-        [
-            "Solicitud de ayudas",
-            "Sollicitut d'ajuts",
-            "Sol·licitut d'ajuts",
-            "Sol�licitut d'ajuts",
-            "Solï'½licitut d'ajuts",
-        ],
+        ["Solicitud de ayudas", "Sol·licitut d'ajuts"],
     ],
     ["motiu", "Compravenda", ["Compra o Venda", "Compra o Venta", "Compraventa"]],
     [
@@ -58,11 +52,8 @@ SAME_MEANING_VALUES = [
         "Certificació voluntària",
         [
             "Certificación voluntaria",
-            "Certificació voluntaria",
             "Certificaci� volunt�ria",
             "Certificaci�n voluntaria",
-            "Certificaciï'½ voluntï'½ria",
-            "Certificaciï'½n voluntaria",
         ],
     ],
     [
@@ -74,40 +65,30 @@ SAME_MEANING_VALUES = [
             "Nova construcció o gran rehabilitació",
             "Nova construcció",
             "Nueva construcción",
-            "Nueva construcción  o gran rehabilitación",
+            "Nueva construcción o gran rehabilitación",
             "Nova construcció - ampliació amb entitat jurídica independent",
             "Nueva construcción - ampliación con entidad jurídica independiente",
             "Renovació (en cas de caducitat de l'antic certificat energètic)",
             "Renovación (en caso de caducidad del antiguo certificado energético)",
             "Edifici existent de l'administració pública",
-            "Edifici existent de l¿administració pública",
             "Edificio existente de la administración pública",
             "Edificis o parts d'edificis on es realitzin reformes o ampliacions",
-            "Edificis o parts d¿edificis on es realitzin reformes o ampliacions",
             "Edificios o partes de edificis en los que se realicen reformas o ampliaciones",
+            "Edificios o partes de edificios donde se realizan reformas o ampliaciones",
             "Complement a informe d'avaluació de l'edifici (IEE) o a inspecció tècnica de l'edifici (ITE)",
-            "Complement a informe d¿avaluació de l¿edifici (IEE) o a inspecció tècnica de l¿edifici (ITE)",
             "Complemento al informe de evaluación del edificio (IEE) o a inspección técnica del edificio (ITE)",
-            "Complement a informe davaluació de l'edifici (IEE) o a inspecció tècnica de l'edifici (ITE)",
-            "Edificis o parts d'edificis (+500 m2) amb ús administratiu, sanitari, comercial, docent, restauració",
-            "Edificis o parts d¿edificis (+500 m2) amb ús administratiu, sanitari, comercial, docent, restauració",
-            "Edificios o partes de edificios (+500 m2) de uso administrativo, sanitario, comercial, docente, restauración...",
-            "Edificios o partes de edificios (+500 m2) de uso administrativo, sanitario, comercial, docente, restauración",
-            "Edificis o parts d'edificis (+500 m2) amb ús administratiu, sanitari, comercial, docent, restauració",
+            "Complemento a informe de avaluación del edificio (IEE) o a inspección técnica del edificio (ITE)",
+            "Edificis o parts d'edificis (+500 m²) amb ús administratiu, sanitari, comercial, docent, restauració",
+            "Edificios o partes de edificios (+500 m²) de uso administrativo, sanitario, comercial, docente, restauración",
+            "Edificios o partes de edificios (+500 m²) con uso administrativo, sanitario, comercial, docente, restauración",
             "Informe d'avaluació de l'Edifici (IEE)",
             "Informe de evaluación del Edificio (IEE)",
-            "Edifici existent de l'Administració pública",
-            "Edificio existente de la Administración pública",
-            "Edificios o partes de edificios (+500 m²) con uso administrativo, sanitario, comercial, docente, restauración",
-            "Edificios o partes de edificios donde se realizan reformas o ampliaciones",
-            "Edificis o parts d'edificis (+500 m²) amb ús administratiu, sanitari, comercial, docent, restauració",
-            "Complemento a informe de avaluación del edificio (IEE) o a inspección técnica del edificio (ITE)",
         ],
     ],
     [
         "normativa",
         "Abans de 1979",
-        ["Antes de 1979", "anterior a la NBE-CT79", "Anterior a la NBE-CT-79"],
+        ["Antes de 1979", "Anterior a la NBE-CT-79"],
     ],
     ["normativa", "Altres", ["0"]],
 ]
@@ -186,8 +167,22 @@ def build_municipi_dict() -> dict:
 
 
 def delete_nas(df: pd.DataFrame) -> pd.DataFrame:
-    """Drop rows that lack GPS coordinates or an entry date."""
-    return df.dropna(subset=["utm_x", "utm_y", "data_entrada"])
+    """Drop rows that lack GPS coordinates or an entry date.
+
+    Rows without ``data_entrada`` cannot be placed on the observatory's
+    timeline, so they are discarded rather than kept with an unknown date.
+    The number of rows dropped for each reason is logged.
+    """
+    no_coords = df["utm_x"].isna() | df["utm_y"].isna()
+    no_date = df["data_entrada"].isna()
+    logger.info(
+        "Dropping %d rows without coordinates and %d more without data_entrada "
+        "(of %d)",
+        no_coords.sum(),
+        (no_date & ~no_coords).sum(),
+        len(df),
+    )
+    return df[~(no_coords | no_date)]
 
 
 def generate_mundissec(df: pd.DataFrame) -> pd.DataFrame:
@@ -243,7 +238,8 @@ def cast_columns(df: pd.DataFrame) -> pd.DataFrame:
     """Cast columns to their correct types and apply domain-level data rules.
 
     Specific rules applied:
-    - ``data_entrada`` is parsed as a date and snapped to month-start.
+    - ``data_entrada`` is parsed as a date and snapped to month-start; rows
+      whose date cannot be parsed are dropped.
     - Rows with a null MUNDISSEC (no spatial match) are dropped.
     - Energy/emissions qualifications are mapped to an ordinal integer scale.
     - ``cost_energia`` values of 0 when ``energia_primaria`` > 0 are treated as
@@ -257,8 +253,10 @@ def cast_columns(df: pd.DataFrame) -> pd.DataFrame:
     # single format from the first row would coerce the rest to NaT, and
     # dayfirst=True would swap day and month whenever the day is <= 12.
     df["data_entrada"] = pd.to_datetime(df["data_entrada"], format="ISO8601", errors="coerce")
-    df["data_entrada"] = df["data_entrada"].apply(pd.offsets.MonthBegin().rollback)
-    df = df.dropna(subset=["data_entrada"])
+    unparseable = df["data_entrada"].isna()
+    logger.info("Dropping %d rows with an unparseable data_entrada", unparseable.sum())
+    df = df[~unparseable]
+    df["data_entrada"] = df["data_entrada"].dt.to_period("M").dt.to_timestamp()
 
     # Drop the ~24 records that did not match any census section polygon
     df = df.dropna(subset=["MUNDISSEC"])
@@ -306,6 +304,19 @@ def normalize_text_encoding(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def _category_key(value: str) -> str:
+    """Return a comparison key that ignores case, accents and punctuation.
+
+    "m²" is read as "m2", and anything other than ASCII letters, digits and
+    spaces (apostrophes, "·", "�", "...", hyphens, brackets) is dropped, so
+    e.g. "Sol·licitut", "Sol�licitut" and "Sollicitut" share a key.
+    """
+    value = unicodedata.normalize("NFKD", value.replace("²", "2"))
+    value = "".join(c for c in value if not unicodedata.combining(c)).lower()
+    value = re.sub(r"[^0-9a-z ]+", "", value)
+    return " ".join(value.split())
+
+
 def group_same_meaning_values(
     df: pd.DataFrame, same_meaning_values: list
 ) -> pd.DataFrame:
@@ -313,12 +324,29 @@ def group_same_meaning_values(
 
     Works on a copy of the DataFrame to avoid mutating the caller's object.
     ``same_meaning_values`` is a list of ``[column, canonical, [variants]]``
-    triples.
+    triples. Raw values are matched against the canonical value and its
+    variants by ``_category_key``.
     """
     logger.info("Grouping equivalent labels...")
     df = df.copy()
+    lookups: dict[str, dict[str, str]] = {}
     for column, canonical, variants in same_meaning_values:
-        df[column] = df[column].replace(dict.fromkeys(variants, canonical))
+        lookup = lookups.setdefault(column, {})
+        for value in [canonical, *variants]:
+            key = _category_key(value)
+            if lookup.get(key, canonical) != canonical:
+                raise ValueError(
+                    f"{column}: {value!r} matches both {lookup[key]!r} and {canonical!r}"
+                )
+            lookup[key] = canonical
+    for column, lookup in lookups.items():
+        raw_values = df[column].dropna().unique()
+        mapping = {
+            raw: lookup[_category_key(raw)]
+            for raw in raw_values
+            if _category_key(raw) in lookup and lookup[_category_key(raw)] != raw
+        }
+        df[column] = df[column].replace(mapping)
     return df
 
 

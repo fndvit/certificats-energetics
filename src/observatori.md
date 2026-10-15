@@ -110,12 +110,13 @@ SELECT
   COUNT(*) AS n_certificats,
   AVG(emissions_de_co2) AS avg_emissions,
   AVG(qual_emissions) AS avg_qual_emissions,
-  SUM(emissions_de_co2) AS sum_emissions,
+  SUM(emissions_de_co2 * metres_cadastre) AS sum_emissions,
   municipis.poblacio
 FROM certificats
 INNER JOIN municipis
  ON certificats.codi_poblacio = municipis.codi
 WHERE emissions_de_co2 IS NOT NULL
+  AND metres_cadastre > 0
   AND zona_climatica IS NOT NULL
   AND codi_poblacio IS NOT NULL
 GROUP BY zona_climatica, codi_poblacio, municipis.poblacio
@@ -141,7 +142,7 @@ const avg_climate_zone = Array.from(
     .reduce((acc, curr) => {
       const zona = curr.zona_climatica;
       const item = acc.get(zona) || { totalSum: 0, totalCount: 0 };
-      item.totalSum += curr.sum_emissions || 0;
+      item.totalSum += (curr.avg_emissions || 0) * (curr.n_certificats || 0);
       item.totalCount += curr.n_certificats || 0;
       acc.set(zona, item);
       return acc;
@@ -366,7 +367,7 @@ const threshold_poblacio = [...grouped_poblacio].filter(
       },
       y: { grid: true , label: null, tickFormat: null, ticks: 0 },
       fy: { label: null, ticks: 0, tickFormat: null },
-      x: { grid: true, domain: beeswarmXDomain, label: "Emissions mitjanes (Kg CO₂/Any)"},
+      x: { grid: true, domain: beeswarmXDomain, label: "Emissions mitjanes (kg CO₂/m²·any)"},
       r: { range: [1, 20] },
       marks: [
         Plot.dot(
@@ -379,7 +380,7 @@ const threshold_poblacio = [...grouped_poblacio].filter(
             channels: {
               emissions_mitjanes: {
                 value: "avg_emissions",
-                label: "Emissions mitjanes (Kg CO₂/Any)"
+                label: "Emissions mitjanes (kg CO₂/m²·any)"
               },
               emissions_totals: {
                 value: "sum_emissions",
@@ -721,7 +722,7 @@ const $mainFilter = vg.Selection.intersect({
                 format: {
                   x: (d) => {
                     const date = d instanceof Date ? d : new Date(d);
-                    return `${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
+                    return `${String(date.getUTCMonth() + 1).padStart(2, '0')}/${date.getUTCFullYear()}`;
                   },
                   x2: false,
                 }
