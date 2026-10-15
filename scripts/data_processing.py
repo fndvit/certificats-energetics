@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import sys
+import time
 import zipfile
 
 import geopandas as gpd
@@ -11,44 +12,14 @@ import requests
 from shapely.geometry import Point
 from sklearn.preprocessing import LabelEncoder
 
+from columns import COLUMNS_IN_USE, RENAMINGS
+
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
-
-RENAMINGS = {
-    "qualificaci_de_consum_d": "qual_energia",
-    "qualificaci_emissions": "qual_emissions",
-    "motiu_de_la_certificacio": "motiu",
-    "eina_de_certificacio": "eina",
-    "energia_prim_ria_no_renovable": "energia_primaria",
-    "cost_anual_aproximat_d_energia": "cost_energia",
-    "normativa_construcci": "normativa",
-}
-
-COLUMNS_IN_USE = [
-    "codi_poblacio",
-    "codi_comarca",
-    "codi_provincia",
-    "MUNDISSEC",
-    "metres_cadastre",
-    "emissions_de_co2",
-    "qual_energia",
-    "qual_emissions",
-    "data_entrada",
-    "motiu",
-    "us_edifici",
-    "zona_climatica",
-    "eina",
-    "normativa",
-    "energia_primaria",
-    "cost_energia",
-    "latitud",
-    "longitud",
-    "referencia_cadastral",
-]
 
 # Each entry: [column_name, canonical_value, [list of equivalent raw values]]
 SAME_MEANING_VALUES = [
@@ -121,6 +92,7 @@ SAME_MEANING_VALUES = [
             "Edificis o parts d'edificis (+500 m2) amb ús administratiu, sanitari, comercial, docent, restauració",
             "Edificis o parts d¿edificis (+500 m2) amb ús administratiu, sanitari, comercial, docent, restauració",
             "Edificios o partes de edificios (+500 m2) de uso administrativo, sanitario, comercial, docente, restauración...",
+            "Edificios o partes de edificios (+500 m2) de uso administrativo, sanitario, comercial, docente, restauración",
             "Edificis o parts d'edificis (+500 m2) amb ús administratiu, sanitari, comercial, docent, restauració",
             "Informe d'avaluació de l'Edifici (IEE)",
             "Informe de evaluación del Edificio (IEE)",
@@ -355,20 +327,22 @@ def collapse_to_top_n(
 ) -> pd.DataFrame:
     """Remap rare categories to 'Altres' so each column has at most n distinct values.
 
-    If a column has more than n distinct non-null values, the n-1 most frequent
-    ones (other than 'Altres') are kept and the rest become the canonical
-    'Altres' string, leaving room for 'Altres' itself. Missing values are left
-    as NaN so ``encode_categorical_columns`` labels them 'No definit'.
+    Missing values are first filled with the canonical 'Altres' string, so
+    these columns never get a separate 'No definit' category. If a column then
+    has more than n distinct values, the n-1 most frequent ones (other than
+    'Altres') are kept and the rest become 'Altres', leaving room for 'Altres'
+    itself.
     """
     df = df.copy()
     for col, altres_value in column_altres.items():
         if col not in df.columns:
             continue
-        values = df[col].dropna()
-        if values.nunique() <= n:
+        df[col] = df[col].fillna(altres_value)
+        if df[col].nunique() <= n:
             continue
+        values = df[col]
         keep = values[values != altres_value].value_counts().nlargest(n - 1).index
-        df[col] = df[col].where(df[col].isin(keep) | df[col].isna(), other=altres_value)
+        df[col] = df[col].where(df[col].isin(keep), other=altres_value)
     return df
 
 
@@ -496,6 +470,34 @@ def get_sections_dataset() -> pd.DataFrame:
     return seccions
 
 
+def _get_ine_json(url: str, params: dict, retries: int = 20, wait: int = 60) -> list:
+    """GET an INE endpoint, retrying while INE answers 202 'Petición en proceso'.
+
+    INE builds large tables on demand and answers 202 with a status dict until
+    the table is ready, which can take a few minutes.
+
+    Raises:
+        ``requests.HTTPError`` on a non-2xx response, ``RuntimeError`` if the
+        table is still not ready after ``retries`` attempts or the payload is
+        not a list.
+    """
+    for attempt in range(1, retries + 1):
+        response = requests.get(url, params=params, timeout=300)
+        if response.status_code == 202:
+            logger.info(
+                f"INE still building {url} (attempt {attempt}/{retries}), "
+                f"retrying in {wait}s..."
+            )
+            time.sleep(wait)
+            continue
+        response.raise_for_status()
+        data = response.json()
+        if not isinstance(data, list):
+            raise RuntimeError(f"Unexpected INE response for {url}: {data!r:.200}")
+        return data
+    raise RuntimeError(f"INE table {url} not ready after {retries} attempts")
+
+
 def fetch_rendes_data(
     code: int, mundissec_map: dict, municipis_map: dict
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
@@ -511,12 +513,11 @@ def fetch_rendes_data(
         columns ``["codi", "indicador", "any", "valor"]``.
 
     Raises:
-        ``requests.HTTPError`` on a non-2xx response.
+        ``requests.HTTPError`` on a non-2xx response, ``RuntimeError`` if INE
+        never finishes building the table (see ``_get_ine_json``).
     """
     url = f"https://servicios.ine.es/wstempus/js/ES/DATOS_TABLA/{code}"
-    response = requests.get(url, params={"tip": "AM"})
-    response.raise_for_status()
-    data = response.json()
+    data = _get_ine_json(url, params={"tip": "AM"})
 
     seccions_records: list = []
     municipis_records: list = []
