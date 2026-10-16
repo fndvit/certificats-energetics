@@ -1,4 +1,4 @@
-pandas>=2.2
+pandas>=2.2,<3
 pyarrow>=14
 fastparquet>=2023.10
 geopandas>=0.14

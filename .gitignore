@@ -4,3 +4,6 @@ node_modules/
 yarn-error.log
 .env
 /.claude
+# Local pipeline outputs
+/static/raw_data.json
+/static/seccions-censals/

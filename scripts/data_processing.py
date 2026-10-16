@@ -2,7 +2,10 @@ import io
 import json
 import logging
 import os
+import re
 import sys
+import time
+import unicodedata
 import zipfile
 
 import geopandas as gpd
@@ -11,6 +14,8 @@ import requests
 from shapely.geometry import Point
 from sklearn.preprocessing import LabelEncoder
 
+from columns import COLUMNS_IN_USE, RENAMINGS
+
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
@@ -18,39 +23,9 @@ logger = logging.getLogger(__name__)
 # Constants
 # ---------------------------------------------------------------------------
 
-RENAMINGS = {
-    "qualificaci_de_consum_d": "qual_energia",
-    "qualificaci_emissions": "qual_emissions",
-    "motiu_de_la_certificacio": "motiu",
-    "eina_de_certificacio": "eina",
-    "energia_prim_ria_no_renovable": "energia_primaria",
-    "cost_anual_aproximat_d_energia": "cost_energia",
-    "normativa_construcci": "normativa",
-}
-
-COLUMNS_IN_USE = [
-    "codi_poblacio",
-    "codi_comarca",
-    "codi_provincia",
-    "MUNDISSEC",
-    "metres_cadastre",
-    "emissions_de_co2",
-    "qual_energia",
-    "qual_emissions",
-    "data_entrada",
-    "motiu",
-    "us_edifici",
-    "zona_climatica",
-    "eina",
-    "normativa",
-    "energia_primaria",
-    "cost_energia",
-    "latitud",
-    "longitud",
-    "referencia_cadastral",
-]
-
 # Each entry: [column_name, canonical_value, [list of equivalent raw values]]
+# Values are matched by _category_key, so variants that only differ in case,
+# accents, punctuation, apostrophes, "m2"/"m²" or whitespace need not be listed.
 SAME_MEANING_VALUES = [
     ["us_edifici", "Terciari", ["Terciario"]],
     ["us_edifici", "Bloc d'habitatges", ["Bloque de viviendas"]],
@@ -59,59 +34,72 @@ SAME_MEANING_VALUES = [
         "Bloc d'habitatges plurifamiliar",
         ["Bloque de viviendas plurifamiliar"],
     ],
-    [
-        "us_edifici",
-        "Habitatge unifamiliar",
-        ["Vivienda unifamiliar", "Habitatge Unifamiliar"],
-    ],
+    ["us_edifici", "Habitatge unifamiliar", ["Vivienda unifamiliar"]],
     [
         "us_edifici",
         "Habitatge individual en bloc d'habitatges",
         ["Vivienda individual en bloque de viviendas"],
     ],
     ["motiu", "Lloguer", ["Alquiler"]],
-    ["motiu", "Sol·licitud d'ajuts", ["Solicitud de ayudas"]],
-    ["motiu", "Compravenda", ["Compra o Venda", "Compra o Venta"]],
+    [
+        "motiu",
+        "Sol·licitud d'ajuts",
+        ["Solicitud de ayudas", "Sol·licitut d'ajuts"],
+    ],
+    ["motiu", "Compravenda", ["Compra o Venda", "Compra o Venta", "Compraventa"]],
     [
         "motiu",
         "Certificació voluntària",
-        ["Certificación voluntaria", "Certificació voluntaria"],
+        [
+            "Certificación voluntaria",
+            "Certificaci� volunt�ria",
+            "Certificaci�n voluntaria",
+        ],
     ],
     [
         "motiu",
-        "Altres (cap de les anteriores opcions)",
+        "Altres",
         [
+            "Altres (cap de les anteriores opcions)",
             "Otros (ninguna de las anteriores opciones)",
             "Nova construcció o gran rehabilitació",
             "Nova construcció",
             "Nueva construcción",
-            "Nueva construcción  o gran rehabilitación",
+            "Nueva construcción o gran rehabilitación",
             "Nova construcció - ampliació amb entitat jurídica independent",
             "Nueva construcción - ampliación con entidad jurídica independiente",
             "Renovació (en cas de caducitat de l'antic certificat energètic)",
             "Renovación (en caso de caducidad del antiguo certificado energético)",
             "Edifici existent de l'administració pública",
-            "Edifici existent de l¿administració pública",
             "Edificio existente de la administración pública",
             "Edificis o parts d'edificis on es realitzin reformes o ampliacions",
-            "Edificis o parts d¿edificis on es realitzin reformes o ampliacions",
             "Edificios o partes de edificis en los que se realicen reformas o ampliaciones",
+            "Edificios o partes de edificios donde se realizan reformas o ampliaciones",
             "Complement a informe d'avaluació de l'edifici (IEE) o a inspecció tècnica de l'edifici (ITE)",
-            "Complement a informe d¿avaluació de l¿edifici (IEE) o a inspecció tècnica de l¿edifici (ITE)",
             "Complemento al informe de evaluación del edificio (IEE) o a inspección técnica del edificio (ITE)",
-            "Complement a informe davaluació de l'edifici (IEE) o a inspecció tècnica de l'edifici (ITE)",
-            "Edificis o parts d'edificis (+500 m2) amb ús administratiu, sanitari, comercial, docent, restauració",
-            "Edificis o parts d¿edificis (+500 m2) amb ús administratiu, sanitari, comercial, docent, restauració",
-            "Edificios o partes de edificios (+500 m2) de uso administrativo, sanitario, comercial, docente, restauración...",
-            "Edificis o parts d'edificis (+500 m2) amb ús administratiu, sanitari, comercial, docent, restauració",
+            "Complemento a informe de avaluación del edificio (IEE) o a inspección técnica del edificio (ITE)",
+            "Edificis o parts d'edificis (+500 m²) amb ús administratiu, sanitari, comercial, docent, restauració",
+            "Edificios o partes de edificios (+500 m²) de uso administrativo, sanitario, comercial, docente, restauración",
+            "Edificios o partes de edificios (+500 m²) con uso administrativo, sanitario, comercial, docente, restauración",
             "Informe d'avaluació de l'Edifici (IEE)",
             "Informe de evaluación del Edificio (IEE)",
         ],
     ],
-    ["normativa", "Abans de 1979", ["Antes de 1979"]],
+    [
+        "normativa",
+        "Abans de 1979",
+        ["Antes de 1979", "Anterior a la NBE-CT-79"],
+    ],
+    ["normativa", "Altres", ["0"]],
 ]
 
 CATEGORICAL_COLUMNS_TO_ENCODE = ["eina", "motiu", "us_edifici", "normativa"]
+
+COLLAPSE_TO_TOP_N = 6
+COLLAPSE_ALTRES_VALUES = {
+    "motiu": "Altres",
+    "normativa": "Altres",
+}
 
 QUALIFICATIONS_NUMERICAL_EQUIVALENCE = {
     "A": 1,
@@ -179,8 +167,22 @@ def build_municipi_dict() -> dict:
 
 
 def delete_nas(df: pd.DataFrame) -> pd.DataFrame:
-    """Drop rows that lack GPS coordinates or an entry date."""
-    return df.dropna(subset=["utm_x", "utm_y", "data_entrada"])
+    """Drop rows that lack GPS coordinates or an entry date.
+
+    Rows without ``data_entrada`` cannot be placed on the observatory's
+    timeline, so they are discarded rather than kept with an unknown date.
+    The number of rows dropped for each reason is logged.
+    """
+    no_coords = df["utm_x"].isna() | df["utm_y"].isna()
+    no_date = df["data_entrada"].isna()
+    logger.info(
+        "Dropping %d rows without coordinates and %d more without data_entrada "
+        "(of %d)",
+        no_coords.sum(),
+        (no_date & ~no_coords).sum(),
+        len(df),
+    )
+    return df[~(no_coords | no_date)]
 
 
 def generate_mundissec(df: pd.DataFrame) -> pd.DataFrame:
@@ -236,7 +238,8 @@ def cast_columns(df: pd.DataFrame) -> pd.DataFrame:
     """Cast columns to their correct types and apply domain-level data rules.
 
     Specific rules applied:
-    - ``data_entrada`` is parsed as a date and snapped to month-start.
+    - ``data_entrada`` is parsed as a date and snapped to month-start; rows
+      whose date cannot be parsed are dropped.
     - Rows with a null MUNDISSEC (no spatial match) are dropped.
     - Energy/emissions qualifications are mapped to an ordinal integer scale.
     - ``cost_energia`` values of 0 when ``energia_primaria`` > 0 are treated as
@@ -245,8 +248,15 @@ def cast_columns(df: pd.DataFrame) -> pd.DataFrame:
     logger.info("Casting columns to their correct types...")
     df = df.copy()
 
-    df["data_entrada"] = pd.to_datetime(df["data_entrada"], errors="coerce", dayfirst=True)
-    df["data_entrada"] = df["data_entrada"].apply(pd.offsets.MonthBegin().rollback)
+    # The API returns ISO timestamps with varying precision (with or without
+    # time / milliseconds). format="ISO8601" accepts all of them; inferring a
+    # single format from the first row would coerce the rest to NaT, and
+    # dayfirst=True would swap day and month whenever the day is <= 12.
+    df["data_entrada"] = pd.to_datetime(df["data_entrada"], format="ISO8601", errors="coerce")
+    unparseable = df["data_entrada"].isna()
+    logger.info("Dropping %d rows with an unparseable data_entrada", unparseable.sum())
+    df = df[~unparseable]
+    df["data_entrada"] = df["data_entrada"].dt.to_period("M").dt.to_timestamp()
 
     # Drop the ~24 records that did not match any census section polygon
     df = df.dropna(subset=["MUNDISSEC"])
@@ -266,6 +276,47 @@ def cast_columns(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def normalize_text_encoding(df: pd.DataFrame) -> pd.DataFrame:
+    """Normalize encoding artifacts in categorical columns before label grouping.
+
+    Converts typographic apostrophes (U+2018/U+2019) and the corrupted-apostrophe
+    artifact (¿) to the ASCII apostrophe used in SAME_MEANING_VALUES, and
+    double-encoded replacement characters (ï¿½) to U+FFFD.
+
+    Only CATEGORICAL_COLUMNS_TO_ENCODE are touched: other columns are never
+    grouped, and may hold non-string values that ``.str`` would turn into NaN.
+    """
+    logger.info("Normalizing text encoding in categorical columns...")
+    df = df.copy()
+    replacements = {
+        "ï¿½": "�",  # double-encoded REPLACEMENT CHAR — must precede ¿ replacement
+        "’": "'",   # RIGHT SINGLE QUOTATION MARK → apostrophe
+        "‘": "'",   # LEFT SINGLE QUOTATION MARK → apostrophe
+        "¿": "'",        # corrupted apostrophe artifact → apostrophe
+    }
+    for col in CATEGORICAL_COLUMNS_TO_ENCODE:
+        if col not in df.columns:
+            continue
+        values = df[col].astype("string")
+        for bad, good in replacements.items():
+            values = values.str.replace(bad, good, regex=False)
+        df[col] = values.astype(object).where(values.notna(), None)
+    return df
+
+
+def _category_key(value: str) -> str:
+    """Return a comparison key that ignores case, accents and punctuation.
+
+    "m²" is read as "m2", and anything other than ASCII letters, digits and
+    spaces (apostrophes, "·", "�", "...", hyphens, brackets) is dropped, so
+    e.g. "Sol·licitut", "Sol�licitut" and "Sollicitut" share a key.
+    """
+    value = unicodedata.normalize("NFKD", value.replace("²", "2"))
+    value = "".join(c for c in value if not unicodedata.combining(c)).lower()
+    value = re.sub(r"[^0-9a-z ]+", "", value)
+    return " ".join(value.split())
+
+
 def group_same_meaning_values(
     df: pd.DataFrame, same_meaning_values: list
 ) -> pd.DataFrame:
@@ -273,12 +324,53 @@ def group_same_meaning_values(
 
     Works on a copy of the DataFrame to avoid mutating the caller's object.
     ``same_meaning_values`` is a list of ``[column, canonical, [variants]]``
-    triples.
+    triples. Raw values are matched against the canonical value and its
+    variants by ``_category_key``.
     """
     logger.info("Grouping equivalent labels...")
     df = df.copy()
+    lookups: dict[str, dict[str, str]] = {}
     for column, canonical, variants in same_meaning_values:
-        df[column] = df[column].replace(dict.fromkeys(variants, canonical))
+        lookup = lookups.setdefault(column, {})
+        for value in [canonical, *variants]:
+            key = _category_key(value)
+            if lookup.get(key, canonical) != canonical:
+                raise ValueError(
+                    f"{column}: {value!r} matches both {lookup[key]!r} and {canonical!r}"
+                )
+            lookup[key] = canonical
+    for column, lookup in lookups.items():
+        raw_values = df[column].dropna().unique()
+        mapping = {
+            raw: lookup[_category_key(raw)]
+            for raw in raw_values
+            if _category_key(raw) in lookup and lookup[_category_key(raw)] != raw
+        }
+        df[column] = df[column].replace(mapping)
+    return df
+
+
+def collapse_to_top_n(
+    df: pd.DataFrame, column_altres: dict, n: int = 6
+) -> pd.DataFrame:
+    """Remap rare categories to 'Altres' so each column has at most n distinct values.
+
+    Missing values are first filled with the canonical 'Altres' string, so
+    these columns never get a separate 'No definit' category. If a column then
+    has more than n distinct values, the n-1 most frequent ones (other than
+    'Altres') are kept and the rest become 'Altres', leaving room for 'Altres'
+    itself.
+    """
+    df = df.copy()
+    for col, altres_value in column_altres.items():
+        if col not in df.columns:
+            continue
+        df[col] = df[col].fillna(altres_value)
+        if df[col].nunique() <= n:
+            continue
+        values = df[col]
+        keep = values[values != altres_value].value_counts().nlargest(n - 1).index
+        df[col] = df[col].where(df[col].isin(keep), other=altres_value)
     return df
 
 
@@ -406,6 +498,34 @@ def get_sections_dataset() -> pd.DataFrame:
     return seccions
 
 
+def _get_ine_json(url: str, params: dict, retries: int = 20, wait: int = 60) -> list:
+    """GET an INE endpoint, retrying while INE answers 202 'Petición en proceso'.
+
+    INE builds large tables on demand and answers 202 with a status dict until
+    the table is ready, which can take a few minutes.
+
+    Raises:
+        ``requests.HTTPError`` on a non-2xx response, ``RuntimeError`` if the
+        table is still not ready after ``retries`` attempts or the payload is
+        not a list.
+    """
+    for attempt in range(1, retries + 1):
+        response = requests.get(url, params=params, timeout=300)
+        if response.status_code == 202:
+            logger.info(
+                f"INE still building {url} (attempt {attempt}/{retries}), "
+                f"retrying in {wait}s..."
+            )
+            time.sleep(wait)
+            continue
+        response.raise_for_status()
+        data = response.json()
+        if not isinstance(data, list):
+            raise RuntimeError(f"Unexpected INE response for {url}: {data!r:.200}")
+        return data
+    raise RuntimeError(f"INE table {url} not ready after {retries} attempts")
+
+
 def fetch_rendes_data(
     code: int, mundissec_map: dict, municipis_map: dict
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
@@ -421,12 +541,11 @@ def fetch_rendes_data(
         columns ``["codi", "indicador", "any", "valor"]``.
 
     Raises:
-        ``requests.HTTPError`` on a non-2xx response.
+        ``requests.HTTPError`` on a non-2xx response, ``RuntimeError`` if INE
+        never finishes building the table (see ``_get_ine_json``).
     """
     url = f"https://servicios.ine.es/wstempus/js/ES/DATOS_TABLA/{code}"
-    response = requests.get(url, params={"tip": "AM"})
-    response.raise_for_status()
-    data = response.json()
+    data = _get_ine_json(url, params={"tip": "AM"})
 
     seccions_records: list = []
     municipis_records: list = []
@@ -599,7 +718,9 @@ def process_certificates_dataset(
         .pipe(reduce_columns, COLUMNS_IN_USE)
         .pipe(cast_columns)
         .pipe(regenerate_codes, municipi_dict, PROVINCIES_DICT)
+        .pipe(normalize_text_encoding)
         .pipe(group_same_meaning_values, SAME_MEANING_VALUES)
+        .pipe(collapse_to_top_n, COLLAPSE_ALTRES_VALUES, COLLAPSE_TO_TOP_N)
         .pipe(remove_outliers)
     )
 

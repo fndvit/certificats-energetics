@@ -2,8 +2,11 @@ import requests
 import json
 import os
 
+from columns import RAW_COLUMNS_IN_USE
+
 url = "https://analisi.transparenciacatalunya.cat/resource/j6ii-t3w2.json"
-params = {"$limit": 2000000}
+# Only request the fields the pipeline reads, to keep the download and memory small
+params = {"$limit": 2000000, "$select": ",".join(RAW_COLUMNS_IN_USE)}
 
 os.makedirs("static", exist_ok=True)
 
