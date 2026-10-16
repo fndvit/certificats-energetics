@@ -11,7 +11,6 @@ import {
   qualifColorScheme,
   categoricalScheme5,
 } from "./components/colors.js";
-import { zonaClimaticaBeeswarm } from "./components/zonaClimaticaBeeswarm.js";
 
 // Fitxers
 const labels = FileAttachment("./data/labels.json").json();
@@ -328,6 +327,13 @@ const threshold_poblacio = [...grouped_poblacio].filter(
                   stroke: "#750000", 
                   fill:"white", 
                 }),
+                Plot.text(radiusLegendData.filter((d) => d.pos === 0 || d.pos === 4),
+                {
+                  x: "pos",
+                  y: 0,
+                  dy: -24,
+                  text: (d) => `${(d.rad / 1000).toLocaleString('ca-ES', { maximumFractionDigits: 0 })} t`,
+                }),
               ]
             })
           }
@@ -384,7 +390,7 @@ const threshold_poblacio = [...grouped_poblacio].filter(
               },
               emissions_totals: {
                 value: "sum_emissions",
-                label: "Emissions totals (T CO₂/Any)"
+                label: "Emissions totals (t CO₂/any)"
               },
               zona: {
                 value: "zona_climatica",
