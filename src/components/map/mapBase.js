@@ -1,4 +1,4 @@
-import mapboxgl from 'npm:mapbox-gl';
+import mapboxgl from 'npm:mapbox-gl@3.16.0';
 
 export class MapBase {
   static defaults = {

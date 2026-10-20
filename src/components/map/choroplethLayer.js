@@ -1,4 +1,4 @@
-import mapboxgl from 'npm:mapbox-gl';
+import mapboxgl from 'npm:mapbox-gl@3.16.0';
 import { sources, layers, sourceLayerIds } from './meta.js';
 
 /** Restricts a value to the [min, max] interval. */

@@ -4,6 +4,8 @@ toc: false
 style: ./eina.css
 ---
 
+<link rel="stylesheet" href="npm:mapbox-gl@3.16.0/dist/mapbox-gl.css">
+
 <!--    Imports & files    -->
 
 ```js
