@@ -11,7 +11,6 @@ import {
   qualifColorScheme,
   categoricalScheme5,
 } from "./components/colors.js";
-import { zonaClimaticaBeeswarm } from "./components/zonaClimaticaBeeswarm.js";
 
 // Fitxers
 const labels = FileAttachment("./data/labels.json").json();
@@ -110,12 +109,13 @@ SELECT
   COUNT(*) AS n_certificats,
   AVG(emissions_de_co2) AS avg_emissions,
   AVG(qual_emissions) AS avg_qual_emissions,
-  SUM(emissions_de_co2) AS sum_emissions,
+  SUM(emissions_de_co2 * metres_cadastre) AS sum_emissions,
   municipis.poblacio
 FROM certificats
 INNER JOIN municipis
  ON certificats.codi_poblacio = municipis.codi
 WHERE emissions_de_co2 IS NOT NULL
+  AND metres_cadastre > 0
   AND zona_climatica IS NOT NULL
   AND codi_poblacio IS NOT NULL
 GROUP BY zona_climatica, codi_poblacio, municipis.poblacio
@@ -141,7 +141,7 @@ const avg_climate_zone = Array.from(
     .reduce((acc, curr) => {
       const zona = curr.zona_climatica;
       const item = acc.get(zona) || { totalSum: 0, totalCount: 0 };
-      item.totalSum += curr.sum_emissions || 0;
+      item.totalSum += (curr.avg_emissions || 0) * (curr.n_certificats || 0);
       item.totalCount += curr.n_certificats || 0;
       acc.set(zona, item);
       return acc;
@@ -327,6 +327,13 @@ const threshold_poblacio = [...grouped_poblacio].filter(
                   stroke: "#750000", 
                   fill:"white", 
                 }),
+                Plot.text(radiusLegendData.filter((d) => d.pos === 0 || d.pos === 4),
+                {
+                  x: "pos",
+                  y: 0,
+                  dy: -24,
+                  text: (d) => `${(d.rad / 1000).toLocaleString('ca-ES', { maximumFractionDigits: 0 })} t`,
+                }),
               ]
             })
           }
@@ -366,7 +373,7 @@ const threshold_poblacio = [...grouped_poblacio].filter(
       },
       y: { grid: true , label: null, tickFormat: null, ticks: 0 },
       fy: { label: null, ticks: 0, tickFormat: null },
-      x: { grid: true, domain: beeswarmXDomain, label: "Emissions mitjanes (Kg CO₂/Any)"},
+      x: { grid: true, domain: beeswarmXDomain, label: "Emissions mitjanes (kg CO₂/m²·any)"},
       r: { range: [1, 20] },
       marks: [
         Plot.dot(
@@ -379,11 +386,11 @@ const threshold_poblacio = [...grouped_poblacio].filter(
             channels: {
               emissions_mitjanes: {
                 value: "avg_emissions",
-                label: "Emissions mitjanes (Kg CO₂/Any)"
+                label: "Emissions mitjanes (kg CO₂/m²·any)"
               },
               emissions_totals: {
                 value: "sum_emissions",
-                label: "Emissions totals (Kg CO₂/Any)"
+                label: "Emissions totals (t CO₂/any)"
               },
               zona: {
                 value: "zona_climatica",
@@ -407,7 +414,7 @@ const threshold_poblacio = [...grouped_poblacio].filter(
                 fill: false,
                 municipi: (d) => municipisDict[d]?.municipi ?? 'Unknown',
                 poblacio: (d) => municipiLookup.get(d)?.poblacio ?? 0,
-                emissions_totals: true,
+                emissions_totals: (d) => `${(d / 1000).toLocaleString('ca-ES', { maximumFractionDigits: 1 })}`,
                 emissions_mitjanes: true
               }
             },
@@ -717,7 +724,15 @@ const $mainFilter = vg.Selection.intersect({
               x: vg.bin("data_entrada", {
                 interval: 'month',
               }),
-              tip: true,
+              tip: {
+                format: {
+                  x: (d) => {
+                    const date = d instanceof Date ? d : new Date(d);
+                    return `${String(date.getUTCMonth() + 1).padStart(2, '0')}/${date.getUTCFullYear()}`;
+                  },
+                  x2: false,
+                }
+              },
               y: vg.count(),
               fill: "#6e6e6e",
               fillOpacity: 1,
@@ -725,7 +740,7 @@ const $mainFilter = vg.Selection.intersect({
           ),
           vg.intervalX({as: $date}),
           vg.xTickSize(0),
-          vg.xLabel(null),
+          vg.xLabel("Data"),
           vg.yTickSize(0),
           vg.yLabel('Nombre de certificats')
         )
