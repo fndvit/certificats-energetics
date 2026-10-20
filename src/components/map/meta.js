@@ -8,8 +8,15 @@ export const layers = [
       source: 'seccen',
       'source-layer': sourceLayerIds[0],
       paint: {
-        'line-color': '#000000',
-        'line-width': ['case', ['boolean', ['feature-state', 'hover'], false], 1, 0]
+        'line-color': '#000',
+        'line-width': [
+          'case',
+          ['boolean', ['feature-state', 'clicked'], false],
+          2,
+          ['boolean', ['feature-state', 'hover'], false],
+          1,
+          0
+        ]
       }
     },
     fill: {
@@ -29,8 +36,15 @@ export const layers = [
       source: 'municipis',
       'source-layer': sourceLayerIds[1],
       paint: {
-        'line-color': '#000000',
-        'line-width': ['case', ['boolean', ['feature-state', 'hover'], false], 1, 0]
+        'line-color': '#000',
+        'line-width': [
+          'case',
+          ['boolean', ['feature-state', 'clicked'], false],
+          2,
+          ['boolean', ['feature-state', 'hover'], false],
+          1,
+          0
+        ]
       }
     },
     fill: {
@@ -50,8 +64,15 @@ export const layers = [
       source: 'comarques',
       'source-layer': sourceLayerIds[2],
       paint: {
-        'line-color': '#000000',
-        'line-width': ['case', ['boolean', ['feature-state', 'hover'], false], 1, 0]
+        'line-color': '#000',
+        'line-width': [
+          'case',
+          ['boolean', ['feature-state', 'clicked'], false],
+          2,
+          ['boolean', ['feature-state', 'hover'], false],
+          1,
+          0
+        ]
       }
     },
     fill: {

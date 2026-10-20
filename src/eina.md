@@ -1,46 +1,46 @@
 ---
 title: Eina de decisions
 toc: false
-style: ./dashboard.css
+style: ./eina.css
 ---
 
-```js
-html`<link href="https://cdn.jsdelivr.net/npm/range-slider-input@2.4.4/dist/style.css" rel="stylesheet">`
-```
+<link rel="stylesheet" href="npm:mapbox-gl@3.16.0/dist/mapbox-gl.css">
 
 <!--    Imports & files    -->
 
 ```js
-import {
-  qualifColorDomain,
-  qualifColorRange,
-  categoricalScheme5,
-  mapColorScheme
-} from './components/colors.js';
 import { html } from 'npm:htl';
-import mapboxgl from 'npm:mapbox-gl';
-import { ckmeans } from 'simple-statistics';
-import * as vgplot from 'npm:@uwdata/vgplot';
 import rangeSlider from 'npm:range-slider-input';
+import chroma from 'npm:chroma-js';
 import sliderState from './components/sliderState.js';
-import { ChoroplethMap } from './components/map/choropleth.js';
+import { MapManager } from './components/map/mapManager.js';
+import { clusterIndicatorsMeta } from './components/map/clusterLayer.js';
 import { emissionsIndicatorsMeta, socEcIndicatorsMeta } from './components/indicatorsMeta.js';
+import { getEmissionsIndicatorData, getIncomeIndicatorData, getEmissionsData } from './components/dataProcessing.js';
+import { getHoveredInfo, getTickColor, lowercaseFirstLetter, getRegionCardData } from './components/mapHelpers.js';
+import { qualifColorScheme, emissionsColorScheme } from './components/colors.js';
 
-const labels = FileAttachment('./data/labels.json').json();
+const REGION_CARD_TABLE_ROWS = 5;
+
 const municipisDict = FileAttachment('./data/municipisDict.json').json();
+const pointsData = await FileAttachment('./data/certificats-points.parquet').parquet();
+
+const emissionsCol = pointsData.getChild('emissions_de_co2');
+const _emVals = Array.from({length: pointsData.numRows}, (_, i) => Number(emissionsCol.get(i))).filter(v => isFinite(v) && v >= 0).sort(d3.ascending);
+const emissionsRangeDomain = [d3.quantile(_emVals, 0.02), d3.quantile(_emVals, 0.98)];
 
 const datasets = [
-  await FileAttachment('./data/seccen.json')
+  await FileAttachment('./data/seccen_aggregates.json')
     .json()
     .then((data) => {
       return data.filter((d) => d.mean_emissions);
     }),
-  await FileAttachment('./data/mun.json')
+  await FileAttachment('./data/mun_aggregates.json')
     .json()
     .then((data) => {
       return data.filter((d) => d.mean_emissions);
     }),
-  await FileAttachment('./data/com.json')
+  await FileAttachment('./data/com_aggregates.json')
     .json()
     .then((data) => {
       return data.filter((d) => d.mean_emissions);
@@ -100,6 +100,56 @@ const hoveredPolygonId = Mutable(null);
 const setHoveredPolygonId = (x) => (hoveredPolygonId.value = x);
 ```
 
+```js
+const mousePosition = Mutable(null);
+const setMousePosition = (([x, y]) => mousePosition.value = {x: x, y: y})
+```
+
+```js
+const isMouseOverUI = Mutable(false);
+const setIsMouseOverUI = (x) => (isMouseOverUI.value = x);
+```
+
+```js
+const isMouseButtonPressed = Mutable(false);
+const setIsMouseButtonPressed = (x) => (isMouseButtonPressed.value = x);
+```
+
+```js
+const clickedPolygonId = Mutable(null);
+const setClickedPolygonId = (x) => (clickedPolygonId.value = x);
+```
+
+```js
+const clickedPolygonLevel = Mutable(null);
+const setClickedPolygonLevel = (x) => (clickedPolygonLevel.value = x);
+```
+
+```js
+const showRegionCard = Mutable(false);
+const setShowRegionCard = (x) => (showRegionCard.value = x);
+```
+
+```js
+const mapMode = Mutable('choropleth');
+const setMapMode = (x) => (mapMode.value = x);
+```
+
+```js
+const showClusterModal = Mutable(false);
+const setShowClusterModal = (x) => (showClusterModal.value = x);
+```
+
+```js
+const clusterModalData = Mutable(null);
+const setClusterModalData = (x) => (clusterModalData.value = x);
+```
+
+```js
+const viewportStats = Mutable(null);
+const setViewportStats = (x) => (viewportStats.value = x);
+```
+
 <!--    Inputs    -->
 
 ```js
@@ -121,6 +171,9 @@ const slider = rangeSlider(sliderElement, {
 
       sliderElement.dispatchEvent(new Event('input', { bubbles: true }));
 
+      _rangeTracker.lowerShouldFlash = v[0] !== sliderState.currentRange[0];
+      _rangeTracker.upperShouldFlash = v[1] !== sliderState.currentRange[1];
+
       map.updateMapOpacity(sliderState.currentRange, v);
 
       sliderState.currentRange = v;
@@ -129,13 +182,41 @@ const slider = rangeSlider(sliderElement, {
   }
 });
 
+/**
+ * Formats a number for display, using 2 decimal places unless it's an integer.
+ * @param {number} value - Number to format
+ * @param {string} [suffix=''] - Optional suffix (e.g., '€')
+ * @returns {string} Formatted number
+ */
+function formatNumber(value, suffix = '') {
+  const formatted = Number.isInteger(value) ? value.toString() : value.toFixed(2);
+  return suffix ? `${formatted} ${suffix}` : formatted;
+}
+
+const _rangeTracker = { lowerShouldFlash: false, upperShouldFlash: false };
+
+/**
+ * Extracts just the numeric values from income indicator data for slider use.
+ * @param {Object} incomeData - Income indicator data with values array
+ * @returns {number[]} Array of numeric values
+ */
+function getIndicatorValues(incomeData) {
+  return incomeData.values.map(d => d.value);
+}
+
+/**
+ * Updates slider bounds with padding to prevent handles from sitting on exact min/max.
+ * Extends range by 1 unit on each side for better UX.
+ */
 function updateSliderBounds(newMin, newMax, indicatorValues) {
+  const SLIDER_PADDING = 1; // Extends range beyond min/max for easier interaction
+
   const [pLow, pHigh] = sliderState.percentileRange;
   const lowHandle = d3.quantileSorted(indicatorValues, pLow);
   const highHandle = d3.quantileSorted(indicatorValues, pHigh);
 
-  const newMinExtended = newMin - 1;
-  const newMaxExtended = newMax + 1;
+  const newMinExtended = newMin - SLIDER_PADDING;
+  const newMaxExtended = newMax + SLIDER_PADDING;
 
   const divisionFactor = (newMaxExtended - newMinExtended) / nSteps;
 
@@ -149,25 +230,66 @@ function updateSliderBounds(newMin, newMax, indicatorValues) {
   slider.min(newMinExtended - 1);
   slider.max(newMaxExtended + 1);
   slider.value([roundedLowHandle, roundedHighHandle]);
-  
+
+  // Keep currentRange in step with the handles, so the next user drag only
+  // flashes the number that actually changed.
+  sliderState.currentRange = [roundedLowHandle, roundedHighHandle];
   setIncomeRange([roundedLowHandle, roundedHighHandle]);
 }
 
 
+const clusterIndicatorInput = Inputs.select(clusterIndicatorsMeta, {
+  label: '',
+  format: (d) => d.name,
+  value: clusterIndicatorsMeta[0]
+});
+
+// Qualification color: clamp to 1-7 integer then look up scheme
+const qualifColor = (v) =>
+  v != null ? qualifColorScheme[Math.min(6, Math.max(0, Math.round(v) - 1))] : '#d4d4d4';
+
+// Emissions: continuous scale over domain
+const emissionsColorScale = d3.scaleSequential(
+  d3.interpolateRgbBasis(emissionsColorScheme)
+).domain(emissionsRangeDomain);
+const emissionsColor = (v) => v != null ? emissionsColorScale(v) : '#d4d4d4';
+
+function clusterColorRamp(meanValue, type) {
+  let gradient, pct;
+  if (type === 'qual') {
+    gradient = `linear-gradient(to right, ${qualifColorScheme.join(', ')})`;
+    pct = meanValue != null ? ((meanValue - 1) / 6) * 100 : null;
+  } else {
+    const [lo, hi] = emissionsRangeDomain;
+    const stops = Array.from({length: 12}, (_, i) =>
+      emissionsColorScale(lo + (hi - lo) * i / 11)
+    );
+    gradient = `linear-gradient(to right, ${stops.join(', ')})`;
+    pct = meanValue != null
+      ? Math.min(100, Math.max(0, ((meanValue - lo) / (hi - lo)) * 100))
+      : null;
+  }
+  return html`
+    <div class="cluster-ramp-bar" style="background: ${gradient};">
+      ${pct != null ? html`<div class="cluster-ramp-dot" style="left:${pct.toFixed(1)}%;"></div>` : ''}
+    </div>`;
+}
+
 const emissionsIndicatorInput = Inputs.select(emissionsIndicatorsMeta, {
-  label: "Indicador d'emissions",
+  label: "",
   format: (d) => d.name,
   value: emissionsIndicatorsMeta[0]
 });
 
 const incomeIndicatorInput = Inputs.select(socEcIndicatorsMeta, {
-  label: 'Indicador sociodemogràfic',
+  label: '',
   format: (d) => d.name,
   value: socEcIndicatorsMeta[0]
 });
 ```
 
 ```js
+const clusterIndicator = Generators.input(clusterIndicatorInput);
 const emissionsIndicator = Generators.input(emissionsIndicatorInput);
 const incomeIndicator = Generators.input(incomeIndicatorInput);
 ```
@@ -176,11 +298,12 @@ const incomeIndicator = Generators.input(incomeIndicatorInput);
 
 ```js
 document.addEventListener('polygon-change', (e) => {
+  setMousePosition([e.detail.x, e.detail.y]);
   setHoveredPolygonId(e.detail.polygonId);
 });
 
 document.addEventListener('map-loaded', () => {
-  sliderState.indicatorValues = incomeIndicatorData[currentDatasetIndex].values.map((d) => d.value)
+  sliderState.indicatorValues = getIndicatorValues(incomeIndicatorData[currentDatasetIndex]);
   map.initializeData(
     emissionsIndicator,
     emissionsIndicatorData,
@@ -190,35 +313,134 @@ document.addEventListener('map-loaded', () => {
   updateSliderBounds(
     incomeIndicatorData[1].min,
     incomeIndicatorData[1].max,
-    incomeIndicatorData[1].values.map((d) => d.value)
+    getIndicatorValues(incomeIndicatorData[1])
   );
   setMapLoaded(true);
+  updateAnalysisZone();
   sliderState.percentileRange = [0.25, 0.75];
+  map.setMode(mapMode);
 });
 
 document.addEventListener('zoom-level-changed', (event) => {
   const datasetIndex = event.detail.zoomLevel;
-  sliderState.indicatorValues = incomeIndicatorData[datasetIndex].values.map((d) => d.value);
+  sliderState.indicatorValues = getIndicatorValues(incomeIndicatorData[datasetIndex]);
   setCurrentDatasetIndex(datasetIndex);
 });
+
+// Hide tooltip when mouse button is pressed (dragging)
+document.addEventListener('mousedown', () => {
+  setIsMouseButtonPressed(true);
+  setHoveredPolygonId(null); // Clear hovered polygon to prevent stale tooltip
+});
+
+document.addEventListener('mouseup', () => {
+  setIsMouseButtonPressed(false);
+});
+
+// Handle polygon click events for region card
+document.addEventListener('polygon-click', (event) => {
+  const { polygonId, level } = event.detail;
+
+  if (polygonId === null) {
+    // Clicked outside - close card
+    setShowRegionCard(false);
+    setClickedPolygonId(null);
+    setClickedPolygonLevel(null);
+  } else {
+    // Clicked on a feature - show card
+    setClickedPolygonId(polygonId);
+    setClickedPolygonLevel(level);
+    setShowRegionCard(true);
+  }
+});
+
+// Handle cluster click events for cluster modal
+document.addEventListener('cluster-click', (e) => {
+  setClusterModalData(e.detail);
+  setShowClusterModal(true);
+});
+
+document.addEventListener('cluster-viewport-stats', (e) => {
+  setViewportStats(e.detail);
+});
+
+// Hide tooltip when hovering over UI elements
+// Attach listeners to all UI cards and Observable's sidebar
+const uiElements = document.querySelectorAll('.card, .observablehq-sidebar, nav');
+uiElements.forEach((element) => {
+  element.addEventListener('mouseenter', () => setIsMouseOverUI(true));
+  element.addEventListener('mouseleave', () => setIsMouseOverUI(false));
+});
+```
+
+```js
+// Reactive: Attach event listeners to region card wrapper when it appears
+{
+  const wrapper = document.getElementById('region-card-wrapper');
+  if (wrapper && showRegionCard) {
+    wrapper.addEventListener('mouseenter', () => setIsMouseOverUI(true));
+    wrapper.addEventListener('mouseleave', () => setIsMouseOverUI(false));
+  }
+}
 ```
 
 <!--    Reactive listeners    -->
 
+<!-- Reactive: Toggles choropleth-specific controls visibility when map mode changes
+     Depends on: mapMode -->
+```js
+document.querySelector('.choropleth-controls')
+  ?.style.setProperty('display', mapMode === 'choropleth' ? '' : 'none');
+```
+
+<!-- Reactive: Toggles cluster-mode class on top card when map mode changes
+     Depends on: mapMode -->
+```js
+document.querySelector('.cluster-top-card')
+  ?.classList.toggle('cluster-mode', mapMode === 'cluster');
+```
+
+<!-- Reactive: Shows/hides analysis zone overlay when map mode changes
+     Depends on: mapMode, mapLoaded -->
+```js
+if (mapLoaded) {
+  if (mapMode === 'cluster') {
+    analysisZoneEl.classList.remove('hidden');
+    updateAnalysisZone();
+  } else {
+    analysisZoneEl.classList.add('hidden');
+  }
+}
+```
+
+<!-- Reactive: Updates slider bounds when dataset or income indicator changes
+     Depends on: currentDatasetIndex, incomeIndicatorData -->
 ```js
 updateSliderBounds(
   incomeIndicatorData[currentDatasetIndex].min,
   incomeIndicatorData[currentDatasetIndex].max,
-  incomeIndicatorData[currentDatasetIndex].values.map((d) => d.value)
+  getIndicatorValues(incomeIndicatorData[currentDatasetIndex])
 );
 ```
 
+<!-- Reactive: Updates cluster map colors when cluster indicator changes
+     Depends on: mapLoaded, clusterIndicator -->
+```js
+if (mapLoaded) {
+  map.setClusterIndicator(clusterIndicator);
+}
+```
+
+<!-- Reactive: Updates map colors when emissions indicator changes
+     Depends on: mapLoaded, emissionsIndicator, emissionsIndicatorData -->
 ```js
 if (mapLoaded) {
   map.updateEmissionsData(emissionsIndicator, emissionsIndicatorData);
 }
 ```
 
+<!-- Reactive: Updates map layer visibility when income indicator changes
+     Depends on: mapLoaded, incomeIndicator, incomeIndicatorData -->
 ```js
 if (mapLoaded) {
   map.updateIncomeData(incomeIndicator, incomeIndicatorData);
@@ -233,19 +455,56 @@ if (mapLoaded) {
 ```
 
 ```js
-const hoveredInfo = getHoveredInfo(hoveredPolygonId, currentDatasetIndex);
+const emissionsIndicatorData = getEmissionsIndicatorData(emissionsIndicator, datasets);
 ```
 
 ```js
-const emissionsIndicatorData = getEmissionsIndicatorData(emissionsIndicator);
+const incomeIndicatorData = getIncomeIndicatorData(incomeIndicator, datasets, valuesByLevel);
 ```
 
 ```js
-const incomeIndicatorData = getIncomeIndicatorData(incomeIndicator);
+const emissionsData = getEmissionsData(currentDatasetIndex, datasets, emissionsIndicator, incomeIndicator, emissionsIndicatorData, valuesByLevel);
 ```
 
 ```js
-const emissionsData = getEmissionsData(currentDatasetIndex);
+// Pre-compute lookup maps for O(1) performance
+const datasetLookup = new Map(
+  datasets[currentDatasetIndex].map(d => [
+    d[valuesByLevel[currentDatasetIndex].id],
+    d
+  ])
+);
+
+const incomeLookup = new Map(
+  incomeIndicatorData[currentDatasetIndex].values.map((d, i) => [
+    d.id,
+    { value: d.value, pos: i }
+  ])
+);
+
+const emissionsLookup = new Map(
+  emissionsData.map((d, i) => [
+    d.id,
+    { value: d.emissionsValue, pos: i }
+  ])
+);
+```
+
+```js
+const hoveredInfo = getHoveredInfo(hoveredPolygonId, currentDatasetIndex, datasets, valuesByLevel, incomeIndicatorData, emissionsData, municipisDict, datasetLookup, incomeLookup, emissionsLookup);
+```
+
+```js
+const regionCardData = showRegionCard && clickedPolygonId && clickedPolygonLevel !== null
+  ? getRegionCardData(
+      clickedPolygonId,
+      clickedPolygonLevel,
+      incomeIndicatorData,
+      emissionsData,
+      municipisDict,
+      datasetLookup
+    )
+  : '';
 ```
 
 ```js
@@ -254,481 +513,589 @@ const histogramData = emissionsData.filter(
 );
 ```
 
-<!--    Map & HTML    -->
-
 ```js
-const mapContainer = display(document.createElement('div'));
-mapContainer.style = 'position:relative; height:540px; border-radius: 12px;';
-
-const map = ChoroplethMap.create(mapContainer, datasets);
-invalidation.then(() => map.destroy());
-```
-
-<div class="grid grid-cols-3" style="grid-auto-rows: min-content;">
-  <div class="card" style="display:flex; flex-direction: column; gap: 25px;">
-    <div stye="display: inline-block;">
-      ${emissionsIndicatorInput}
-      ${incomeIndicatorInput}
-    </div>
-    <div style="display:flex; flex-direction:column; gap:15px;">
-      ${
-        Plot.legend(
-          {color: 
-            {
-              type: "threshold",
-              domain: emissionsIndicatorData[currentDatasetIndex].thresholds,
-              range: emissionsIndicatorData[currentDatasetIndex].range,
-              tickFormat: (d) => {return emissionsIndicator.value == 'total_emissions' ? (d/1000000).toFixed(2) : d.toFixed(2)},
-              width: 900,
-              label: `${emissionsIndicator.name} (${emissionsIndicator.units})`,
-            }
-          }
-        )
-      }
-      ${sliderElement}
-      <!-- Tick plot -->
-      ${resize((width) =>
-        Plot.plot({
-          height: 80,
-          x: {
-            label: "Mitjana de la renda per unitat de consum (2022)"
-          },
-          marks: [
-            Plot.tickX(emissionsData, {
-              x: "incomeValue",
-              strokeOpacity: 0.5,
-              stroke: (d) =>
-                d.incomeValue >= incomeRange[0] && d.incomeValue <= incomeRange[1] ? getTickColor(d.class) : "#d9d9d9"
-            })
-          ]
-        })
-      )}
-      ${resize((width) => 
-        Plot.plot({
-          height: 200,
-          color: {
-            type: "categorical",
-            domain: Array.from({ length: 7 }, (_, i) => i.toString()),
-            range: emissionsIndicator.colors
-          },
-          y: { grid: true, label: `Nombre de ${valuesByLevel[currentDatasetIndex].censusLevel}`}, // Per mantenir escala -> domain: [0, mostFrequentClass[1]] 
-          x: { domain: Array.from({ length: 7 }, (_, i) => i.toString()), tickFormat: null, ticks: 0, label: null},
-          marks: [
-            Plot.barY(
-              histogramData,
-              Plot.groupX({ y: "count" }, { x: "class", fill: "class", tip:true })
-            ),
-            Plot.ruleY([0])
-          ]
-        })
-      )}
-    </div>
-  </div>
-  <div class="grid-colspan-2  grid-rowspan-3 card" style="display:flex; flex-direction: column;  gap: 15px;">
-    ${informationPhrase}
-    ${resize((width) => mapContainer)}
-  </div>
-  <div class="card">
-    <div>
-      ${hoverItemHeader}
-    </div>
-    <div style="display: flex; flex-direction: row; gap: 15px;">
-      <div class="card" style="flex: 1;">
-        ${hoveredItemCard(hoveredInfo.emissionsData, emissionsIndicator, 'emissions')}
-      </div>
-      <div class="card" style="flex: 1;">
-        ${hoveredItemCard(hoveredInfo.incomeData, incomeIndicator, 'demografic')}
-      </div>
-    </div>
-  </div>
-</div>
-
-```js
-const informationPhrase = html`
-    <h4>
-      <span class="indicador-emissions">${emissionsIndicator.name}</span>
-      dels edificis de 
-      </span>
-      <span>${valuesByLevel[currentDatasetIndex].censusLevel}</span>
-      amb
-      <span class="indicador-demografic" ">${lowercaseFirstLetter(incomeIndicator.name)}</span>
-      entre 
-      <span>${Number.isInteger(incomeRange[0]) ? incomeRange[0].toString() : incomeRange[0].toFixed(2)} €</span>
-      i
-      <span>${Number.isInteger(incomeRange[1]) ? incomeRange[1].toString() : incomeRange[1].toFixed(2)} €</span>
-    </h4>
-  `;
-```
-
-```js
-const hoverItemHeader = html` <h3>
-  ${hoveredInfo.names ? hoveredInfo.names.filter((n) => n !== '').join(' / ') : ''}
-</h3>`;
-```
-
-```js
-const hoveredItemCard = (data, indicator, type) => {
-  if (!hoveredPolygonId) {
-    return html` <div
-      style="display: flex; gap: 20px; justify-content: space-between; height: 100%;"
-    >
-      <div style="flex: 1; display: flex; flex-direction: column;">
-        <h5>${indicator.name}</h5>
-        <div style="display: flex; flex-direction: row; gap:4px; align-items: end"></div>
-      </div>
-    </div>`;
-  } else if (!data.value) {
-    return html` <div
-      style="display: flex; gap: 20px; justify-content: space-between; height: 100%;"
-    >
-      <div style="flex: 1; display: flex; flex-direction: column;">
-        <h5>${indicator.name}</h5>
-        <div style="display: flex; flex-direction: row; gap:4px; align-items: end">
-          <h1 class="${type == 'emissions' ? 'indicador-emissions' : 'indicador-demografic'}">
-            ${'Sense dades'}
-          </h1>
-        </div>
-      </div>
-    </div>`;
-  }
-
-  return html` <div style="display: flex; gap: 20px; justify-content: space-between; height: 100%;">
-    <div style="flex: 1; display: flex; flex-direction: column;">
-      <h5>${indicator.name}</h5>
-      <div style="display: flex; flex-direction: row; gap:4px; align-items: end">
-        <h1 class="${type == 'emissions' ? 'indicador-emissions' : 'indicador-demografic'}">
-          ${Number.isInteger(data.value)
-            ? data.value.toString()
-            : emissionsIndicator.value == 'total_emissions'
-              ? (data.value / 1000000).toFixed(2)
-              : data.value.toFixed(2)}
-        </h1>
-        <h3 class="${type == 'emissions' ? 'indicador-emissions' : 'indicador-demografic'}">
-          (${indicator.units})
-        </h3>
-      </div>
-      <div style="display: flex; flex-direction: row; gap:4px; align-items: end">
-        <h3>Posició</h3>
-        <h2>${data.pos}</h2>
-        <h3>de</h3>
-        <h2>${data.totalValues}</h2>
-      </div>
-    </div>
-  </div>`;
-};
-```
-
-
-<!--    Functions & Helpers    -->
-```js
-const lowercaseFirstLetter = (str) => str.charAt(0).toLowerCase() + str.slice(1);
-
-function getTickColor(val) {
-  return d3.scaleThreshold(
-    Array.from({ length: 7 }, (_, i) => i),
-    emissionsIndicator.colors
-  )(val);
-}
-
-function getEmissionsData(datasetIndex) {
-  const index = datasetIndex;
-  const getEntryClass = (value) =>
-    emissionsIndicatorData[index].bins
-      .findIndex((d) => {
-        return d.x0 != d.x1 ? value >= d.x0 && value < d.x1 : value >= d.x0;
-      })
-      .toString();
-
-  const valuesByClass = datasets[index]
-    .map((d) => {
-      const emissionsValue = d[emissionsIndicator.value];
-      const incomeValue = d[incomeIndicator.value];
-      const id = d[valuesByLevel[datasetIndex].id];
-      return { id, class: getEntryClass(emissionsValue), emissionsValue, incomeValue };
-    })
-    .sort((a, b) => a.emissionsValue - b.emissionsValue);
-
-  // const mostFrequentClass = d3.greatest(
-  //   d3.rollup(valuesByClass, v => v.length, d => d.class),
-  //   ([, count]) => count
-  // );
-
-  return valuesByClass;
-
-  return null;
-}
-
-function getHoveredNames(hoveredPolygon, currentDatasetIndex) {
-  if (hoveredPolygon) {
-    const sectionCode = currentDatasetIndex == 0 ? hoveredPolygon.slice(-3) : '';
-    const districtCode = currentDatasetIndex == 0 ? hoveredPolygon.slice(6, 8) : '';
-    const municipiCode =
-      currentDatasetIndex == 0
-        ? hoveredPolygon.slice(0, -5)
-        : currentDatasetIndex == 1
-          ? hoveredPolygon
-          : '';
-
-    if (municipisDict[municipiCode]) {
-      const municipiName =
-        currentDatasetIndex == 0 || currentDatasetIndex == 1
-          ? municipisDict[municipiCode].municipi
-          : '';
-      const comarcaName =
-        currentDatasetIndex == 2
-          ? municipisDict.find((d) => d.codi_comarca == hoveredPolygon).comarca
-          : municipisDict[municipiCode].comarca;
-
-      return [districtCode, sectionCode, municipiName, comarcaName];
-    }
-  }
-  return [''];
-}
-```
-
-```js
-function getHoveredInfo(hoveredPolygonId, currentDatasetIndex) {
-  const names = getHoveredNames(hoveredPolygonId, currentDatasetIndex);
-
-  const incomeValues = incomeIndicatorData[currentDatasetIndex].values;
-  const incomeDataPos = incomeValues.findIndex((obj) => obj.id === hoveredPolygonId);
-  const incomeValue = incomeDataPos !== -1 ? incomeValues[incomeDataPos].value : null;
-
-  const emissionsDataPos = emissionsData.findIndex((obj) => obj.id === hoveredPolygonId);
-  const emissionsDataValue =
-    emissionsDataPos !== -1 ? emissionsData[emissionsDataPos].emissionsValue : null;
+// Calculate max values for sparkbar scaling - reactive to level changes
+const indicatorMaxValues = (() => {
+  const level = clickedPolygonLevel ?? currentDatasetIndex;
+  const dataset = datasets[level];
 
   return {
-    names,
-    incomeData: { value: incomeValue, pos: incomeDataPos, totalValues: emissionsData.length },
-    emissionsData: {
-      value: emissionsDataValue,
-      pos: emissionsDataPos,
-      totalValues: incomeValues.length
-    }
+    count: d3.max(dataset, d => d.count) || 1,
+    meanEmissions: d3.max(dataset, d => d.mean_emissions) || 1,
+    totalEmissions: (d3.max(dataset, d => d.total_emissions) || 1000000) / 1000000,
+    meanEnergyQual: 7,  // Fixed scale (1-7)
+    meanEmissionsQual: 7,  // Fixed scale (1-7)
+    totalPrimaryEnergy: d3.max(dataset, d => d.total_primary_energy) || 1,
+    meanPrimaryEnergy: d3.max(dataset, d => d.mean_primary_energy) || 1,
+    totalSurface: d3.max(dataset, d => d.total_surface) || 1,
+    meanSurface: d3.max(dataset, d => d.mean_surface) || 1,
+    totalCost: d3.max(dataset, d => d.total_cost) || 1,
+    meanCost: d3.max(dataset, d => d.mean_cost) || 1
+  };
+})();
+```
+
+```js
+
+function createSparkbarFormatter(indicatorKey, maxValue, allValues) {
+  return (value) => {
+    if (value == null) return html`<span>—</span>`;
+
+    const widthPercent = Math.min((value / maxValue) * 100, 100);
+
+    return html`<div style="
+      background: linear-gradient(to right, #555 ${widthPercent}%, #ddd ${widthPercent}%);
+      width: 100%;
+      border-radius: 3px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 0 6px;
+      box-sizing: border-box;
+      font-size: 0.85em;
+    "><span class="halo">${value.toFixed(2)}</span></div>`;
   };
 }
 ```
 
 ```js
-function getEmissionsIndicatorData(indicator) {
-  const data = [];
-  datasets.forEach((dataset, i) => {
-    const emissionsIndicatorArray = dataset.map((d) => d[indicator.value]);
-
-    const nClasses = indicator.colors.length;
-    let bins;
-    let fullDomain;
-    let thresholds;
-
-    if (indicator.binOperation == 'ckmeans') {
-      const ckMeans = ckmeans(emissionsIndicatorArray, nClasses);
-      const ckThresholds = ckMeans.map((d) => d3.min(d));
-
-      bins = d3
-        .bin()
-        .thresholds(ckThresholds)
-        .value((d) => d)(emissionsIndicatorArray);
-
-      const stops = bins.map((d) => d.x0);
-      stops.push(bins[bins.length - 1].x1);
-
-      thresholds = [...bins.map((d) => d.x1).slice(0, bins.length - 1)];
-      fullDomain = [...stops]; // color stop1 color stop2 color finalStop color
-    } else if (indicator.binOperation === 'logarithmic') {
-      const min = d3.min(emissionsIndicatorArray);
-      const max = d3.max(emissionsIndicatorArray);
-      const nClasses = indicator.colors.length;
-
-      const logMin = Math.log10(min);
-      const logMax = Math.log10(max);
-
-      const logStops = Array.from({ length: nClasses }, (_, i) =>
-        Math.pow(10, logMin + (i * (logMax - logMin)) / (nClasses - 1))
-      );
-
-      logStops[0] = min;
-      logStops[logStops.length - 1] = max;
-
-      thresholds = logStops.slice(1);
-
-      bins = d3
-        .bin()
-        .thresholds(thresholds)
-        .value((d) => d)(emissionsIndicatorArray);
-
-      const stops = bins.map((d) => d.x0);
-      stops.push(bins[bins.length - 1].x1);
-
-      fullDomain = stops;
-    }
-
-    data.push({ layerId: i, fullDomain, thresholds, range: indicator.colors, bins });
-  });
-
-  return data;
-}
-
-function getIncomeIndicatorData(indicator) {
-  const data = [];
-  datasets.forEach((dataset, i) => {
-    if (indicator.levels[i]) {
-      const incomeEntries = dataset
-        .map((d) => ({ id: d[valuesByLevel[i].id], value: d[indicator.value] }))
-        .filter((v) => v.value != null && !isNaN(v.value))
-        .sort((a, b) => a.value - b.value);
-
-      const incomeValues = incomeEntries.map((d) => d.value);
-
-      const sum = incomeValues.reduce((a, b) => a + b, 0);
-      const count = incomeValues.length;
-
-      data.push({
-        mean: sum / count,
-        min: incomeValues[0],
-        max: incomeValues[incomeValues.length - 1],
-        q1: d3.quantile(incomeValues, 0.25),
-        q3: d3.quantile(incomeValues, 0.75),
-        values: incomeEntries
-      });
-    } else {
-      data.push(null);
-    }
-  });
-
-  return data;
-}
+const modeToggleButtons = html`
+  <button class="mode-toggle-btn ${mapMode === 'choropleth' ? 'active' : ''}"
+    onclick=${() => { setMapMode('choropleth'); if (mapLoaded) map.setMode('choropleth'); }}>
+    Coropletes
+  </button>
+  <button class="mode-toggle-btn ${mapMode === 'cluster' ? 'active' : ''}"
+    onclick=${() => { setMapMode('cluster'); if (mapLoaded) map.setMode('cluster'); }}>
+    Clústers
+  </button>`;
 ```
-
 
 ```js
-// const legend = document.createElement('div');
-// legend.style.position = 'absolute';
-// legend.style.bottom = '1rem';
-// legend.style.right = '1rem';
-// legend.style.background = 'white';
-// legend.style.padding = '0.5rem 0.75rem';
-// legend.style.border = '1px solid #ccc';
-// legend.style.borderRadius = '0.5rem';
-// legend.style.boxShadow = '0 2px 4px rgba(0,0,0,0.15)';
-// legend.style.fontSize = '0.8rem';
-// legend.style.lineHeight = '1.2rem';
-// legend.style.zIndex = '10';
-
-// // Append to map container
-// mapContainer.appendChild(legend);
+// Re-run whenever mapMode changes; double-rAF waits for Observable's reactive
+// DOM updates to finish before measuring the card's new dimensions.
+{
+  mapMode;
+  requestAnimationFrame(() => requestAnimationFrame(updateAnalysisZone));
+}
 ```
 
-<!-- ```js
-// Remove existing container if it exists
-let existing = mapContainer.querySelector('.bottom-right-cards');
-if (existing) existing.remove();
+<!--    Map & HTML    -->
+```js
+const mapContainer = display(document.createElement("div"));
 
-// Create outer card container
-const outerCard = document.createElement('div');
-outerCard.className = 'card bottom-right-cards'; // add card class and marker class
-outerCard.style.position = 'absolute';
-outerCard.style.bottom = '1rem';
-outerCard.style.right = '1rem';
-outerCard.style.padding = '0.75rem'; // smaller padding
-outerCard.style.fontSize = '0.85rem'; // compact font
-outerCard.style.display = 'flex';
-outerCard.style.flexDirection = 'column';
-outerCard.style.gap = '10px';
-outerCard.style.zIndex = '10';
-outerCard.style.maxWidth = '300px'; // optional constraint
+Object.assign(mapContainer.style, {
+  position: "fixed",
+  inset: "0",
+  zIndex: "-5",
+});
 
-// Optional header
-const header = document.createElement('div');
-header.innerHTML = hoveredInfo.names.filter(n => n !== '').join(' / ');
-header.style.fontWeight = '600';
-outerCard.appendChild(header);
+const map = MapManager.create(mapContainer, datasets, pointsData);
+invalidation.then(() => map.destroy());
 
-// Inner horizontal flex container
-const innerContainer = document.createElement('div');
-innerContainer.style.display = 'flex';
-innerContainer.style.flexDirection = 'row';
-innerContainer.style.gap = '10px';
+const analysisZoneEl = display(document.createElement('div'));
+analysisZoneEl.className = 'cluster-analysis-zone hidden';
+```
 
-// Create and append the cards
-const incomeCard = document.createElement('div');
-incomeCard.className = 'card';
-incomeCard.style.flex = '1';
-incomeCard.style.fontSize = '0.75rem'; // shrink inner text
-incomeCard.style.padding = '0.5rem';
-incomeCard.appendChild(hoveredItemCard(hoveredInfo.incomeData, incomeIndicator, 'emissions'));
+```js
+// This cell re-runs when mapLoaded flips, so tear down its listeners first.
+const _ac = new AbortController();
+invalidation.then(() => _ac.abort());
 
-const emissionsCard = document.createElement('div');
-emissionsCard.className = 'card';
-emissionsCard.style.flex = '1';
-emissionsCard.style.fontSize = '0.75rem';
-emissionsCard.style.padding = '0.5rem';
-emissionsCard.appendChild(hoveredItemCard(hoveredInfo.emissionsData, emissionsIndicator, 'demografic'));
+function updateAnalysisZone() {
+  const topCard = document.querySelector('.card.glass');
+  if (!topCard || !mapLoaded) return;
+  const r = topCard.getBoundingClientRect();
+  const vw = window.innerWidth, vh = window.innerHeight;
+  const sidebarEl = document.getElementById('observablehq-sidebar');
+  const sidebarRight = sidebarEl ? Math.max(0, sidebarEl.getBoundingClientRect().right) : 0;
+  const left = Math.max(sidebarRight + 8, 46);
+  const top = r.bottom + 16, right = vw - 46, bottom = vh - 46;
+  Object.assign(analysisZoneEl.style, {
+    top: `${top}px`, left: `${left}px`,
+    width: `${right - left}px`, height: `${bottom - top}px`
+  });
+  map.setClusterAnalysisRect({ top, left, right, bottom });
+}
 
-innerContainer.appendChild(incomeCard);
-innerContainer.appendChild(emissionsCard);
+window.addEventListener('resize', updateAnalysisZone, { signal: _ac.signal });
+document.getElementById('observablehq-sidebar-toggle')
+  ?.addEventListener('change', () => requestAnimationFrame(updateAnalysisZone), { signal: _ac.signal });
 
-// Final assembly
-outerCard.appendChild(innerContainer);
-mapContainer.appendChild(outerCard);
-``` -->
+const _sidebarCloseBtn = document.getElementById('observablehq-sidebar-close');
+function _syncCloseBtn() {
+  if (!_sidebarCloseBtn) return;
+  const isDesktop = window.matchMedia('(min-width: calc(912px + 6rem))').matches;
+  const toggle = document.getElementById('observablehq-sidebar-toggle');
+  _sidebarCloseBtn.style.visibility =
+    toggle?.checked || (toggle?.indeterminate && isDesktop) ? 'visible' : 'hidden';
+}
+document.getElementById('observablehq-sidebar-toggle')
+  ?.addEventListener('change', _syncCloseBtn, { signal: _ac.signal });
+window.addEventListener('resize', _syncCloseBtn, { signal: _ac.signal });
+requestAnimationFrame(_syncCloseBtn);
+```
 
-<!-- <div class="card" style="flex">
-${resize((width) =>
-    Plot.plot({
-      height: 200,
-      color: {
-        type: "threshold",
-        domain: emissionsIndicatorData[currentDatasetIndex].bins.map((d) => d.x0),
-        range: emissionsIndicator.colors
-      },
-      y: { grid: true, label: `Nombre de ${valuesByLevel[currentDatasetIndex].censusLevel}` },
-      marks: [
-        Plot.rectY(emissionsIndicatorData[currentDatasetIndex].bins, {
-          x1: "x0",
-          x2: "x1",
-          y2: "length",
-          channels: {
-            Mida: "y",
-            Categoria: "x"
-          },
-          tip: {
+${hoveredPolygonId && !isMouseOverUI && !isMouseButtonPressed && mapMode === 'choropleth' ? mapTooltip() : ''}
+
+${showClusterModal && clusterModalData ? clusterModal() : ''}
+
+```js
+const headerExtra = mapMode === 'cluster'
+  ? html`
+      <div class="cluster-pintar-per">
+        <span class="cluster-pintar-label">Pintar per:</span>
+        ${clusterIndicatorInput}
+      </div>`
+  : '';
+
+  const clusterBody = viewportStats && viewportStats.count > 0
+  ? html`
+      <div class="cluster-zone-stats">
+        <div class="cluster-zone-layout">
+          <!-- Zone info: count + surface -->
+          <div class="cluster-zone-info">
+            <span class="cluster-zone-title">
+              Zona d'anàlisi — <strong>${viewportStats.count} certificats</strong>
+            </span>
+            <span class="cluster-zone-surface">
+              Superfície total <strong>${d3.format(',.0f')(viewportStats.sumMetresCadastre)} m²</strong>
+            </span>
+          </div>
+          <!-- Stats area: each stat paired with its ramp -->
+          <div class="cluster-stats-area">
+            <div class="cluster-stat-col">
+              <div class="cluster-stat-cell">
+                <span class="cluster-stat-label">Qualif. energètica mitjana</span>
+                <div class="cluster-stat-value-row">
+                  <span class="cluster-stat-value">
+                    ${viewportStats.meanQualEnergia != null ? viewportStats.meanQualEnergia.toFixed(2) : '—'}
+                  </span>
+                  <span class="cluster-stat-dot"
+                    style="background:${qualifColor(viewportStats.meanQualEnergia)};"></span>
+                </div>
+              </div>
+              ${clusterColorRamp(viewportStats.meanQualEnergia, 'qual')}
+            </div>
+            <div class="cluster-stat-col">
+              <div class="cluster-stat-cell">
+                <span class="cluster-stat-label">Qualif. d'emissions mitjana</span>
+                <div class="cluster-stat-value-row">
+                  <span class="cluster-stat-value">
+                    ${viewportStats.meanQualEmissions != null ? viewportStats.meanQualEmissions.toFixed(2) : '—'}
+                  </span>
+                  <span class="cluster-stat-dot"
+                    style="background:${qualifColor(viewportStats.meanQualEmissions)};"></span>
+                </div>
+              </div>
+              ${clusterColorRamp(viewportStats.meanQualEmissions, 'qual')}
+            </div>
+            <div class="cluster-stat-col">
+              <div class="cluster-stat-cell">
+                <span class="cluster-stat-label">Emissions</span>
+                <div class="cluster-stat-value-row">
+                  <span class="cluster-stat-value">
+                    ${viewportStats.meanEmissionsCo2 != null
+                      ? `${viewportStats.meanEmissionsCo2.toFixed(1)} kg CO₂/m²`
+                      : '—'}
+                  </span>
+                  <span class="cluster-stat-dot"
+                    style="background:${emissionsColor(viewportStats.meanEmissionsCo2)};"></span>
+                </div>
+              </div>
+              ${clusterColorRamp(viewportStats.meanEmissionsCo2, 'emissions')}
+            </div>
+          </div><!-- /cluster-stats-area -->
+        </div><!-- /cluster-zone-layout -->
+      </div>`
+  : '';
+
+const choroplethBody = (() => {
+  if (window._choroplethCollapsed === undefined) window._choroplethCollapsed = false;
+
+  const el = html`
+    <!-- CHOROPLETH MODE -->
+    <div class="glassText">
+      ${informationPhrase}
+    </div>
+    <button class="choropleth-collapse-toggle" aria-expanded="true">
+      <span class="choropleth-collapse-label">Filtres i llegenda</span>
+      <span class="choropleth-collapse-icon">▲</span>
+    </button>
+    <div class="choropleth-collapsible">
+      <div class="choropleth-selectors-wrapper" style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
+        <div class="choropleth-selector">
+          <p class="glassText" style="margin:0;">Indicador d'emissions</p>
+          ${emissionsIndicatorInput}
+        </div>
+        <div class="choropleth-selector">
+          <p class="glassText" style="margin:0;">Indicador sociodemogràfic</p>
+          ${incomeIndicatorInput}
+        </div>
+      </div>
+      <!-- Choropleth controls: legend, histogram, slider, tick plot -->
+      <div class="card choropleth-controls" style="flex:1; min-width:0; gap:8px;">
+        <!-- Legend -->
+        ${Plot.legend({
+          color: {
+            type: "threshold",
+            domain: emissionsIndicatorData[currentDatasetIndex].thresholds,
+            range: emissionsIndicatorData[currentDatasetIndex].range,
+            tickFormat: (d) => {
+              const value = emissionsIndicator.value === 'total_emissions' ? d / 1000000 : d;
+              return formatNumber(value);
+            },
+            label: `${emissionsIndicator.name} (${emissionsIndicator.units})`,
+          }
+        })}
+        <!-- Histogram -->
+        ${resize((width) =>
+          Plot.plot({
+            height: 150,
+            color: {
+              type: "categorical",
+              domain: Array.from({ length: 7 }, (_, i) => i.toString()),
+              range: emissionsIndicator.colors
+            },
+            y: {
+              grid: true,
+              label: `Nombre de ${valuesByLevel[currentDatasetIndex].censusLevel}`,
+            },
+            x: {
+              domain: Array.from({ length: 7 }, (_, i) => i.toString()),
+              tickFormat: null,
+              tickSize: 0,
+              label: null
+            },
+            marks: [
+              Plot.barY(
+                histogramData,
+                Plot.groupX({
+                  y: "count",
+                  title: (d) => {
+                    const bins = emissionsIndicatorData[currentDatasetIndex].bins;
+                    const bin = bins[parseInt(d[0]?.class)];
+                    if (!bin) return '';
+                    const scale = emissionsIndicator.value === 'total_emissions' ? 1 / 1000000 : 1;
+                    return `${formatNumber(bin.x0 * scale)} – ${formatNumber(bin.x1 * scale)} ${emissionsIndicator.units}\n${d.length} ${valuesByLevel[currentDatasetIndex].censusLevel}`;
+                  }
+                }, { x: "class", fill: "class", tip: true })
+              ),
+              Plot.ruleY([0])
+            ]
+          })
+        )}
+        <!-- Slider -->
+        ${sliderElement}
+        <!-- Tick plot -->
+        ${resize((width) =>
+          Plot.plot({
+            height: 80,
+            x: {
+              label: "Mitjana de la renda per unitat de consum (2022)"
+            },
+            marks: [
+              Plot.tickX(emissionsData, {
+                x: "incomeValue",
+                strokeOpacity: 0.5,
+                stroke: (d) =>
+                  d.incomeValue >= incomeRange[0] && d.incomeValue <= incomeRange[1]
+                    ? getTickColor(d.class, emissionsIndicator)
+                    : "#d9d9d9"
+              })
+            ]
+          })
+        )}
+      </div>
+    </div>`;
+
+  const btn = el.querySelector('.choropleth-collapse-toggle');
+  const collapsible = el.querySelector('.choropleth-collapsible');
+
+  if (window._choroplethCollapsed) {
+    btn.setAttribute('aria-expanded', 'false');
+    btn.classList.add('is-collapsed');
+    collapsible.classList.add('is-collapsed');
+  }
+
+  btn.addEventListener('click', () => {
+    const expanded = btn.getAttribute('aria-expanded') === 'true';
+    window._choroplethCollapsed = expanded;
+    btn.setAttribute('aria-expanded', String(!expanded));
+    btn.classList.toggle('is-collapsed', expanded);
+    collapsible.classList.toggle('is-collapsed', expanded);
+  });
+  return el;
+})();
+
+const bodyContent = mapMode === 'cluster' ? clusterBody : choroplethBody;
+```
+
+<!-- Top Card -->
+
+<div class="card glass cluster-top-card" style="margin-top:-25px; margin-bottom:25px; box-sizing:border-box;">
+  <div style="display:flex; flex-direction:column;">
+    <!-- HEADER ROW: tabs + conditional pintar-per -->
+    <div class="cluster-card-header">
+      <div style="display:flex; gap:8px;">${modeToggleButtons}</div>
+      ${headerExtra}
+    </div>
+    ${bodyContent}
+  </div>
+</div>
+
+<div id="region-card-wrapper">
+  ${showRegionCard && mapMode === 'choropleth' ? regionCard() : ''}
+</div>
+
+```js
+const mapTooltip = () => {
+  const p = mousePosition;
+
+  if (!hoveredPolygonId || hoveredPolygonId === null || p == null) return null;
+
+  const fmt = d3.format(",.2f");
+
+  const W = 240;
+  const H = 70;
+
+  const left = Math.max(8, p.x);
+  const top = Math.max(8, p.y);
+
+  return html`
+    <div class="mb-tip" style="left:${left}px; top:${top}px;">
+      <div class="mb-tip-title">
+        ${hoveredInfo.names ? hoveredInfo.names.filter((n) => n !== '').join(' / ') : ''}
+      </div>
+      <div class="mb-tip-row">
+        <span>${emissionsIndicator.name}</span>
+        <span>
+          ${hoveredInfo.emissionsData.value == null ? "—" : `${fmt(hoveredInfo.emissionsData.value)} ${emissionsIndicator.units}`}
+        </span>
+      </div>
+      <div class="mb-tip-row">
+        <span>${incomeIndicator.name}</span>
+        <span>
+          ${hoveredInfo.incomeData.value == null ? "—" : `${fmt(hoveredInfo.incomeData.value)} ${incomeIndicator.units}`}
+        </span>
+      </div>
+    </div>`;
+}
+```
+
+```js
+const regionCard = () => {
+  if (!showRegionCard || !regionCardData) return '';
+
+  const fmt = d3.format(",.1f");
+  const fmtInt = d3.format(".1f");
+
+  const { names, indicators, rankings } = regionCardData;
+
+  // Format region title (filter out empty names)
+  const regionTitle = names.filter(n => n !== '').join(' / ');
+
+  // Get current level dataset for percentile calculations
+  const level = clickedPolygonLevel ?? currentDatasetIndex;
+  const dataset = datasets[level];
+
+  // Collect all values for each indicator (for percentile-based coloring)
+  const allIndicatorValues = {
+    meanEmissions: dataset.map(d => d.mean_emissions).filter(v => v != null),
+    meanEnergyQual: dataset.map(d => d.mean_energy_qual).filter(v => v != null),
+    meanEmissionsQual: dataset.map(d => d.mean_emissions_qual).filter(v => v != null),
+    meanPrimaryEnergy: dataset.map(d => d.mean_primary_energy).filter(v => v != null),
+    meanSurface: dataset.map(d => d.mean_surface).filter(v => v != null),
+    meanCost: dataset.map(d => d.mean_cost).filter(v => v != null),
+    totalEmissions: dataset.map(d => d.total_emissions ? d.total_emissions / 1000000 : null).filter(v => v != null),
+    totalPrimaryEnergy: dataset.map(d => d.total_primary_energy).filter(v => v != null),
+    totalSurface: dataset.map(d => d.total_surface).filter(v => v != null),
+    totalCost: dataset.map(d => d.total_cost).filter(v => v != null),
+  };
+
+  // Define indicators with their keys, labels, values, and units
+  const indicatorsConfig = [
+    { key: 'meanEmissions', label: 'Emissions mitjanes', value: indicators.meanEmissions, maxValue: indicatorMaxValues.meanEmissions, units: 'kg CO₂' },
+    { key: 'meanEnergyQual', label: 'Qualificació mitjana d\'energia', value: indicators.meanEnergyQual, maxValue: indicatorMaxValues.meanEnergyQual, units: '(escala 1-7)' },
+    { key: 'meanEmissionsQual', label: 'Qualificació mitjana d\'emissions', value: indicators.meanEmissionsQual, maxValue: indicatorMaxValues.meanEmissionsQual, units: '(escala 1-7)' },
+    { key: 'meanPrimaryEnergy', label: 'Energia primària mitjana', value: indicators.meanPrimaryEnergy, maxValue: indicatorMaxValues.meanPrimaryEnergy, units: 'kWh' },
+    { key: 'meanSurface', label: 'Superfície mitjana', value: indicators.meanSurface, maxValue: indicatorMaxValues.meanSurface, units: 'm²' },
+    { key: 'meanCost', label: 'Cost anual mitjà', value: indicators.meanCost, maxValue: indicatorMaxValues.meanCost, units: '€' },
+    { key: 'totalEmissions', label: 'Emissions totals', value: indicators.totalEmissions ? indicators.totalEmissions / 1000000 : null, maxValue: indicatorMaxValues.totalEmissions, units: 'Gg CO₂' },
+    { key: 'totalPrimaryEnergy', label: 'Energia primària total', value: indicators.totalPrimaryEnergy, maxValue: indicatorMaxValues.totalPrimaryEnergy, units: 'kWh' },
+    { key: 'totalSurface', label: 'Superfície total', value: indicators.totalSurface, maxValue: indicatorMaxValues.totalSurface, units: 'm²' },
+    { key: 'totalCost', label: 'Cost anual total', value: indicators.totalCost, maxValue: indicatorMaxValues.totalCost, units: '€' },
+  ];
+
+  // Transform to table data
+  const tableData = indicatorsConfig.map(ind => ({
+    indicador: ind.label,
+    valor: ind.value,
+    _key: ind.key,
+    _maxValue: ind.maxValue,
+    _allValues: allIndicatorValues[ind.key],
+    unitat: ind.units
+  }));
+
+  const handleClose = () => {
+    setShowRegionCard(false);
+    setClickedPolygonId(null);
+    setClickedPolygonLevel(null);
+    map.clearClickedFeature();
+  };
+
+  return html`
+    <div class="card glass region-card-wrapper" style="box-sizing: border-box;"
+         onmouseenter=${() => setIsMouseOverUI(true)}
+         onmouseleave=${() => setIsMouseOverUI(false)}>
+      <!-- Header with title and close button -->
+      <div class="region-card-header">
+        <div>
+          <div class="mb-tip-title">
+          ${regionTitle}
+          </div>
+          <span>Nº certificats: ${indicators.count}</span>
+        </div>
+        <button
+          class="region-card-close"
+          onclick=${handleClose}
+          aria-label="Tancar"
+        >
+          ✕
+        </button>
+      </div>
+
+      <!-- Rankings section -->
+      ${rankings.emissions || rankings.income ? html`
+        <div class="region-card-section">
+          <div class="ranking-grid">
+            ${rankings.emissions ? html`
+              <div class="ranking-item">
+                <span class="ranking-label">${emissionsIndicator.name}</span>
+                <span>
+                  Posició <strong>${rankings.emissions.position}</strong> de ${rankings.emissions.total}
+                  <span class="ranking-percentile">(${fmt(rankings.emissions.percentile)}%)</span>
+                </span>
+              </div>
+            ` : ''}
+            ${rankings.income ? html`
+              <div class="ranking-item">
+                <span class="ranking-label">${incomeIndicator.name}</span>
+                <span>
+                  Posició <strong>${rankings.income.position}</strong> de ${rankings.income.total}
+                  <span class="ranking-percentile">(${fmt(rankings.income.percentile)}%)</span>
+                </span>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      ` : ''}
+
+      <!-- Indicators table with sparkbars -->
+      <div class="region-card-section">
+        <div class="card" style="padding: 0;">
+          ${Inputs.table(tableData, {
+            columns: ['indicador', 'valor', 'unitat'],
+            header: {
+              indicador: 'Indicador',
+              valor: 'Valor',
+              unitat: 'Unitat'
+            },
             format: {
-              y2: true,
-              x: true,
-              fill: false
-            }
-          },
-          fill: emissionsIndicatorData[currentDatasetIndex].bins.map((d) => d.x0),
-        }),
-        Plot.ruleY([0])
-      ]
-    })
-  )}
-</div> -->
-
-
-<!-- ```js
-html `
-    <div style="display: flex; margin-top: 10px; gap: 20px; align-items: stretch;">
-      <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
-        <h2>${emissionsIndicator.name}</h2>
-        <h2 class="indicador-emissions">${hoveredInfo.emissionsData.value.toFixed(2)} ${emissionsIndicator.units}</h2>
-        <h2>Posició ${hoveredInfo.emissionsData.pos} de ${emissionsData.length}</h2>
+              valor: (value, i, data) => {
+                const row = tableData[i];
+                return createSparkbarFormatter(row._key, row._maxValue, row._allValues)(value);
+              }
+            },
+            width: {
+              indicador: '45%',
+              valor: '35%',
+              unitat: '20%'
+            },
+            layout: 'auto',
+            rows: window.innerWidth < 600 ? 4 : REGION_CARD_TABLE_ROWS
+          })}
+        </div>
       </div>
+    </div>
+  `;
+};
+```
 
-      <div style="width: 1px; background: repeating-linear-gradient(
-        to bottom,
-        #999,
-        #999 4px,
-        transparent 4px,
-        transparent 8px
-      );"></div>
+```js
+const QUAL_LABELS = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
 
-      <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; ">
-        <h2>${incomeIndicator.name}</h2>
-        <h2 class="indicador-demografic">${hoveredInfo.incomeData.value} ${incomeIndicator.units}</h2>
-        <h2>Posició ${hoveredInfo.incomeData.pos} de ${incomeIndicatorData[currentDatasetIndex].values.length}</h2>
+const copyRef = async (ref) => {
+  await navigator.clipboard.writeText(ref);
+  const toast = document.createElement('div');
+  toast.className = 'copy-toast';
+  toast.textContent = 'Codi copiat';
+  document.body.appendChild(toast);
+  toast.addEventListener('animationend', () => toast.remove());
+};
+
+const clusterModal = () => {
+  const { refs, vals, coords, indicator } = clusterModalData;
+  const fmt = d3.format(',.2f');
+  const handleClose = () => {
+    setShowClusterModal(false);
+    setClusterModalData(null);
+  };
+  return html`
+    <div class="cluster-modal-backdrop" onclick=${handleClose}>
+      <div class="card glass cluster-modal" onclick=${(e) => e.stopPropagation()}>
+        <div class="region-card-header">
+          <span>${refs.length} certificat${refs.length > 1 ? 's' : ''} — ${indicator.name}</span>
+          <button class="region-card-close" onclick=${handleClose}>✕</button>
+        </div>
+        <ul class="cluster-modal-list">
+          ${refs.map((ref, i) => {
+            const [lon, lat] = coords?.[i] ?? [];
+            const mapsUrl = lat != null
+              ? `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lon}`
+              : null;
+            return html`
+              <li>
+                <span class="cluster-modal-ref-group">
+                  ${mapsUrl
+                    ? html`<a class="cluster-modal-ref" href=${mapsUrl} target="_blank" rel="noopener" title="Obre a Google Maps Street View">${ref}</a>`
+                    : html`<span class="cluster-modal-ref">${ref}</span>`
+                  }
+                  <button class="cluster-modal-copy" onclick=${() => copyRef(ref)} title="Copia la referència cadastral">Copia</button>
+                </span>
+                ${indicator.type === 'qual'
+                  ? html`<span class="cluster-modal-qual qual-${vals[i]}">${QUAL_LABELS[vals[i] - 1] ?? '—'}</span>`
+                  : html`<span class="cluster-modal-value">${vals[i] != null ? fmt(vals[i]) : '—'} <small>${indicator.units}</small></span>`
+                }
+              </li>
+            `;
+          })}
+        </ul>
       </div>
-    </div>`
-``` -->
+    </div>
+  `;
+};
+```
+
+```js
+const informationPhrase = (() => {
+  const lowerFlash = _rangeTracker.lowerShouldFlash;
+  const upperFlash = _rangeTracker.upperShouldFlash;
+  _rangeTracker.lowerShouldFlash = false;
+  _rangeTracker.upperShouldFlash = false;
+  return html`
+    <h3>
+      <span>
+      <strong>${emissionsIndicator.name}</strong>
+      dels edificis de ${valuesByLevel[currentDatasetIndex].censusLevel} amb <strong>${lowercaseFirstLetter(incomeIndicator.name)}</strong> entre <span class="income-range-value income-range-lower${lowerFlash ? ' income-value--flash' : ''}">${formatNumber(incomeRange[0], '€')}</span> i <span class="income-range-value income-range-upper${upperFlash ? ' income-value--flash' : ''}">${formatNumber(incomeRange[1], '€')}</span>
+      </span>
+    </h3>
+  `;
+})();
+```
+
+<!--    Functions & Helpers    -->
+<!-- Helper functions have been extracted to:
+     - src/components/dataProcessing.js
+     - src/components/mapHelpers.js
+-->

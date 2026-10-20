@@ -8,10 +8,9 @@ style: ./dashboard.css
 import * as vgplot from "npm:@uwdata/vgplot";
 import { html } from "npm:htl";
 import {
-  qualifColorRange,
+  qualifColorScheme,
   categoricalScheme5,
 } from "./components/colors.js";
-import { zonaClimaticaBeeswarm } from "./components/zonaClimaticaBeeswarm.js";
 
 // Fitxers
 const labels = FileAttachment("./data/labels.json").json();
@@ -21,13 +20,9 @@ const municipisDict = FileAttachment("./data/municipisDict.json").json();
 
 ```js
 // Diccionaris
-const municipisByCode = municipis.reduce((dict, row) => {
-  const codi = row.codi;
-  if (!(codi in dict)) {
-    dict[codi] = row.nom;
-  }
-  return dict;
-}, {});
+const municipisByCode = Object.fromEntries(
+  municipis.map(row => [row.codi, row.nom])
+);
 
 const qualifColorDomain = [1, 2, 3, 4, 5, 6, 7];
 
@@ -41,11 +36,11 @@ const qualifLabelsLookup = {
   7: "G",
 };
 
-const qualifColorScheme = d3
-  .scaleLinear()
-  .domain(qualifColorDomain)
-  .range(qualifColorRange)
-  .interpolate();
+// const qualifColorScheme = d3
+//   .scaleLinear()
+//   .domain(qualifColorDomain)
+//   .range(qualifColorScheme)
+//   .interpolate();
 ```
 
 ```js
@@ -71,12 +66,7 @@ await sql`
     normativa,
     motiu
   FROM certificats
-  WHERE emissions_de_co2 IS NOT NULL 
-    AND metres_cadastre IS NOT NULL 
-    AND size < 200
-    AND size > 15
-    AND emissions < 80
-    AND emissions > 5
+  WHERE emissions_de_co2 IS NOT NULL
 `;
 
 // VG Client
@@ -119,16 +109,29 @@ SELECT
   COUNT(*) AS n_certificats,
   AVG(emissions_de_co2) AS avg_emissions,
   AVG(qual_emissions) AS avg_qual_emissions,
-  SUM(emissions_de_co2) AS sum_emissions,
+  SUM(emissions_de_co2 * metres_cadastre) AS sum_emissions,
   municipis.poblacio
 FROM certificats
 INNER JOIN municipis
  ON certificats.codi_poblacio = municipis.codi
 WHERE emissions_de_co2 IS NOT NULL
+  AND metres_cadastre > 0
   AND zona_climatica IS NOT NULL
   AND codi_poblacio IS NOT NULL
 GROUP BY zona_climatica, codi_poblacio, municipis.poblacio
 ORDER BY avg_emissions ASC;
+```
+
+```js
+const zoneImageUrls = {
+  "B3": await FileAttachment("./images/zones-climatiques/b3.png").url(),
+  "C2": await FileAttachment("./images/zones-climatiques/c2.png").url(),
+  "C3": await FileAttachment("./images/zones-climatiques/c3.png").url(),
+  "D1": await FileAttachment("./images/zones-climatiques/d1.png").url(),
+  "D2": await FileAttachment("./images/zones-climatiques/d2.png").url(),
+  "D3": await FileAttachment("./images/zones-climatiques/d3.png").url(),
+  "E1": await FileAttachment("./images/zones-climatiques/e1.png").url(),
+};
 ```
 
 ```js
@@ -138,7 +141,7 @@ const avg_climate_zone = Array.from(
     .reduce((acc, curr) => {
       const zona = curr.zona_climatica;
       const item = acc.get(zona) || { totalSum: 0, totalCount: 0 };
-      item.totalSum += curr.sum_emissions || 0;
+      item.totalSum += (curr.avg_emissions || 0) * (curr.n_certificats || 0);
       item.totalCount += curr.n_certificats || 0;
       acc.set(zona, item);
       return acc;
@@ -148,6 +151,35 @@ const avg_climate_zone = Array.from(
   avg_emissions: totalSum / totalCount,
 }));
 ```
+
+```sql id=avg_by_zona
+SELECT
+  zona_climatica,
+  SUM(emissions_de_co2) / COUNT(*) AS avg_emissions
+FROM certificats
+WHERE emissions_de_co2 IS NOT NULL AND zona_climatica IS NOT NULL
+GROUP BY zona_climatica
+```
+
+```sql id=total_certificats
+SELECT COUNT(*) AS n FROM certificats WHERE emissions_de_co2 IS NOT NULL
+```
+
+```js
+const totalEmissions = d3.sum([...qualif_emissions_grouped], d => d.frequency);
+const pctWorst3 = (d3.sum([...qualif_emissions_grouped].filter(d => d.qual_emissions >= 5), d => d.frequency) / totalEmissions * 100).toFixed(1);
+const pctBest3 = (d3.sum([...qualif_emissions_grouped].filter(d => d.qual_emissions <= 3), d => d.frequency) / totalEmissions * 100).toFixed(1);
+
+const avgByZona = Object.fromEntries([...avg_by_zona].map(d => [d.zona_climatica, d.avg_emissions]));
+const pctDiffB3E1 = ((avgByZona["E1"] - avgByZona["B3"]) / avgByZona["B3"] * 100).toFixed(0);
+
+const totalCertificats = [...total_certificats][0].n.toLocaleString('ca-ES');
+```
+
+<div class="section-intro">
+  <h2>Visió general del parc d'edificis</h2>
+  <p>Més d'un <strong class="stat">${pctWorst3}%</strong> dels edificis a Catalunya estan qualificats amb una de les 3 pitjors categories en quant a emissions. Pel contrari, només un <strong class="stat">${pctBest3}%</strong> formen part de les 3 millors qualificacions.</p>
+</div>
 
 <!-- FIRST: QUALIFICATIONS HISTOGRAMS -------------------------------------------------------------------------- -->
 
@@ -159,7 +191,7 @@ const avg_climate_zone = Array.from(
         height: 300,
         marginLeft: 25,
         marginRight: 55,
-        color: { domain: qualifColorDomain, range: qualifColorRange},
+        color: { domain: qualifColorDomain, range: qualifColorScheme},
         x: { grid: true, label: "Nombre de certificats", labelOffset: 35 },
         y: { tickFormat: (d) => qualifLabelsLookup[d], label: null},
         marks: [
@@ -201,7 +233,7 @@ const avg_climate_zone = Array.from(
         height: 300,
         marginLeft: 25,
         marginRight: 55,
-        color: { domain: qualifColorDomain, range: qualifColorRange},
+        color: { domain: qualifColorDomain, range: qualifColorScheme},
         x: { grid: true, label: "Nombre de certificats", labelOffset: 35 },
         y: { tickFormat: (d) => qualifLabelsLookup[d], label: null},
         marks: [
@@ -238,20 +270,26 @@ const avg_climate_zone = Array.from(
   </div>
 </div>
 
+<div class="section-intro">
+  <h2>La importància de la zona climàtica</h2>
+  <p>La zona climàtica és un factor determinant per posar en context la despesa energètica i la generació d'emissions dels edificis. Els municipis situats a zones més fredes (zona E1) emeten de mitjana un <strong class="stat">${pctDiffB3E1}%</strong> més que els de zones litorals (zona B3). A continuació es mostren les emissions mitjanes dels edificis de cada municipi. Explora quins municipis s'allunyen més de la mitjana d'emissions de la seva zona climàtica.</p>
+</div>
+
 <!-- THIRD: CLIMATE ZONES -------------------------------------------------------------------------- -->
 
 ```js
+// Create lookup Map once - O(n) instead of O(n²)
+const municipiLookup = new Map(municipis.map(m => [m.codi, m]));
+
 const threshold_poblacio = [...grouped_poblacio].filter(
-  (d) =>
-    municipis.find((m) => m.codi == d.codi_poblacio).poblacio >=
-    populationThreshold
+  (d) => municipiLookup.get(d.codi_poblacio)?.poblacio >= populationThreshold
 );
 ```
 
-<div class="card">
+<div class="card" style="overflow-x: auto;">
   ${populationRangeInput}
   </br>
-  <div style="display:flex; flex-direction:row; justify-content: space-between">
+  <div style="display:flex; flex-direction:row; flex-wrap:wrap; justify-content: space-between">
     <div>
       <h2>Emissions mitjanes dels edificis dels municipis amb més de ${populationThreshold} habitants</h2><h3> Classificades per zona climàtica </h3></span>
     </div>
@@ -289,6 +327,13 @@ const threshold_poblacio = [...grouped_poblacio].filter(
                   stroke: "#750000", 
                   fill:"white", 
                 }),
+                Plot.text(radiusLegendData.filter((d) => d.pos === 0 || d.pos === 4),
+                {
+                  x: "pos",
+                  y: 0,
+                  dy: -24,
+                  text: (d) => `${(d.rad / 1000).toLocaleString('ca-ES', { maximumFractionDigits: 0 })} t`,
+                }),
               ]
             })
           }
@@ -316,18 +361,19 @@ const threshold_poblacio = [...grouped_poblacio].filter(
     </div>
     
   </div>
+  <div style="overflow-x: auto;">
     ${Plot.plot({
       height: 800,
-      width,
+      width: Math.max(width, 1000),
       margin: 30,
-      marginLeft: 70,
+      marginLeft: 160,
       marginBottom: 50,
       color: {
         scheme: "YlOrRd",
       },
       y: { grid: true , label: null, tickFormat: null, ticks: 0 },
       fy: { label: null, ticks: 0, tickFormat: null },
-      x: { grid: true, domain: beeswarmXDomain, label: "Emissions mitjanes (Kg CO₂/Any)"},
+      x: { grid: true, domain: beeswarmXDomain, label: "Emissions mitjanes (kg CO₂/m²·any)"},
       r: { range: [1, 20] },
       marks: [
         Plot.dot(
@@ -340,11 +386,11 @@ const threshold_poblacio = [...grouped_poblacio].filter(
             channels: {
               emissions_mitjanes: {
                 value: "avg_emissions",
-                label: "Emissions mitjanes (Kg CO₂/Any)"
+                label: "Emissions mitjanes (kg CO₂/m²·any)"
               },
               emissions_totals: {
                 value: "sum_emissions",
-                label: "Emissions totals (Kg CO₂/Any)"
+                label: "Emissions totals (t CO₂/any)"
               },
               zona: {
                 value: "zona_climatica",
@@ -366,9 +412,9 @@ const threshold_poblacio = [...grouped_poblacio].filter(
                 x: false,
                 stroke: false,
                 fill: false,
-                municipi: (d) => municipisDict[d].municipi,
-                poblacio: (d) => [...municipis].find((m) => m.codi == d).poblacio,
-                emissions_totals: true,
+                municipi: (d) => municipisDict[d]?.municipi ?? 'Unknown',
+                poblacio: (d) => municipiLookup.get(d)?.poblacio ?? 0,
+                emissions_totals: (d) => `${(d / 1000).toLocaleString('ca-ES', { maximumFractionDigits: 1 })}`,
                 emissions_mitjanes: true
               }
             },
@@ -382,11 +428,12 @@ const threshold_poblacio = [...grouped_poblacio].filter(
         Plot.dotX(
           avg_climate_zone, {x: "avg_emissions", fy: "zona_climatica", stroke: "#750000", fill:"white", r:4}
         ),
-        Plot.text(
-          avg_climate_zone, {x: beeswarmXDomain[0], text: (d) => d.zona_climatica, fy: "zona_climatica", dx: -30, fontSize: 14, fontWeight: "bold"  }
+        Plot.image(
+          avg_climate_zone, {x: beeswarmXDomain[0], src: (d) => zoneImageUrls[d.zona_climatica], fy: "zona_climatica", dx: -100, width: 100, height: 100, preserveAspectRatio: "xMidYMid meet"}
         )
       ]
     })}
+  </div>
 </div>
 
 ```js
@@ -419,7 +466,6 @@ const $normativa = vg.Selection.single();
 const $qualEmissions = vg.Selection.single();
 const $qualEnergia = vg.Selection.single();
 const $date = vg.Selection.intersect();
-const $raster = vg.Selection.intersect();
 
 const $mainFilter = vg.Selection.intersect({
   include: [
@@ -432,13 +478,15 @@ const $mainFilter = vg.Selection.intersect({
     $qualEmissions,
     $qualEnergia,
     $date,
-    $raster,
   ],
   cross: true,
 });
 ```
 
-<h2 style="margin-bottom: 20px; font-weight: 600"> Multivista interactiva </h2>
+<div class="section-intro">
+  <h2>Observatori interactiu</h2>
+  <p>Explora lliurement el dataset amb <strong class="stat">${totalCertificats}</strong> edificis. Per a filtrar, clica les barres (utilitza Shift per sel·leccionar varies categories alhora), cerca per àmbit geogràfic, o clica i arrossega a la línia temporal.</p>
+</div>
 <div id="multiview" class="grid grid-cols-3" style="grid-auto-rows: min-content;">
   <div class="card grid-colspan-1">
     <div style="display:flex; flex-direction:column;">
@@ -512,7 +560,7 @@ const $mainFilter = vg.Selection.intersect({
               vg.marginRight(50),
               vg.yScale("band"),
               vg.colorDomain(qualifColorDomain),
-              vg.colorRange(qualifColorRange),
+              vg.colorRange(qualifColorScheme),
               vg.yTickFormat((d) => qualifLabelsLookup[d]),
               vg.highlight({
                 by: $qualEmissions
@@ -543,7 +591,7 @@ const $mainFilter = vg.Selection.intersect({
               vg.marginRight(50),
               vg.yScale("band"),
               vg.colorDomain(qualifColorDomain),
-              vg.colorRange(qualifColorRange),
+              vg.colorRange(qualifColorScheme),
               vg.yTickFormat((d) => qualifLabelsLookup[d]),
               vg.highlight({
                 by: $qualEnergia
@@ -676,7 +724,15 @@ const $mainFilter = vg.Selection.intersect({
               x: vg.bin("data_entrada", {
                 interval: 'month',
               }),
-              tip: true,
+              tip: {
+                format: {
+                  x: (d) => {
+                    const date = d instanceof Date ? d : new Date(d);
+                    return `${String(date.getUTCMonth() + 1).padStart(2, '0')}/${date.getUTCFullYear()}`;
+                  },
+                  x2: false,
+                }
+              },
               y: vg.count(),
               fill: "#6e6e6e",
               fillOpacity: 1,
@@ -684,7 +740,7 @@ const $mainFilter = vg.Selection.intersect({
           ),
           vg.intervalX({as: $date}),
           vg.xTickSize(0),
-          vg.xLabel(null),
+          vg.xLabel("Data"),
           vg.yTickSize(0),
           vg.yLabel('Nombre de certificats')
         )
@@ -728,28 +784,6 @@ function exploratoryCommonBarplot(column, height) {
 }
 ```
 
-<div class="card">
-${vg.plot(
-  vg.frame({fill: "black"}),
-  vg.width(1500),
-  vg.height(250),
-  vg.raster(
-    vg.from("emissions_vs_size", {filterBy: $mainFilter}),
-    {
-      x: "emissions",
-      y: "size",
-      fill: "qual_energia",
-      pixelSize: 5,
-      imageRendering: "pixelated",
-    }
-  ),
-  vg.intervalXY({as: $raster}),
-  vg.colorDomain(qualifColorDomain),
-  vg.colorRange(qualifColorRange),
-  vg.yLabel('Superfície (m2)'),
-  vg.xLabel('Emissions (Kg/CO2 * any)'),
-)}
-</div>
 
 ```js
 function truncateLabel(label, maxChars) {
@@ -757,8 +791,49 @@ function truncateLabel(label, maxChars) {
 }
 ```
 
+```js
+{
+  const _ac = new AbortController();
+  invalidation.then(() => _ac.abort());
+
+  const _sidebarCloseBtn = document.getElementById('observablehq-sidebar-close');
+  function _syncCloseBtn() {
+    if (!_sidebarCloseBtn) return;
+    const isDesktop = window.matchMedia('(min-width: calc(640px + 6rem + 272px))').matches;
+    const toggle = document.getElementById('observablehq-sidebar-toggle');
+    _sidebarCloseBtn.style.visibility =
+      toggle?.checked || (toggle?.indeterminate && isDesktop) ? 'visible' : 'hidden';
+  }
+  document.getElementById('observablehq-sidebar-toggle')
+    ?.addEventListener('change', _syncCloseBtn, { signal: _ac.signal });
+  window.addEventListener('resize', _syncCloseBtn, { signal: _ac.signal });
+  requestAnimationFrame(_syncCloseBtn);
+}
+```
+
 <style>
 .barplot-xs text {
   font-size: 15px;
+}
+.section-intro {
+  font-family: var(--sans-serif);
+  margin-top: 60px;
+  margin-bottom: 20px;
+}
+.section-intro h2 {
+  font-size: 2.1rem;
+  font-weight: 400;
+  font-style: normal;
+  margin-bottom: 8px;
+}
+.section-intro p {
+  max-width: 70ch;
+  font-size: 1rem;
+  font-weight: 300;
+  line-height: 1.8rem;
+}
+.section-intro .stat {
+  font-weight: 700;
+  color: var(--theme-foreground-focus);
 }
 </style>

@@ -4,11 +4,12 @@ class SliderState {
   indicatorValues;
 
   constructor() {
+    if (SliderState.#instance) return SliderState.#instance;
+
     this.percentileRange = [0.25, 0.75];
     this.indicatorValues = [];
     this.currentRange = [];
     SliderState.#instance = this;
-    if (SliderState.#instance) return SliderState.#instance;
   }
 }
 
