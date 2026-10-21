@@ -748,16 +748,23 @@ def get_aggregated_datasets(
     certificates_by_mun = aggregate_by_level(certificates, "codi_poblacio")
     certificates_by_com = aggregate_by_level(certificates, "codi_comarca")
 
-    certificates_by_section = (
-        certificates_by_section
-        .merge(rendes_datasets[0], left_on="MUNDISSEC", right_on="codi", how="outer")
-        .drop(columns=["codi"])
+    # Outer merge keeps income rows for places without certificates; their
+    # left key is NaN, so recover it from the income code before dropping it.
+    certificates_by_section = certificates_by_section.merge(
+        rendes_datasets[0], left_on="MUNDISSEC", right_on="codi", how="outer"
     )
-    certificates_by_mun = (
-        certificates_by_mun
-        .merge(rendes_datasets[1], left_on="codi_poblacio", right_on="codi", how="outer")
-        .drop(columns=["codi"])
+    certificates_by_section["MUNDISSEC"] = certificates_by_section["MUNDISSEC"].fillna(
+        certificates_by_section["codi"]
     )
+    certificates_by_section = certificates_by_section.drop(columns=["codi"])
+
+    certificates_by_mun = certificates_by_mun.merge(
+        rendes_datasets[1], left_on="codi_poblacio", right_on="codi", how="outer"
+    )
+    certificates_by_mun["codi_poblacio"] = certificates_by_mun["codi_poblacio"].fillna(
+        certificates_by_mun["codi"]
+    )
+    certificates_by_mun = certificates_by_mun.drop(columns=["codi"])
 
     return [certificates_by_section, certificates_by_mun, certificates_by_com]
 
