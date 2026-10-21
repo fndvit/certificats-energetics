@@ -461,43 +461,6 @@ def encode_categorical_columns(
 # ---------------------------------------------------------------------------
 
 
-def _remove_sixth_digit_from_right(number_str: str) -> str:
-    """Strip the district digit from an INE section code to match idescat codes.
-
-    INE MUNDISSEC codes include a district digit that idescat omits, so the
-    6th digit from the right must be removed to align the two sources.
-
-    Example: ``"0801601001"`` -> ``"080160101"``
-    """
-    if len(number_str) >= 6:
-        index_to_remove = len(number_str) - 6
-        return number_str[:index_to_remove] + number_str[index_to_remove + 1 :]
-    return number_str
-
-
-def get_sections_dataset() -> pd.DataFrame:
-    """Fetch the idescat census sections reference table.
-
-    Returns a DataFrame with a ``mundissec`` column (11-digit code) built by
-    concatenating the municipality code and district/section code.
-    Raises ``requests.HTTPError`` on a non-2xx response.
-    """
-    url = (
-        "https://www.idescat.cat/codis/"
-        "?cin=0&nom=&ambit=a&cic=0&codi=&pobi=&pobf=&id=50"
-        "&n=24&inf=c&t=01-01-2024&f=ssv"
-    )
-    response = requests.get(url)
-    response.raise_for_status()
-
-    seccions = pd.read_csv(io.StringIO(response.text), sep=";", skiprows=3)
-    seccions["Districte/Secció"] = seccions["Districte/Secció"].astype(str).str.zfill(5)
-    seccions["Codi municipi"] = seccions["Codi municipi"].astype(str).str.zfill(6)
-    seccions["mundissec"] = seccions["Codi municipi"] + seccions["Districte/Secció"]
-
-    return seccions
-
-
 def _get_ine_json(url: str, params: dict, retries: int = 20, wait: int = 60) -> list:
     """GET an INE endpoint, retrying while INE answers 202 'Petición en proceso'.
 
@@ -527,14 +490,15 @@ def _get_ine_json(url: str, params: dict, retries: int = 20, wait: int = 60) -> 
 
 
 def fetch_rendes_data(
-    code: int, mundissec_map: dict, municipis_map: dict
+    code: int, municipis_map: dict
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Fetch one INE income table and split records into section/municipality frames.
 
     Args:
         code: INE table identifier.
-        mundissec_map: Mapping from truncated INE section code to idescat MUNDISSEC.
-        municipis_map: Mapping from truncated INE municipality code to full code.
+        municipis_map: Mapping from INE municipality code (5 digits) to idescat
+            code (6 digits, with check digit). Section codes are translated by
+            swapping their 5-digit municipality prefix; unknown codes are kept.
 
     Returns:
         A tuple ``(seccions_df, municipis_df)`` of long-format DataFrames with
@@ -561,7 +525,8 @@ def fetch_rendes_data(
 
         code_short = meta[0]["Codigo"]
         if var == "Secciones":
-            key = mundissec_map.get(code_short, code_short)
+            mun = municipis_map.get(code_short[:5])
+            key = mun + code_short[5:] if mun else code_short
             records = seccions_records
         else:
             key = municipis_map.get(code_short, code_short)
@@ -588,40 +553,23 @@ def fetch_rendes_data(
 
 
 def get_rendes_dataset(
-    sections_dataset: pd.DataFrame,
+    municipi_dict: dict,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Fetch and pivot household income data for census sections and municipalities.
 
     Fetches the four INE income tables, aligns their codes with the idescat
-    reference, concatenates results, and pivots to a wide format retaining only
-    the ``RENDES_YEAR`` columns.
+    codes in ``municipi_dict``, concatenates results, and pivots to a wide
+    format retaining only the ``RENDES_YEAR`` columns.
 
     Returns:
         A tuple ``(renta_seccions_df, renta_municipis_df)``.
     """
-    # Build code-alignment maps between INE (truncated) and idescat (full) codes
-    sections_dataset = sections_dataset.copy()
-    sections_dataset["MUNDISSEC_truncated"] = (
-        sections_dataset["mundissec"].astype(str).apply(_remove_sixth_digit_from_right)
-    )
-    mundissec_map = (
-        sections_dataset.drop_duplicates("MUNDISSEC_truncated")
-        .set_index("MUNDISSEC_truncated")["mundissec"]
-        .to_dict()
-    )
-
-    sections_dataset["Codi municipi_truncated"] = (
-        sections_dataset["Codi municipi"].astype(str).str.slice(0, -1)
-    )
-    municipis_map = (
-        sections_dataset.drop_duplicates("Codi municipi_truncated")
-        .set_index("Codi municipi_truncated")["Codi municipi"]
-        .to_dict()
-    )
+    # INE municipality codes are idescat codes without the trailing check digit
+    municipis_map = {code[:-1]: code for code in municipi_dict}
 
     # Fetch all four income tables
     all_results = [
-        fetch_rendes_data(code, mundissec_map, municipis_map)
+        fetch_rendes_data(code, municipis_map)
         for code in RENDES_TABLE_CODES
     ]
 
@@ -852,11 +800,8 @@ def main() -> None:
 
     certificates, label_mapping = process_certificates_dataset(df, municipi_dict)
 
-    logger.info("Fetching census sections reference data...")
-    sections = get_sections_dataset()
-
     logger.info("Fetching household income (renda) data...")
-    rendes_datasets = get_rendes_dataset(sections)
+    rendes_datasets = get_rendes_dataset(municipi_dict)
 
     aggregated_datasets = get_aggregated_datasets(certificates, rendes_datasets)
     save_data(certificates, label_mapping, aggregated_datasets, municipi_dict)
