@@ -10320,7 +10320,7 @@
     "Renta neta media por persona_2022":15598.0
   },
   {
-    "codi_poblacio":null,
+    "codi_poblacio":"172207",
     "count":null,
     "mean_emissions":null,
     "total_emissions":null,
@@ -10340,7 +10340,7 @@
     "Renta neta media por persona_2022":16701.0
   },
   {
-    "codi_poblacio":null,
+    "codi_poblacio":"172214",
     "count":null,
     "mean_emissions":null,
     "total_emissions":null,
@@ -10360,7 +10360,7 @@
     "Renta neta media por persona_2022":14601.0
   },
   {
-    "codi_poblacio":null,
+    "codi_poblacio":"172229",
     "count":null,
     "mean_emissions":null,
     "total_emissions":null,
@@ -10380,7 +10380,7 @@
     "Renta neta media por persona_2022":16813.0
   },
   {
-    "codi_poblacio":null,
+    "codi_poblacio":"172235",
     "count":null,
     "mean_emissions":null,
     "total_emissions":null,
@@ -10400,7 +10400,7 @@
     "Renta neta media por persona_2022":14360.0
   },
   {
-    "codi_poblacio":null,
+    "codi_poblacio":"172240",
     "count":null,
     "mean_emissions":null,
     "total_emissions":null,
@@ -10420,7 +10420,7 @@
     "Renta neta media por persona_2022":16612.0
   },
   {
-    "codi_poblacio":null,
+    "codi_poblacio":"172253",
     "count":null,
     "mean_emissions":null,
     "total_emissions":null,
@@ -10440,7 +10440,7 @@
     "Renta neta media por persona_2022":13746.0
   },
   {
-    "codi_poblacio":null,
+    "codi_poblacio":"172266",
     "count":null,
     "mean_emissions":null,
     "total_emissions":null,
@@ -10460,7 +10460,7 @@
     "Renta neta media por persona_2022":13450.0
   },
   {
-    "codi_poblacio":null,
+    "codi_poblacio":"172272",
     "count":null,
     "mean_emissions":null,
     "total_emissions":null,
@@ -10500,7 +10500,7 @@
     "Renta neta media por persona_2022":16371.0
   },
   {
-    "codi_poblacio":null,
+    "codi_poblacio":"172305",
     "count":null,
     "mean_emissions":null,
     "total_emissions":null,
@@ -10520,7 +10520,7 @@
     "Renta neta media por persona_2022":13898.0
   },
   {
-    "codi_poblacio":null,
+    "codi_poblacio":"172327",
     "count":null,
     "mean_emissions":null,
     "total_emissions":null,
@@ -10560,7 +10560,7 @@
     "Renta neta media por persona_2022":16360.0
   },
   {
-    "codi_poblacio":null,
+    "codi_poblacio":"172348",
     "count":null,
     "mean_emissions":null,
     "total_emissions":null,
@@ -10620,7 +10620,7 @@
     "Renta neta media por persona_2022":17019.0
   },
   {
-    "codi_poblacio":null,
+    "codi_poblacio":"179032",
     "count":null,
     "mean_emissions":null,
     "total_emissions":null,
@@ -11640,26 +11640,6 @@
     "Renta neta media por persona_2022":15219.0
   },
   {
-    "codi_poblacio":null,
-    "count":null,
-    "mean_emissions":null,
-    "total_emissions":null,
-    "mean_energy_qual":null,
-    "mean_emissions_qual":null,
-    "total_primary_energy":null,
-    "mean_primary_energy":null,
-    "total_surface":null,
-    "mean_surface":null,
-    "total_cost":null,
-    "mean_cost":null,
-    "Media de la renta por unidad de consumo_2022":20501.0,
-    "Mediana de la renta por unidad de consumo_2022":19250.0,
-    "Renta bruta media por hogar_2022":39873.0,
-    "Renta bruta media por persona_2022":17187.0,
-    "Renta neta media por hogar_2022":33759.0,
-    "Renta neta media por persona_2022":14551.0
-  },
-  {
     "codi_poblacio":"250557",
     "count":27.0,
     "mean_emissions":53.809,
@@ -11672,12 +11652,12 @@
     "mean_surface":192.377,
     "total_cost":1762.34,
     "mean_cost":65.272,
-    "Media de la renta por unidad de consumo_2022":null,
-    "Mediana de la renta por unidad de consumo_2022":null,
-    "Renta bruta media por hogar_2022":null,
-    "Renta bruta media por persona_2022":null,
-    "Renta neta media por hogar_2022":null,
-    "Renta neta media por persona_2022":null
+    "Media de la renta por unidad de consumo_2022":20501.0,
+    "Mediana de la renta por unidad de consumo_2022":19250.0,
+    "Renta bruta media por hogar_2022":39873.0,
+    "Renta bruta media por persona_2022":17187.0,
+    "Renta neta media por hogar_2022":33759.0,
+    "Renta neta media por persona_2022":14551.0
   },
   {
     "codi_poblacio":"250560",
@@ -14480,26 +14460,6 @@
     "Renta neta media por persona_2022":null
   },
   {
-    "codi_poblacio":null,
-    "count":null,
-    "mean_emissions":null,
-    "total_emissions":null,
-    "mean_energy_qual":null,
-    "mean_emissions_qual":null,
-    "total_primary_energy":null,
-    "mean_primary_energy":null,
-    "total_surface":null,
-    "mean_surface":null,
-    "total_cost":null,
-    "mean_cost":null,
-    "Media de la renta por unidad de consumo_2022":22276.0,
-    "Mediana de la renta por unidad de consumo_2022":19950.0,
-    "Renta bruta media por hogar_2022":45009.0,
-    "Renta bruta media por persona_2022":18195.0,
-    "Renta neta media por hogar_2022":37079.0,
-    "Renta neta media por persona_2022":14989.0
-  },
-  {
     "codi_poblacio":"252234",
     "count":142.0,
     "mean_emissions":52.358,
@@ -14512,12 +14472,12 @@
     "mean_surface":133.811,
     "total_cost":228471.11,
     "mean_cost":1620.362,
-    "Media de la renta por unidad de consumo_2022":null,
-    "Mediana de la renta por unidad de consumo_2022":null,
-    "Renta bruta media por hogar_2022":null,
-    "Renta bruta media por persona_2022":null,
-    "Renta neta media por hogar_2022":null,
-    "Renta neta media por persona_2022":null
+    "Media de la renta por unidad de consumo_2022":22276.0,
+    "Mediana de la renta por unidad de consumo_2022":19950.0,
+    "Renta bruta media por hogar_2022":45009.0,
+    "Renta bruta media por persona_2022":18195.0,
+    "Renta neta media por hogar_2022":37079.0,
+    "Renta neta media por persona_2022":14989.0
   },
   {
     "codi_poblacio":"252249",
