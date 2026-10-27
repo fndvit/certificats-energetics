@@ -19,6 +19,7 @@ export class MapBase {
       minZoom: MapBase.defaults.minZoom,
       maxZoom: MapBase.defaults.maxZoom,
       accessToken: this.accessToken,
+      attributionControl: false,
       style: 'mapbox://styles/fndvit/clvnpq95k01jg01qz1px52jzf'
     });
 

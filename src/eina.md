@@ -19,6 +19,7 @@ import { emissionsIndicatorsMeta, socEcIndicatorsMeta } from './components/indic
 import { getEmissionsIndicatorData, getIncomeIndicatorData, getEmissionsData } from './components/dataProcessing.js';
 import { getHoveredInfo, getTickColor, lowercaseFirstLetter, getRegionCardData } from './components/mapHelpers.js';
 import { qualifColorScheme, emissionsColorScheme } from './components/colors.js';
+import { InfoTooltip } from './components/infoTooltip.js';
 
 const REGION_CARD_TABLE_ROWS = 5;
 
@@ -286,6 +287,134 @@ const incomeIndicatorInput = Inputs.select(socEcIndicatorsMeta, {
   format: (d) => d.name,
   value: socEcIndicatorsMeta[0]
 });
+
+// Custom dropdown over a hidden Inputs.select (which stays the value store for
+// Generators.input). The native iOS picker anchors far from the control inside
+// the fixed mobile card, so the list is positioned from the wrapper's rect.
+// Built once here so re-rendering choroplethBody doesn't stack listeners.
+let dropdownIdCounter = 0;
+function withCustomDropdown(input, options) {
+  const listId = `choropleth-select-list-${++dropdownIdCounter}`;
+  input.style.display = 'none';
+
+  const trigger = html`<button type="button" class="choropleth-select-trigger"
+    aria-haspopup="listbox" aria-expanded="false" aria-controls=${listId}></button>`;
+  const list = html`<ul class="choropleth-select-list" id=${listId} role="listbox" tabindex="-1" hidden></ul>`;
+  const items = options.map((option, i) => {
+    const li = html`<li role="option" id=${`${listId}-${i}`}>${option.name}</li>`;
+    li.addEventListener('click', () => select(i));
+    li.addEventListener('pointermove', () => setActive(i));
+    list.append(li);
+    return li;
+  });
+  const wrapper = html`<div class="choropleth-select">${input}${trigger}${list}</div>`;
+
+  let activeIndex = -1;
+
+  const sync = () => {
+    trigger.textContent = input.value.name;
+    items.forEach((li, i) => {
+      const selected = options[i] === input.value;
+      li.classList.toggle('is-selected', selected);
+      li.setAttribute('aria-selected', selected);
+    });
+  };
+
+  const setActive = (i) => {
+    activeIndex = i;
+    items.forEach((li, j) => li.classList.toggle('is-active', j === i));
+    list.setAttribute('aria-activedescendant', items[i].id);
+    items[i].scrollIntoView({ block: 'nearest' });
+  };
+
+  const position = () => {
+    const rect = wrapper.getBoundingClientRect();
+    const margin = 8;
+    const spaceAbove = rect.top - margin;
+    const spaceBelow = window.innerHeight - rect.bottom - margin;
+    list.style.left = `${rect.left}px`;
+    list.style.width = `${rect.width}px`;
+    if (spaceAbove > spaceBelow) {
+      list.style.top = 'auto';
+      list.style.bottom = `${window.innerHeight - rect.top + 4}px`;
+      list.style.maxHeight = `${spaceAbove - 4}px`;
+    } else {
+      list.style.bottom = 'auto';
+      list.style.top = `${rect.bottom + 4}px`;
+      list.style.maxHeight = `${spaceBelow - 4}px`;
+    }
+  };
+
+  const onOutsidePointer = (e) => {
+    if (!wrapper.contains(e.target)) close();
+  };
+  const onScroll = (e) => {
+    if (e.target !== list) close();
+  };
+  const onResize = () => close();
+
+  const open = () => {
+    if (!list.hidden) return;
+    list.hidden = false;
+    position();
+    trigger.setAttribute('aria-expanded', 'true');
+    setActive(Math.max(0, options.indexOf(input.value)));
+    list.focus({ preventScroll: true });
+    document.addEventListener('pointerdown', onOutsidePointer, true);
+    window.addEventListener('scroll', onScroll, true);
+    window.addEventListener('resize', onResize);
+  };
+
+  const close = ({ focusTrigger = false } = {}) => {
+    if (list.hidden) return;
+    list.hidden = true;
+    trigger.setAttribute('aria-expanded', 'false');
+    document.removeEventListener('pointerdown', onOutsidePointer, true);
+    window.removeEventListener('scroll', onScroll, true);
+    window.removeEventListener('resize', onResize);
+    if (focusTrigger) trigger.focus();
+  };
+
+  const select = (i) => {
+    if (options[i] !== input.value) {
+      input.value = options[i];
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    close({ focusTrigger: true });
+  };
+
+  trigger.addEventListener('click', () => (list.hidden ? open() : close()));
+  trigger.addEventListener('keydown', (e) => {
+    if (['Enter', ' ', 'ArrowDown', 'ArrowUp'].includes(e.key)) {
+      e.preventDefault();
+      open();
+    }
+  });
+  list.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setActive(Math.min(items.length - 1, activeIndex + 1));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setActive(Math.max(0, activeIndex - 1));
+    } else if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      select(activeIndex);
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      close({ focusTrigger: true });
+    } else if (e.key === 'Tab') {
+      close();
+    }
+  });
+
+  input.addEventListener('input', sync);
+  sync();
+  return wrapper;
+}
+
+const emissionsIndicatorSelect = withCustomDropdown(emissionsIndicatorInput, emissionsIndicatorsMeta);
+const incomeIndicatorSelect = withCustomDropdown(incomeIndicatorInput, socEcIndicatorsMeta);
 ```
 
 ```js
@@ -544,7 +673,7 @@ function createSparkbarFormatter(indicatorKey, maxValue, allValues) {
     const widthPercent = Math.min((value / maxValue) * 100, 100);
 
     return html`<div style="
-      background: linear-gradient(to right, #555 ${widthPercent}%, #ddd ${widthPercent}%);
+      background: linear-gradient(to right, var(--accent) ${widthPercent}%, #eee ${widthPercent}%);
       width: 100%;
       border-radius: 3px;
       height: 22px;
@@ -560,7 +689,7 @@ function createSparkbarFormatter(indicatorKey, maxValue, allValues) {
 ```
 
 ```js
-const modeToggleButtons = html`
+const modeToggleButtons = html`<div class="mode-tabs">
   <button class="mode-toggle-btn ${mapMode === 'choropleth' ? 'active' : ''}"
     onclick=${() => { setMapMode('choropleth'); if (mapLoaded) map.setMode('choropleth'); }}>
     Coropletes
@@ -568,7 +697,8 @@ const modeToggleButtons = html`
   <button class="mode-toggle-btn ${mapMode === 'cluster' ? 'active' : ''}"
     onclick=${() => { setMapMode('cluster'); if (mapLoaded) map.setMode('cluster'); }}>
     Clústers
-  </button>`;
+  </button>
+</div>`;
 ```
 
 ```js
@@ -710,104 +840,135 @@ const headerExtra = mapMode === 'cluster'
       </div>`
   : '';
 
+// Clip the threshold legend swatches to a pill shape (ticks stay unclipped)
+const roundedLegend = (svg) => {
+  const rects = Array.from(svg.querySelectorAll('rect'));
+  if (!rects.length) return svg;
+  const x0 = d3.min(rects, (r) => +r.getAttribute('x'));
+  const x1 = d3.max(rects, (r) => +r.getAttribute('x') + +r.getAttribute('width'));
+  const y = +rects[0].getAttribute('y');
+  const h = +rects[0].getAttribute('height');
+  const id = `legend-clip-${Math.random().toString(36).slice(2)}`;
+  const ns = 'http://www.w3.org/2000/svg';
+  const clipPath = document.createElementNS(ns, 'clipPath');
+  clipPath.setAttribute('id', id);
+  const clipRect = document.createElementNS(ns, 'rect');
+  Object.entries({ x: x0, y, width: x1 - x0, height: h, rx: h / 2 })
+    .forEach(([k, v]) => clipRect.setAttribute(k, v));
+  clipPath.appendChild(clipRect);
+  svg.prepend(clipPath);
+  rects[0].parentNode.setAttribute('clip-path', `url(#${id})`);
+  return svg;
+};
+
 const choroplethBody = (() => {
   if (window._choroplethCollapsed === undefined) window._choroplethCollapsed = false;
 
-  const el = html`
+  const el = html`<div class="choropleth-body">
     <!-- CHOROPLETH MODE -->
-    <div class="glassText">
-      ${informationPhrase}
+    ${informationPhrase}
+    <div class="choropleth-filters">
+      <button class="choropleth-collapse-toggle" aria-expanded="true">
+        <span class="choropleth-collapse-label">Veure filtres i gràfic</span>
+        <svg class="choropleth-collapse-icon" width="8" height="5" viewBox="0 0 8 5" aria-hidden="true">
+          <path d="M1 1l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <div class="choropleth-collapsible">
+        <div class="choropleth-selectors-wrapper">
+          <div class="choropleth-selector">
+            <p class="choropleth-selector-label">Indicador d'emissions</p>
+            ${emissionsIndicatorSelect}
+          </div>
+          <div class="choropleth-selector">
+            <p class="choropleth-selector-label">Indicador sociodemogràfic</p>
+            ${incomeIndicatorSelect}
+          </div>
+        </div>
+        <!-- Choropleth controls: legend, histogram, slider, tick plot -->
+        <div class="card choropleth-controls">
+          <!-- Legend -->
+          <div class="choropleth-legend">
+            ${InfoTooltip(emissionsIndicator.info)}
+            <span class="choropleth-legend-label">${emissionsIndicator.name} (${emissionsIndicator.units})</span>
+            ${roundedLegend(Plot.legend({
+              color: {
+                type: "threshold",
+                domain: emissionsIndicatorData[currentDatasetIndex].thresholds,
+                range: emissionsIndicatorData[currentDatasetIndex].range,
+                tickFormat: (d) => {
+                  const value = emissionsIndicator.value === 'total_emissions' ? d / 1000000 : d;
+                  return formatNumber(value);
+                },
+                label: null,
+              },
+              height: 30,
+              marginTop: 4,
+              marginBottom: 16
+            }))}
+          </div>
+          <!-- Histogram -->
+          ${resize((width) =>
+            Plot.plot({
+              height: 150,
+              color: {
+                type: "categorical",
+                domain: Array.from({ length: 7 }, (_, i) => i.toString()),
+                range: emissionsIndicator.colors
+              },
+              y: {
+                grid: true,
+                label: `Nombre de ${valuesByLevel[currentDatasetIndex].censusLevel}`,
+              },
+              x: {
+                domain: Array.from({ length: 7 }, (_, i) => i.toString()),
+                tickFormat: null,
+                tickSize: 0,
+                label: null
+              },
+              marks: [
+                Plot.barY(
+                  histogramData,
+                  Plot.groupX({
+                    y: "count",
+                    title: (d) => {
+                      const bins = emissionsIndicatorData[currentDatasetIndex].bins;
+                      const bin = bins[parseInt(d[0]?.class)];
+                      if (!bin) return '';
+                      const scale = emissionsIndicator.value === 'total_emissions' ? 1 / 1000000 : 1;
+                      return `${formatNumber(bin.x0 * scale)} – ${formatNumber(bin.x1 * scale)} ${emissionsIndicator.units}\n${d.length} ${valuesByLevel[currentDatasetIndex].censusLevel}`;
+                    }
+                  }, { x: "class", fill: "class", tip: true })
+                ),
+                Plot.ruleY([0])
+              ]
+            })
+          )}
+          <!-- Slider -->
+          ${sliderElement}
+          <!-- Tick plot -->
+          ${resize((width) =>
+            Plot.plot({
+              height: 80,
+              x: {
+                label: "Mitjana de la renda per unitat de consum (2022)"
+              },
+              marks: [
+                Plot.tickX(emissionsData, {
+                  x: "incomeValue",
+                  strokeOpacity: 0.5,
+                  stroke: (d) =>
+                    d.incomeValue >= incomeRange[0] && d.incomeValue <= incomeRange[1]
+                      ? getTickColor(d.class, emissionsIndicator)
+                      : "#d9d9d9"
+                })
+              ]
+            })
+          )}
+        </div>
+      </div>
     </div>
-    <button class="choropleth-collapse-toggle" aria-expanded="true">
-      <span class="choropleth-collapse-label">Filtres i llegenda</span>
-      <span class="choropleth-collapse-icon">▲</span>
-    </button>
-    <div class="choropleth-collapsible">
-      <div class="choropleth-selectors-wrapper" style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
-        <div class="choropleth-selector">
-          <p class="glassText" style="margin:0;">Indicador d'emissions</p>
-          ${emissionsIndicatorInput}
-        </div>
-        <div class="choropleth-selector">
-          <p class="glassText" style="margin:0;">Indicador sociodemogràfic</p>
-          ${incomeIndicatorInput}
-        </div>
-      </div>
-      <!-- Choropleth controls: legend, histogram, slider, tick plot -->
-      <div class="card choropleth-controls" style="flex:1; min-width:0; gap:8px;">
-        <!-- Legend -->
-        ${Plot.legend({
-          color: {
-            type: "threshold",
-            domain: emissionsIndicatorData[currentDatasetIndex].thresholds,
-            range: emissionsIndicatorData[currentDatasetIndex].range,
-            tickFormat: (d) => {
-              const value = emissionsIndicator.value === 'total_emissions' ? d / 1000000 : d;
-              return formatNumber(value);
-            },
-            label: `${emissionsIndicator.name} (${emissionsIndicator.units})`,
-          }
-        })}
-        <!-- Histogram -->
-        ${resize((width) =>
-          Plot.plot({
-            height: 150,
-            color: {
-              type: "categorical",
-              domain: Array.from({ length: 7 }, (_, i) => i.toString()),
-              range: emissionsIndicator.colors
-            },
-            y: {
-              grid: true,
-              label: `Nombre de ${valuesByLevel[currentDatasetIndex].censusLevel}`,
-            },
-            x: {
-              domain: Array.from({ length: 7 }, (_, i) => i.toString()),
-              tickFormat: null,
-              tickSize: 0,
-              label: null
-            },
-            marks: [
-              Plot.barY(
-                histogramData,
-                Plot.groupX({
-                  y: "count",
-                  title: (d) => {
-                    const bins = emissionsIndicatorData[currentDatasetIndex].bins;
-                    const bin = bins[parseInt(d[0]?.class)];
-                    if (!bin) return '';
-                    const scale = emissionsIndicator.value === 'total_emissions' ? 1 / 1000000 : 1;
-                    return `${formatNumber(bin.x0 * scale)} – ${formatNumber(bin.x1 * scale)} ${emissionsIndicator.units}\n${d.length} ${valuesByLevel[currentDatasetIndex].censusLevel}`;
-                  }
-                }, { x: "class", fill: "class", tip: true })
-              ),
-              Plot.ruleY([0])
-            ]
-          })
-        )}
-        <!-- Slider -->
-        ${sliderElement}
-        <!-- Tick plot -->
-        ${resize((width) =>
-          Plot.plot({
-            height: 80,
-            x: {
-              label: "Mitjana de la renda per unitat de consum (2022)"
-            },
-            marks: [
-              Plot.tickX(emissionsData, {
-                x: "incomeValue",
-                strokeOpacity: 0.5,
-                stroke: (d) =>
-                  d.incomeValue >= incomeRange[0] && d.incomeValue <= incomeRange[1]
-                    ? getTickColor(d.class, emissionsIndicator)
-                    : "#d9d9d9"
-              })
-            ]
-          })
-        )}
-      </div>
-    </div>`;
+  </div>`;
 
   const btn = el.querySelector('.choropleth-collapse-toggle');
   const collapsible = el.querySelector('.choropleth-collapsible');
@@ -834,14 +995,12 @@ const bodyContent = mapMode === 'cluster' ? clusterBody : choroplethBody;
 <!-- Top Card -->
 
 <div class="card glass cluster-top-card" style="margin-top:-25px; margin-bottom:25px; box-sizing:border-box;">
-  <div style="display:flex; flex-direction:column;">
-    <!-- HEADER ROW: tabs + conditional pintar-per -->
-    <div class="cluster-card-header">
-      <div style="display:flex; gap:8px;">${modeToggleButtons}</div>
-      ${headerExtra}
-    </div>
-    ${bodyContent}
+  <!-- HEADER ROW: tabs + conditional pintar-per -->
+  <div class="cluster-card-header">
+    ${modeToggleButtons}
+    ${headerExtra}
   </div>
+  ${bodyContent}
 </div>
 
 <div id="region-card-wrapper">
@@ -945,7 +1104,7 @@ const regionCard = () => {
   };
 
   return html`
-    <div class="card glass region-card-wrapper" style="box-sizing: border-box;"
+    <div class="card region-card-wrapper" style="box-sizing: border-box;"
          onmouseenter=${() => setIsMouseOverUI(true)}
          onmouseleave=${() => setIsMouseOverUI(false)}>
       <!-- Header with title and close button -->
@@ -954,7 +1113,7 @@ const regionCard = () => {
           <div class="mb-tip-title">
           ${regionTitle}
           </div>
-          <span>Nº certificats: ${indicators.count}</span>
+          <span class="region-card-count">Nº certificats: ${indicators.count}</span>
         </div>
         <button
           class="region-card-close"

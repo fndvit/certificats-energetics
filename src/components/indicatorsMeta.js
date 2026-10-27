@@ -7,7 +7,8 @@ export const emissionsIndicatorsMeta = [
     binOperation: 'ckmeans',
     colors: emissionsColorScheme,
     colorScaleType: 'categoric',
-    units: 'Kg C02'
+    units: 'Kg C02',
+    info: 'Mitjana de les emissions de CO2 per unitat de superfície de l’habitatge (Kg CO2/m²) calculada a partir de les emissions totals i la superfície construïda de cada habitatge.'
   },
   {
     name: 'Emissions totals',
@@ -15,7 +16,8 @@ export const emissionsIndicatorsMeta = [
     binOperation: 'logarithmic',
     colors: emissionsColorScheme,
     colorScaleType: 'categoric',
-    units: 'Gg C02'
+    units: 'Gg C02',
+    info: 'Emissions totals de CO2 per unitat de superfície de l’habitatge (Gg CO2/m²) calculada a partir de les emissions totals i la superfície construïda de cada habitatge.'
   },
   {
     name: "Qualificació mitjana d'energia",
@@ -23,7 +25,8 @@ export const emissionsIndicatorsMeta = [
     binOperation: 'ckmeans',
     colors: qualifColorScheme,
     colorScaleType: 'categoric',
-    units: '1-7'
+    units: '1-7',
+    info: ''
   },
   {
     name: "Qualificació mitjana d'emissions",
@@ -31,7 +34,8 @@ export const emissionsIndicatorsMeta = [
     binOperation: 'ckmeans',
     colors: qualifColorScheme,
     colorScaleType: 'categoric',
-    units: '1-7'
+    units: '1-7',
+    info: ''
   }
 ];
 
