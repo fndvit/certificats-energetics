@@ -1,0 +1,174 @@
+/* ========================================
+   Mobile navigation (≤600px)
+   Closed: a full-width bar at the top (the config `header`, a <label> for the
+   sidebar toggle). Open: Observable's sidebar restyled as a full-screen
+   frosted overlay. State is still the framework's #observablehq-sidebar-toggle.
+   ======================================== */
+
+:root {
+  --mobile-nav-height: 3rem;
+  --mobile-nav-text: #40474e;
+  --mobile-nav-close-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round'%3E%3Cpath d='M5 5l14 14M19 5L5 19'/%3E%3C/svg%3E");
+}
+
+/* Desktop: no top bar. Undo the framework's main offset for pages with a header. */
+#observablehq-header {
+  display: none;
+}
+#observablehq-header ~ #observablehq-main {
+  margin-top: 1rem;
+}
+
+@media (max-width: 600px) {
+  /* Top bar */
+  #observablehq-header {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    height: var(--mobile-nav-height);
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: none;
+  }
+
+  #observablehq-header ~ #observablehq-main {
+    margin-top: calc(var(--mobile-nav-height) + 1rem);
+  }
+
+  .mobile-nav-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    box-sizing: border-box;
+    height: 100%;
+    padding: 0 1.25rem;
+    background: rgba(255, 255, 255, 0.7);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    color: var(--mobile-nav-text);
+    font: 900 16px var(--sans-serif);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mobile-nav-bar svg {
+    flex: 0 0 auto;
+  }
+
+  /* The left toggle strip is replaced by the top bar */
+  input#observablehq-sidebar-toggle {
+    display: none;
+  }
+
+  /* Full-screen menu. Closed it sits off-screen (left: -100vw) so code that reads
+     the sidebar's bounding rect (eina.md updateAnalysisZone) still sees it as hidden. */
+  #observablehq-sidebar-toggle ~ #observablehq-sidebar {
+    top: 0;
+    bottom: 0;
+    left: -100vw;
+    width: 100vw;
+    padding: 0 1.5rem 2rem;
+    background: rgba(255, 255, 255, 0.8);
+    -webkit-backdrop-filter: blur(3px);
+    backdrop-filter: blur(3px);
+    box-shadow: none;
+    color: var(--mobile-nav-text);
+    z-index: 200;
+    opacity: 0;
+    transition:
+      opacity 150ms ease,
+      visibility 0ms 150ms,
+      left 0ms 150ms;
+  }
+
+  #observablehq-sidebar-toggle:checked ~ #observablehq-sidebar,
+  #observablehq-sidebar-toggle ~ #observablehq-sidebar:focus-within {
+    left: 0;
+    visibility: visible;
+    opacity: 1;
+    box-shadow: none;
+    transition:
+      opacity 150ms ease,
+      visibility 0ms,
+      left 0ms;
+  }
+
+  #observablehq-sidebar-backdrop {
+    display: none !important;
+  }
+
+  #observablehq-sidebar > ol {
+    margin: 0;
+    padding: 0;
+    border-bottom: none;
+  }
+
+  /* Title */
+  #observablehq-sidebar > ol:first-child {
+    position: static;
+    padding-top: 2rem;
+    margin-bottom: 1.25rem;
+  }
+
+  #observablehq-sidebar > ol:first-child::before {
+    display: none;
+  }
+
+  #observablehq-sidebar > ol:first-child > li > a {
+    display: block;
+    height: auto;
+    margin: 0;
+    padding: 0 2rem 0.5rem 0;
+    border-bottom: 1px solid var(--accent, #df2d5f);
+    background: none;
+    color: var(--mobile-nav-text);
+    font: 900 24px/1.2 var(--sans-serif);
+  }
+
+  /* Page links */
+  #observablehq-sidebar .observablehq-link a {
+    margin: 0;
+    padding: 0.75rem 0;
+    background: none;
+    color: var(--mobile-nav-text);
+    font: 700 20px/1.2 var(--sans-serif);
+  }
+
+  #observablehq-sidebar .observablehq-link:not(.observablehq-link-active) a:hover::after {
+    content: ' →';
+  }
+
+  #observablehq-sidebar .observablehq-link-active a {
+    color: var(--accent, #df2d5f);
+  }
+
+  #observablehq-sidebar .observablehq-link-active::before {
+    display: none;
+  }
+
+  /* Close button: X in the top-right corner */
+  #observablehq-sidebar #observablehq-sidebar-close {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    left: auto;
+    transform: none;
+    width: 2rem;
+    height: 2rem;
+    color: var(--mobile-nav-text);
+    cursor: pointer;
+  }
+
+  #observablehq-sidebar #observablehq-sidebar-close::before {
+    width: 1.25rem;
+    height: 1.25rem;
+    transform: none;
+    -webkit-mask: var(--mobile-nav-close-icon) center / contain no-repeat;
+    mask: var(--mobile-nav-close-icon) center / contain no-repeat;
+  }
+}

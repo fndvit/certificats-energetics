@@ -1,5 +1,6 @@
 @import url('observablehq:default.css');
 @import url('observablehq:theme-air.css');
+@import url('./mobile-nav.css');
 
 :root {
   /* Fonts */
@@ -1216,18 +1217,19 @@ a.cluster-modal-ref {
    ======================================== */
 
 @media (max-width: 600px) {
-  /* Tighter right gap: body padding (0.2rem) + 0.5rem */
+  /* No left toggle strip on mobile (top bar instead): symmetric 0.5rem gaps.
+     Top margin keeps the top card just below the mobile nav bar. */
   #observablehq-center {
-    margin-right: 0.5rem;
+    margin: 2.5rem 0.5rem 2rem;
   }
 
   .cluster-top-card {
     width: auto !important;
-    max-width: calc(100vw - 2.9rem) !important;
+    max-width: calc(100vw - 1.4rem) !important;
   }
 
   .region-card-wrapper {
-    max-width: calc(100vw - 2.9rem);
+    max-width: calc(100vw - 1.4rem);
   }
 
   .cluster-card-header {
@@ -1248,8 +1250,8 @@ a.cluster-modal-ref {
   /* Filters + chart become a second card pinned to the bottom of the screen */
   .choropleth-filters {
     position: fixed;
-    /* Align with the top card: body padding (0.2rem) + #observablehq-center margin (2rem) */
-    left: 2.2rem;
+    /* Align with the top card: body padding (0.2rem) + #observablehq-center margin (0.5rem) */
+    left: 0.7rem;
     right: 0.7rem;
     bottom: 1rem;
     z-index: 10;
@@ -1269,6 +1271,25 @@ a.cluster-modal-ref {
 
   .choropleth-collapse-label {
     font-weight: 700;
+  }
+
+  /* Legend: keep label + ramp on one row; label wraps, ramp shrinks */
+  .choropleth-legend {
+    flex-wrap: nowrap;
+    align-items: center;
+  }
+
+  .choropleth-legend-label {
+    flex: 1 1 0;
+    min-width: 0;
+    font-size: 10px;
+    line-height: 13px;
+  }
+
+  .choropleth-legend > svg {
+    flex: 0 0 auto;
+    width: 150px;
+    height: auto;
   }
 
   .choropleth-select-trigger,

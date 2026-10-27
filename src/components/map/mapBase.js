@@ -22,11 +22,6 @@ export class MapBase {
       attributionControl: false,
       style: 'mapbox://styles/fndvit/clvnpq95k01jg01qz1px52jzf'
     });
-
-    this.map.addControl(
-      new mapboxgl.NavigationControl({ showCompass: false, showZoom: true }),
-      'top-right'
-    );
   }
 
   destroy() {

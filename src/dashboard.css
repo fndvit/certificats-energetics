@@ -1,5 +1,6 @@
 @import url('observablehq:default.css');
 @import url('observablehq:theme-air.css');
+@import url('./mobile-nav.css');
 
 :root {
   --sans-serif: 'neue-haas-grotesk-display', sans-serif;
