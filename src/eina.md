@@ -245,21 +245,27 @@ const clusterIndicatorInput = Inputs.select(clusterIndicatorsMeta, {
   value: clusterIndicatorsMeta[0]
 });
 
-// Qualification color: clamp to 1-7 integer then look up scheme
-const qualifColor = (v) =>
-  v != null ? qualifColorScheme[Math.min(6, Math.max(0, Math.round(v) - 1))] : '#d4d4d4';
+// Qualification: continuous over 1-7 so the dot matches the gradient beneath it
+const qualifColorScale = d3.scaleSequential(
+  d3.interpolateRgbBasis(qualifColorScheme)
+).domain([1, 7]).clamp(true);
 
 // Emissions: continuous scale over domain
 const emissionsColorScale = d3.scaleSequential(
   d3.interpolateRgbBasis(emissionsColorScheme)
-).domain(emissionsRangeDomain);
-const emissionsColor = (v) => v != null ? emissionsColorScale(v) : '#d4d4d4';
+).domain(emissionsRangeDomain).clamp(true);
+
+// Thousands separated by dots (148.433.069)
+const formatThousands = d3.formatLocale({
+  decimal: ',', thousands: '.', grouping: [3], currency: ['', '']
+}).format(',.0f');
 
 function clusterColorRamp(meanValue, type) {
-  let gradient, pct;
+  let gradient, pct, color;
   if (type === 'qual') {
     gradient = `linear-gradient(to right, ${qualifColorScheme.join(', ')})`;
-    pct = meanValue != null ? ((meanValue - 1) / 6) * 100 : null;
+    pct = meanValue != null ? Math.min(100, Math.max(0, ((meanValue - 1) / 6) * 100)) : null;
+    color = meanValue != null ? qualifColorScale(meanValue) : null;
   } else {
     const [lo, hi] = emissionsRangeDomain;
     const stops = Array.from({length: 12}, (_, i) =>
@@ -269,10 +275,11 @@ function clusterColorRamp(meanValue, type) {
     pct = meanValue != null
       ? Math.min(100, Math.max(0, ((meanValue - lo) / (hi - lo)) * 100))
       : null;
+    color = meanValue != null ? emissionsColorScale(meanValue) : null;
   }
   return html`
     <div class="cluster-ramp-bar" style="background: ${gradient};">
-      ${pct != null ? html`<div class="cluster-ramp-dot" style="left:${pct.toFixed(1)}%;"></div>` : ''}
+      ${pct != null ? html`<div class="cluster-ramp-dot" style="left:${pct.toFixed(1)}%; background:${color};"></div>` : ''}
     </div>`;
 }
 
@@ -415,6 +422,7 @@ function withCustomDropdown(input, options) {
 
 const emissionsIndicatorSelect = withCustomDropdown(emissionsIndicatorInput, emissionsIndicatorsMeta);
 const incomeIndicatorSelect = withCustomDropdown(incomeIndicatorInput, socEcIndicatorsMeta);
+const clusterIndicatorSelect = withCustomDropdown(clusterIndicatorInput, clusterIndicatorsMeta);
 ```
 
 ```js
@@ -739,8 +747,13 @@ function updateAnalysisZone() {
   const vw = window.innerWidth, vh = window.innerHeight;
   const sidebarEl = document.getElementById('observablehq-sidebar');
   const sidebarRight = sidebarEl ? Math.max(0, sidebarEl.getBoundingClientRect().right) : 0;
-  const left = Math.max(sidebarRight + 8, 46);
-  const top = r.bottom + 16, right = vw - 46, bottom = vh - 46;
+  // On mobile, align the zone with the top card's edges to use the full width
+  const isMobile = window.matchMedia('(max-width: 600px)').matches;
+  const left = isMobile ? r.left : Math.max(sidebarRight + 8, 46);
+  // On desktop, mirror the sidebar gap on the right and the top gap at the bottom
+  const right = isMobile ? r.right : vw - 14;
+  const top = r.bottom + 16;
+  const bottom = isMobile ? vh - r.left : vh - 16;
   Object.assign(analysisZoneEl.style, {
     top: `${top}px`, left: `${left}px`,
     width: `${right - left}px`, height: `${bottom - top}px`
@@ -771,74 +784,37 @@ ${hoveredPolygonId && !isMouseOverUI && !isMouseButtonPressed && mapMode === 'ch
 ${showClusterModal && clusterModalData ? clusterModal() : ''}
 
 ```js
-const headerExtra = mapMode === 'cluster'
-  ? html`
-      <div class="cluster-pintar-per">
-        <span class="cluster-pintar-label">Pintar per:</span>
-        ${clusterIndicatorInput}
-      </div>`
-  : '';
+const clusterBody = (() => {
+  const count = viewportStats?.count ?? 0;
+  const mean = count > 0 ? viewportStats[clusterIndicator.statKey] : null;
+  const isQual = clusterIndicator.type === 'qual';
+  const value = mean != null ? mean.toFixed(isQual ? 2 : 1) : '—';
 
-  const clusterBody = viewportStats && viewportStats.count > 0
-  ? html`
-      <div class="cluster-zone-stats">
-        <div class="cluster-zone-layout">
-          <!-- Zone info: count + surface -->
-          <div class="cluster-zone-info">
-            <span class="cluster-zone-title">
-              Zona d'anàlisi — <strong>${viewportStats.count} certificats</strong>
-            </span>
-            <span class="cluster-zone-surface">
-              Superfície total <strong>${d3.format(',.0f')(viewportStats.sumMetresCadastre)} m²</strong>
-            </span>
-          </div>
-          <!-- Stats area: each stat paired with its ramp -->
-          <div class="cluster-stats-area">
-            <div class="cluster-stat-col">
-              <div class="cluster-stat-cell">
-                <span class="cluster-stat-label">Qualif. energètica mitjana</span>
-                <div class="cluster-stat-value-row">
-                  <span class="cluster-stat-value">
-                    ${viewportStats.meanQualEnergia != null ? viewportStats.meanQualEnergia.toFixed(2) : '—'}
-                  </span>
-                  <span class="cluster-stat-dot"
-                    style="background:${qualifColor(viewportStats.meanQualEnergia)};"></span>
-                </div>
-              </div>
-              ${clusterColorRamp(viewportStats.meanQualEnergia, 'qual')}
-            </div>
-            <div class="cluster-stat-col">
-              <div class="cluster-stat-cell">
-                <span class="cluster-stat-label">Qualif. d'emissions mitjana</span>
-                <div class="cluster-stat-value-row">
-                  <span class="cluster-stat-value">
-                    ${viewportStats.meanQualEmissions != null ? viewportStats.meanQualEmissions.toFixed(2) : '—'}
-                  </span>
-                  <span class="cluster-stat-dot"
-                    style="background:${qualifColor(viewportStats.meanQualEmissions)};"></span>
-                </div>
-              </div>
-              ${clusterColorRamp(viewportStats.meanQualEmissions, 'qual')}
-            </div>
-            <div class="cluster-stat-col">
-              <div class="cluster-stat-cell">
-                <span class="cluster-stat-label">Emissions</span>
-                <div class="cluster-stat-value-row">
-                  <span class="cluster-stat-value">
-                    ${viewportStats.meanEmissionsCo2 != null
-                      ? `${viewportStats.meanEmissionsCo2.toFixed(1)} kg CO₂/m²`
-                      : '—'}
-                  </span>
-                  <span class="cluster-stat-dot"
-                    style="background:${emissionsColor(viewportStats.meanEmissionsCo2)};"></span>
-                </div>
-              </div>
-              ${clusterColorRamp(viewportStats.meanEmissionsCo2, 'emissions')}
-            </div>
-          </div><!-- /cluster-stats-area -->
-        </div><!-- /cluster-zone-layout -->
-      </div>`
-  : '';
+  return html`<div class="cluster-zone-stats">
+    <div class="cluster-row">
+      <span class="cluster-zone-title">
+        Zona d'anàlisi — <strong>${count} certificats</strong>
+      </span>
+      <span class="cluster-zone-surface">
+        Superfície total — <strong>${formatThousands(count > 0 ? viewportStats.sumMetresCadastre : 0)}m²</strong>
+      </span>
+    </div>
+    <div class="cluster-row cluster-row--controls">
+      <div class="choropleth-selector cluster-selector">
+        <p class="choropleth-selector-label">Pintat per</p>
+        ${clusterIndicatorSelect}
+      </div>
+      <div class="cluster-legend">
+        <div class="cluster-legend-header">
+          ${InfoTooltip(clusterIndicator.info)}
+          <span class="cluster-legend-label">${clusterIndicator.legendLabel}</span>
+          <span class="cluster-legend-value">${value}</span>
+        </div>
+        ${clusterColorRamp(mean, isQual ? 'qual' : 'emissions')}
+      </div>
+    </div>
+  </div>`;
+})();
 
 // Clip the threshold legend swatches to a pill shape (ticks stay unclipped)
 const roundedLegend = (svg) => {
@@ -995,10 +971,9 @@ const bodyContent = mapMode === 'cluster' ? clusterBody : choroplethBody;
 <!-- Top Card -->
 
 <div class="card glass cluster-top-card" style="margin-top:-25px; margin-bottom:25px; box-sizing:border-box;">
-  <!-- HEADER ROW: tabs + conditional pintar-per -->
+  <!-- HEADER ROW: tabs -->
   <div class="cluster-card-header">
     ${modeToggleButtons}
-    ${headerExtra}
   </div>
   ${bodyContent}
 </div>

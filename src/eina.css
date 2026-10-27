@@ -1042,11 +1042,11 @@ a.cluster-modal-ref {
   opacity: 0;
 }
 
-/* Viewport stats panel inside Top Card */
+/* Viewport stats panel inside Top Card: two rows (zone info / selector + legend) */
 .cluster-zone-stats {
-  border-top: 1px solid rgba(0, 0, 0, 0.08);
-  padding-top: 8px;
-  margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 /* ========================================
@@ -1061,89 +1061,78 @@ a.cluster-modal-ref {
   flex-wrap: wrap;
 }
 
-.cluster-pintar-per {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: var(--card-text);
-}
-
-.cluster-pintar-label {
-  white-space: nowrap;
-}
-
 /* ========================================
    Cluster Zone Stats
    ======================================== */
 
-/* Default (medium): zone info on top, 3-col stats+ramps below */
-.cluster-zone-layout {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.cluster-zone-info {
+.cluster-row {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
+  align-items: center;
   flex-wrap: wrap;
-  gap: 2px 10px;
-  font-size: 0.78rem;
-  letter-spacing: 0.05em;
+  gap: 10px 40px;
 }
 
-/* Stats area: 3 equal columns, stretches to fill parent height */
-.cluster-stats-area {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 4px 10px;
-  align-self: stretch;
+/* Selector + legend: ramp lines up with the select underline */
+.cluster-row--controls {
+  align-items: flex-end;
 }
 
-/* Each stat column: stat cell grows, ramp pins to bottom */
-.cluster-stat-col {
-  display: flex;
-  flex-direction: column;
+.cluster-zone-title,
+.cluster-zone-surface {
+  font-size: 16px;
+  font-weight: 400;
+  line-height: normal;
+  letter-spacing: -0.01em;
+  color: var(--card-text);
+}
+
+.cluster-zone-title strong,
+.cluster-zone-surface strong {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.cluster-zone-title strong {
+  text-transform: uppercase;
+}
+
+.cluster-selector {
+  flex: 0 1 270px;
   min-width: 0;
 }
 
-.cluster-stat-cell {
+.cluster-selector .choropleth-selector-label {
+  width: auto;
+}
+
+/* Legend: info + label + value on top, ramp with filled mean dot below */
+.cluster-legend {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 4px;
+  flex: 0 1 215px;
   min-width: 0;
-  flex: 1;
 }
 
-.cluster-ramp-bar {
-  margin-top: auto;
-}
-
-.cluster-stat-value-row {
+.cluster-legend-header {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 8px;
+  font-size: 12px;
+  line-height: normal;
+  color: var(--card-text);
 }
 
-.cluster-stat-label {
-  font-size: 0.78rem;
+.cluster-legend-label {
+  min-width: 0;
 }
 
-.cluster-stat-cell .cluster-stat-value {
-  font-weight: 600;
-  font-size: 0.92rem;
+.cluster-legend-value {
+  margin-left: auto;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
-}
-
-.cluster-stat-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  display: inline-block;
 }
 
 /* ========================================
@@ -1155,23 +1144,22 @@ a.cluster-modal-ref {
   border-radius: 3px;
   position: relative;
   overflow: visible;
-  margin-top: 12px;
 }
 
 .cluster-ramp-dot {
   position: absolute;
-  width: 8px;
-  height: 8px;
+  width: 11px;
+  height: 11px;
+  box-sizing: border-box;
   border-radius: 50%;
-  background: #fff;
-  border: 1.5px solid rgba(0, 0, 0, 0.5);
+  border: 2px solid #fff;
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
   top: 50%;
   transform: translate(-50%, -50%);
 }
 
 /* ========================================
-   Large screens (≥800px): single row
-   zone info left + 3 stat cols right
+   Large screens (≥800px)
    ======================================== */
 
 @media (min-width: 800px) {
@@ -1181,29 +1169,17 @@ a.cluster-modal-ref {
   }
 
   .cluster-top-card.cluster-mode {
-    width: auto !important;
-    max-width: calc(70vw - 2rem) !important;
+    width: 580px !important;
+    max-width: calc(100vw - 4rem) !important;
   }
 
-  .cluster-zone-layout {
-    flex-direction: row;
-    align-items: stretch;
-    gap: 16px;
+  .cluster-row {
+    flex-wrap: nowrap;
   }
 
-  .cluster-zone-info {
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: flex-start;
-    gap: 4px;
-    flex: 1;
-    flex-shrink: 0;
-    min-width: 160px;
-  }
-
-  .cluster-stats-area {
-    flex: 3;
-    gap: 24px;
+  .cluster-zone-title,
+  .cluster-zone-surface {
+    white-space: nowrap;
   }
 }
 
@@ -1297,31 +1273,25 @@ a.cluster-modal-ref {
     font-size: 10px;
   }
 
-  /* Single column stats, each as a horizontal label + value row */
-  .cluster-stats-area {
-    grid-template-columns: 1fr;
-    gap: 3px;
-  }
-
-  .cluster-stat-col {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
+  /* Cluster rows stack; legend takes full width */
+  .cluster-row {
+    flex-direction: column;
+    align-items: stretch;
     gap: 8px;
   }
 
-  /* Hide ramps on small screens */
-  .cluster-ramp-bar {
-    display: none;
+  .cluster-selector,
+  .cluster-legend {
+    flex: 1 1 auto;
   }
 
-  /* Stat cell: label left, value+dot right */
-  .cluster-stat-cell {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    gap: 8px;
-    flex: 1;
+  .cluster-zone-title,
+  .cluster-zone-surface {
+    font-size: 12px;
+  }
+
+  .cluster-legend-header {
+    font-size: 10px;
   }
 
   /* Reduce space between top card and region card */

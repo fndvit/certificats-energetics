@@ -11,9 +11,33 @@ const LAYER_IDS = [
 ];
 
 export const clusterIndicatorsMeta = [
-  { key: 'qual_energia', name: 'Qualificació energètica', units: '(1–7)', type: 'qual' },
-  { key: 'qual_emissions', name: "Qualificació d'emissions", units: '(1–7)', type: 'qual' },
-  { key: 'emissions_de_co2', name: 'Emissions de CO₂', units: 'kg CO₂/m²', type: 'continuous' }
+  {
+    key: 'qual_energia',
+    name: 'Qualificació energètica',
+    units: '(1–7)',
+    type: 'qual',
+    statKey: 'meanQualEnergia',
+    legendLabel: "Qualificació mitjana d'energia",
+    info: "Mitjana de la qualificació energètica (1 = A, 7 = G) dels certificats dins la zona d'anàlisi."
+  },
+  {
+    key: 'qual_emissions',
+    name: "Qualificació d'emissions",
+    units: '(1–7)',
+    type: 'qual',
+    statKey: 'meanQualEmissions',
+    legendLabel: "Qualificació mitjana d'emissions",
+    info: "Mitjana de la qualificació d'emissions (1 = A, 7 = G) dels certificats dins la zona d'anàlisi."
+  },
+  {
+    key: 'emissions_de_co2',
+    name: 'Emissions de CO₂',
+    units: 'kg CO₂/m²',
+    type: 'continuous',
+    statKey: 'meanEmissionsCo2',
+    legendLabel: "Mitjana d'emissions (kg CO₂/m²)",
+    info: "Mitjana de les emissions de CO₂ per unitat de superfície (kg CO₂/m²) dels certificats dins la zona d'anàlisi."
+  }
 ];
 
 const belowRoadsOpacity = [
