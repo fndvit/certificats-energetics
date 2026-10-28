@@ -39,7 +39,9 @@ npm run deploy     # Deploy to Observable
 
 3. **Pages** in `src/`:
    - `index.md` — Landing page
-   - `observatori.md` — Observatory view
+   - `codi.md` — Project development info (placeholder)
+   - `metodologia.md` — Methodology (placeholder)
+   - The Observatory dashboard is archived at `archive/observatori.md` (outside `src/`, so it isn't built). To restore it, move it back to `src/`; its relative paths (`./data/`, `./components/`, `./dashboard.css`) assume it lives there.
    - `eina.md` — Decision tool (main interactive page)
 
 ### Map Architecture
